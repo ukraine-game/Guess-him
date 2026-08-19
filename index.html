@@ -164,7 +164,6 @@
         }
         .input-group input:focus { border-color: var(--primary); }
 
-        /* Кастомний випадаючий список */
         .custom-select-trigger {
             width: 100%; padding: 16px 20px; border-radius: 16px;
             background: var(--surface); border: 1px solid var(--border);
@@ -196,7 +195,6 @@
         .btn-main:active { transform: scale(0.96); background: var(--primary-dark); }
         [data-theme="dark"] .btn-main, [data-theme="blue"] .btn-main { color: #000; }
 
-        /* Кроппер фото двома пальцями */
         #crop-overlay {
             position: absolute; inset: 0; background: var(--bg);
             z-index: 35000; display: flex; flex-direction: column; align-items: center;
@@ -220,7 +218,6 @@
         .crop-area img { position: absolute; transform-origin: center; cursor: grab; user-select: none; }
         .crop-footer { width: 100%; padding: 20px 24px calc(24px + env(safe-area-inset-bottom)); }
 
-        /* Toast повідомлення про помилку заблокованого рівня */
         .toast-notification {
             position: fixed;
             top: 24px;
@@ -245,7 +242,6 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        /* Хедера і навігація */
         .top-header {
             padding: calc(16px + env(safe-area-inset-top)) 24px 16px;
             background: var(--surface); display: flex; justify-content: space-between;
@@ -270,7 +266,6 @@
         }
         .tab-content.active { display: block; }
 
-        /* Рівні */
         .level-chain { display: flex; flex-direction: column; align-items: center; position: relative; gap: 50px; }
         .chain-line { position: absolute; top: 20px; bottom: 20px; width: 2px; background: var(--border); z-index: 1; }
         
@@ -291,7 +286,6 @@
             transform: scale(1.15) translateX(calc(var(--offset) * 0.8));
         }
 
-        /* Нижня панель */
         .bottom-nav {
             position: absolute; bottom: calc(20px + env(safe-area-inset-bottom));
             left: 50%; transform: translateX(-50%); width: calc(100% - 48px);
@@ -309,7 +303,6 @@
         .nav-item svg { stroke: currentColor; transition: 0.3s; width: 22px; height: 22px; }
         .nav-text { font-size: 11px; font-weight: 600; }
 
-        /* Завдання та анімація зникнення */
         .task-card {
             background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
             padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 15px var(--shadow);
@@ -345,7 +338,6 @@
             border-radius: 4px; box-shadow: 0 0 10px var(--primary);
         }
 
-        /* Quiz Modal */
         .quiz-modal {
             position: absolute; inset: 0; background: var(--modal-bg);
             backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
@@ -375,7 +367,6 @@
         .quiz-option-btn.correct { background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important; }
         .quiz-option-btn.wrong { background: #ff3b30 !important; color: #fff !important; border-color: #ff3b30 !important; }
 
-        /* Bottom Sheet */
         .sheet-overlay, .settings-modal {
             position: absolute; inset: 0; background: var(--modal-bg);
             backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
@@ -472,7 +463,7 @@
             <div class="dropdown-list" id="club-list-container"></div>
         </div>
 
-        <!-- КРОППЕР ФОТО (ДВОМА ПАЛЬЦЯМИ) -->
+        <!-- КРОППЕР ФОТО -->
         <div id="crop-overlay">
             <div class="crop-top-bar">
                 <span>Збільште та вирівняйте фото</span>
@@ -486,11 +477,11 @@
             </div>
         </div>
 
-        <!-- QUIZ МОДАЛКА ДЛЯ РІВНІВ -->
+        <!-- QUIZ МОДАЛКА -->
         <div class="quiz-modal" id="quiz-modal">
             <div class="quiz-card">
                 <div class="quiz-img-box">
-                    <img id="quiz-img" src="" alt="Фото футболіста" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23717680\' stroke-width=\'2\'><circle cx=\'12\' cy=\'12\' r=\'10\'/><path d=\'M12 8v4l3 3\'/></svg>'">
+                    <img id="quiz-img" src="" alt="Фото футболіста">
                 </div>
                 <div class="quiz-question" id="quiz-question-text">Завантаження питання...</div>
                 <div class="quiz-options" id="quiz-options-container"></div>
@@ -555,7 +546,7 @@
             </nav>
         </div>
 
-        <!-- ІНФО ПРО РІВЕНЬ (BOTTOM SHEET) -->
+        <!-- ІНФО ПРО РІВЕНЬ -->
         <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
         <div class="bottom-sheet" id="bottom-sheet">
             <div class="sheet-handle"></div>
@@ -574,7 +565,7 @@
             <button class="btn-main" onclick="startCurrentLevelQuiz()">Почати рівень</button>
         </div>
 
-        <!-- НАЛАШТУВАННЯ ТА РЕДАГУВАННЯ ПРОФІЛЮ -->
+        <!-- НАЛАШТУВАННЯ -->
         <div class="settings-modal" id="settings-modal">
             <div class="settings-content">
                 <div class="settings-header">
@@ -632,25 +623,6 @@
             "Металіст 1925", "Оболонь", "Полісся", "Чорноморець", "Шахтар"
         ];
 
-        // Резервна база питань для рівнів (якщо файли зчитати не вдасться в локальному середовищі)
-        const FALLBACK_QUESTIONS = {
-            1: `"Що це за футболіст?", "Кріштіану Роналду", "Ліонель Мессі", "Неймар Джуніор", 2, 1, 10`,
-            2: `"У якому клубі грав Андрій Шевченко найуспішніше?", "Мілан", "Реал Мадрид", "Челсі", 1, 1, 15`,
-            3: `"Хто виграв чемпіонат світу з футболу у 2022 році?", "Франція", "Аргентина", "Бразилія", 2, 2, 20`,
-            4: `"Який український клуб виграв Кубок УЄФА у 2009 році?", "Динамо Київ", "Шахтар Донецьк", "Дніпро", 2, 2, 25`,
-            5: `"Хто володар Золотого м'яча 2023?", "Ерлінг Голанд", "Кіліан Мбаппе", "Ліонель Мессі", 3, 3, 30`,
-            6: `"Скільки гравців на полі в одній футбольній команді?", "10", "11", "12", 2, 1, 35`,
-            7: `"Яка з цих збірних є чотириразовим чемпіоном світу?", "Німеччина", "Італія", "Обидві", 3, 3, 40`,
-            8: `"Хто є найкращим бомбардиром в історії Ліги чемпіонів УЄФА?", "Ліонель Мессі", "Кріштіану Роналду", "Роберт Лєвандовскі", 2, 2, 45`,
-            9: `"Який стадіон є домашньою ареною клубу Барселона?", "Сантьяго Бернабеу", "Камп Ноу", "Ванда Метрополітано", 2, 2, 50`,
-            10: `"Хто тренував збірну України під час Євро-2020?", "Андрій Шевченко", "Олександр Петраков", "Сергій Ребров", 1, 3, 60`,
-            11: `"Яка національна збірна має найбільше титулів Чемпіона світу?", "Бразилія", "Німеччина", "Аргентина", 1, 2, 70`,
-            12: `"Хто забив переможний гол у фіналі ЧС-2014?", "Маріо Гетце", "Ліонель Мессі", "Томас Мюллер", 1, 4, 80`,
-            13: `"Який клуб називають 'Вершковими'?", "Реал Мадрид", "Ювентус", "Ліверпуль", 1, 2, 90`,
-            14: `"Хто виграв Євро-2020?", "Англія", "Італія", "Іспанія", 2, 3, 100`,
-            15: `"Скільки разів збірна України грала у чвертьфіналі Євро?", "1", "2", "0", 1, 4, 120`
-        };
-
         const STORAGE_KEY = 'football_career_save_v3';
         
         function getDeviceId() {
@@ -692,7 +664,6 @@
             location.reload();
         }
 
-        // Toast сповіщення
         let toastTimeout = null;
         function showToast(text) {
             const toast = document.getElementById('toast-notification');
@@ -704,7 +675,6 @@
             }, 3000);
         }
 
-        // Ініціалізація списку клубів
         function initClubDropdown() {
             const container = document.getElementById('club-list-container');
             container.innerHTML = '';
@@ -807,7 +777,6 @@
             setupProfileUI();
         }
 
-        // КРОППЕР ФОТО (ДВОМА ПАЛЬЦЯМИ)
         let cropUrl = '';
         let currentX = 0, currentY = 0, cropScale = 1;
         const cropImage = document.getElementById('crop-image');
@@ -925,7 +894,6 @@
             startSessionTimer();
         }
 
-        // РІВНІ ТА ПЕРЕВІРКА БЛОКУВАННЯ
         function generateLevels() {
             const chainContainer = document.getElementById('level-chain');
             chainContainer.innerHTML = '<div class="chain-line"></div>';
@@ -958,7 +926,6 @@
 
         function handleLevelClick(levelNum) {
             if (levelNum > userData.level) {
-                // Якщо не пройдено попередні рівні
                 showToast(`${userData.level} рівень ще не пройдено!`);
                 return;
             }
@@ -981,43 +948,48 @@
             document.getElementById('bottom-sheet').classList.remove('active');
         }
 
-        // ЗАВАНТАЖЕННЯ ДАНИХ ПИТАНЬ З .TXT ТА ЗОБРАЖЕНЬ З img/footboler/
+        // ЧИТАННЯ ФАЙЛІВ (.png та .txt)
         async function startCurrentLevelQuiz() {
             closeSheet();
             const level = selectedLevelNum;
             const txtPath = `img/footboler/${level}.txt`;
             const imgPath = `img/footboler/${level}.png`;
 
-            let rawText = '';
             try {
-                const res = await fetch(txtPath);
-                if (res.ok) {
-                    rawText = await res.text();
-                } else {
-                    rawText = FALLBACK_QUESTIONS[level] || FALLBACK_QUESTIONS[1];
+                const resTxt = await fetch(txtPath);
+                if (!resTxt.ok) {
+                    showToast("Цей рівень не було створено, або виникла помилка!");
+                    return;
                 }
+                const rawText = await resTxt.text();
+
+                const resImg = await fetch(imgPath);
+                if (!resImg.ok) {
+                    showToast("Цей рівень не було створено, або виникла помилка!");
+                    return;
+                }
+
+                const parsed = parseQuestionFileText(rawText);
+                
+                document.getElementById('quiz-img').src = imgPath;
+                document.getElementById('quiz-question-text').textContent = parsed.question;
+
+                const optionsContainer = document.getElementById('quiz-options-container');
+                optionsContainer.innerHTML = '';
+
+                parsed.options.forEach((opt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'quiz-option-btn';
+                    btn.textContent = opt;
+                    btn.onclick = () => checkQuizAnswer(idx + 1, parsed.correctIndex, parsed.points);
+                    optionsContainer.appendChild(btn);
+                });
+
+                document.getElementById('quiz-modal').classList.add('active');
+
             } catch (err) {
-                rawText = FALLBACK_QUESTIONS[level] || FALLBACK_QUESTIONS[1];
+                showToast("Цей рівень не було створено, або виникла помилка!");
             }
-
-            const parsed = parseQuestionFileText(rawText);
-            
-            // Встановлюємо зображення та питання
-            document.getElementById('quiz-img').src = imgPath;
-            document.getElementById('quiz-question-text').textContent = parsed.question;
-
-            const optionsContainer = document.getElementById('quiz-options-container');
-            optionsContainer.innerHTML = '';
-
-            parsed.options.forEach((opt, idx) => {
-                const btn = document.createElement('button');
-                btn.className = 'quiz-option-btn';
-                btn.textContent = opt;
-                btn.onclick = () => checkQuizAnswer(idx + 1, parsed.correctIndex, parsed.points);
-                optionsContainer.appendChild(btn);
-            });
-
-            document.getElementById('quiz-modal').classList.add('active');
         }
 
         function parseQuestionFileText(text) {
@@ -1064,8 +1036,7 @@
             }, 1000);
         }
 
-        // ЗАВДАННЯ ТА СЕСІЯ (20 хв)
-        const TOTAL_SESSION_SECONDS = 20 * 60; // 20 хвилин
+        const TOTAL_SESSION_SECONDS = 20 * 60;
 
         function startSessionTimer() {
             setInterval(() => {
@@ -1114,13 +1085,11 @@
             }
 
             if (!userData.tasksCompleted[index]) {
-                // Переводимо у статус "Отримати"
                 userData.tasksCompleted[index] = true;
                 btn.textContent = 'Отримати';
                 btn.classList.add('claim');
                 saveData();
             } else if (!userData.tasksClaimed[index]) {
-                // Натиснуто "Отримати" -> Нараховуємо бали та анімуємо зникнення картки в бік
                 userData.tasksClaimed[index] = true;
                 let rewards = [20, 35, 50, 50];
                 userData.score += rewards[index];
@@ -1141,7 +1110,7 @@
             if (userData.tasksClaimed.every(val => val === true)) {
                 document.getElementById('tasks-finished-msg').style.display = 'block';
                 if (!userData.tasksTimestamp) {
-                    userData.tasksTimestamp = Date.now() + (3 * 60 * 60 * 1000); // 3 години
+                    userData.tasksTimestamp = Date.now() + (3 * 60 * 60 * 1000);
                     saveData();
                 }
             }
@@ -1156,7 +1125,6 @@
             }
         }
 
-        // Таймер 3 години для оновлення завдань
         setInterval(() => {
             if (userData.tasksTimestamp) {
                 let diff = userData.tasksTimestamp - Date.now();
@@ -1189,7 +1157,7 @@
             let allClaimed = true;
 
             tasksData.forEach((task, index) => {
-                if (userData.tasksClaimed[index]) return; // Якщо вже забрано, не рендеримо
+                if (userData.tasksClaimed[index]) return;
                 allClaimed = false;
 
                 const card = document.createElement('div');
@@ -1237,7 +1205,6 @@
             updateSessionProgressUI();
         }
 
-        // НАВІГАЦІЯ ТА ТЕМИ
         function switchTab(tabId, element) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
