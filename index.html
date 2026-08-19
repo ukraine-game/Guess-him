@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Football Career Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- ТЕМИ --- */
+        :root {
+            /* Light (Default) */
+            --bg: #F4F6F8;
+            --surface: #FFFFFF;
+            --text-main: #111418;
+            --text-sec: #717680;
+            --primary: #00D26A;
+            --primary-dark: #00B35A;
+            --border: #E5E7EB;
+            --shadow: rgba(0, 0, 0, 0.06);
+            --nav-bg: rgba(255, 255, 255, 0.85);
+            --modal-bg: rgba(0,0,0,0.3);
+            --splash-bg: #FFFFFF;
+        }
+        
+        [data-theme="dark"] {
+            --bg: #111315;
+            --surface: #1A1D21;
+            --text-main: #F8F9FA;
+            --text-sec: #9AA0A6;
+            --primary: #00E676;
+            --primary-dark: #00C853;
+            --border: #2D3136;
+            --shadow: rgba(0, 0, 0, 0.4);
+            --nav-bg: rgba(26, 29, 33, 0.85);
+            --modal-bg: rgba(0,0,0,0.6);
+            --splash-bg: #111315;
+        }
+
+        [data-theme="blue"] {
+            --bg: #0A192F;
+            --surface: #112240;
+            --text-main: #E6F1FF;
+            --text-sec: #8892B0;
+            --primary: #64FFDA;
+            --primary-dark: #1DE9B6;
+            --border: #233554;
+            --shadow: rgba(2, 12, 27, 0.7);
+            --nav-bg: rgba(17, 34, 64, 0.85);
+            --modal-bg: rgba(10,25,47,0.7);
+            --splash-bg: #0A192F;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s, fill 0.3s;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            overflow: hidden;
+            overscroll-behavior-y: none;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 390px;
+            height: 100dvh;
+            position: relative;
+            overflow: hidden;
+            background: var(--bg);
+        }
+
+        /* --- СИСТЕМА ЕКРАНІВ --- */
+        .screen {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            transform: scale(0.98);
+            z-index: 1;
+        }
+        .screen.active {
+            opacity: 1;
+            pointer-events: all;
+            transform: scale(1);
+        }
+
+        /* --- SPLASH ЕКРАН (ВІТАЛЬНИЙ) --- */
+        #splash-screen {
+            background: var(--splash-bg);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            transform: translateY(0);
+        }
+        #splash-screen.fade-out {
+            opacity: 0;
+            transform: scale(1.05);
+            pointer-events: none;
+        }
+        .splash-content {
+            text-align: center;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: splashIn 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 0.2s;
+        }
+        .splash-title {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 8px;
+        }
+        .splash-subtitle {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        @keyframes splashIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- ЕКРАН АВТОРИЗАЦІЇ --- */
+        .auth-container {
+            padding: 40px 24px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            justify-content: center;
+        }
+        .auth-header { text-align: center; margin-bottom: 40px; }
+        .auth-header h1 { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+        
+        .avatar-upload {
+            align-self: center;
+            margin-bottom: 30px;
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 2px dashed var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+            box-shadow: 0 8px 20px var(--shadow);
+        }
+        .avatar-upload img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .avatar-upload svg { color: var(--text-sec); width: 32px; height: 32px; }
+
+        .input-group { margin-bottom: 20px; }
+        .input-group input, .input-group select {
+            width: 100%; padding: 18px 20px; border-radius: 16px;
+            background: var(--surface); border: 1px solid var(--border);
+            color: var(--text-main); font-size: 16px; font-weight: 500;
+            outline: none; box-shadow: 0 4px 12px var(--shadow); appearance: none;
+        }
+        .input-group input:focus, .input-group select:focus { border-color: var(--primary); }
+
+        .btn-main {
+            background: var(--primary); color: #fff; border: none;
+            padding: 20px; border-radius: 16px; font-size: 18px; font-weight: 700;
+            cursor: pointer; box-shadow: 0 10px 25px rgba(0, 210, 106, 0.3);
+            transition: 0.2s; text-align: center; width: 100%;
+        }
+        .btn-main:active { transform: scale(0.96); background: var(--primary-dark); }
+        [data-theme="dark"] .btn-main, [data-theme="blue"] .btn-main { color: #000; }
+
+        /* --- КАДРУВАННЯ ФОТО --- */
+        #crop-overlay {
+            position: absolute; inset: 0; background: var(--bg);
+            z-index: 10000; display: flex; flex-direction: column; align-items: center;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        #crop-overlay.active { opacity: 1; pointer-events: all; }
+        .crop-header { width: 100%; padding: calc(20px + env(safe-area-inset-top)) 20px 20px; text-align: center; font-weight: 600; }
+        .crop-area {
+            width: 300px; height: 300px; border-radius: 50%;
+            border: 4px solid var(--primary); position: relative; overflow: hidden;
+            margin: 40px 0; box-shadow: 0 0 0 1000px var(--modal-bg); touch-action: none;
+        }
+        .crop-area img { position: absolute; transform-origin: center; cursor: grab; }
+        .crop-controls { width: 80%; display: flex; flex-direction: column; gap: 20px; }
+
+        /* --- ГОЛОВНИЙ ЕКРАН --- */
+        .top-header {
+            padding: calc(16px + env(safe-area-inset-top)) 24px 16px;
+            background: var(--surface); display: flex; justify-content: space-between;
+            align-items: center; border-bottom: 1px solid var(--border);
+            box-shadow: 0 4px 20px var(--shadow); z-index: 10; position: relative;
+        }
+        .profile-trigger { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .mini-avatar {
+            width: 44px; height: 44px; border-radius: 50%; background-color: var(--primary);
+            background-size: cover; background-position: center; box-shadow: 0 4px 10px var(--shadow);
+            display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff;
+        }
+        .profile-info .label { font-size: 12px; color: var(--text-sec); font-weight: 600; text-transform: uppercase; }
+        .profile-info .name { font-size: 16px; font-weight: 700; }
+        
+        .score-box { text-align: right; }
+        .score-val { font-size: 20px; font-weight: 800; color: var(--primary); }
+        .score-label { font-size: 12px; color: var(--text-sec); font-weight: 500; }
+
+        .tab-content {
+            display: none; height: calc(100% - 76px); overflow-y: auto; padding: 24px 24px 120px;
+        }
+        .tab-content.active { display: block; }
+
+        /* --- РІВНІ --- */
+        .level-chain { display: flex; flex-direction: column; align-items: center; position: relative; gap: 50px; }
+        .chain-line { position: absolute; top: 20px; bottom: 20px; width: 2px; background: var(--border); z-index: 1; }
+        .level-node {
+            width: 60px; height: 60px; border-radius: 50%; background: var(--surface);
+            border: 2px solid var(--border); z-index: 2; display: flex; align-items: center;
+            justify-content: center; font-size: 20px; font-weight: 700; color: var(--text-sec);
+            position: relative; box-shadow: 0 4px 15px var(--shadow); transition: 0.3s;
+            transform: scale(0); cursor: pointer;
+        }
+        .level-node:active { transform: scale(0.9) !important; }
+        
+        .level-node:nth-child(odd) { --offset: -40px; }
+        .level-node:nth-child(even) { --offset: 40px; }
+
+        .level-node.completed { background: var(--primary); border-color: var(--primary); color: #fff; }
+        .level-node.current {
+            background: var(--surface); border: 3px solid var(--primary); color: var(--text-main);
+            box-shadow: 0 0 0 6px rgba(0, 210, 106, 0.15); 
+        }
+
+        @keyframes popInNode {
+            to { transform: scale(1) translateX(var(--offset)); }
+        }
+        @keyframes popInCurrent {
+            to { transform: scale(1.15) translateX(calc(var(--offset) * 0.8)); }
+        }
+
+        /* --- BOTTOM NAV --- */
+        .bottom-nav {
+            position: absolute; bottom: calc(24px + env(safe-area-inset-bottom));
+            left: 50%; transform: translateX(-50%); width: calc(100% - 48px);
+            height: 64px; border-radius: 20px; background: var(--nav-bg);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            display: flex; justify-content: space-around; align-items: center;
+            box-shadow: 0 10px 30px var(--shadow); border: 1px solid var(--border); z-index: 10;
+        }
+        .nav-item {
+            color: var(--text-sec); display: flex; align-items: center; justify-content: center;
+            width: 50px; height: 50px; border-radius: 16px; transition: 0.2s; cursor: pointer;
+        }
+        .nav-item.active { color: var(--primary); background: rgba(0, 210, 106, 0.1); }
+        .nav-item svg { stroke: currentColor; transition: 0.3s; }
+
+        /* --- BOTTOM SHEET (ІНФО РІВНЯ) --- */
+        .sheet-overlay {
+            position: absolute; inset: 0; background: var(--modal-bg);
+            backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+            z-index: 100; opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .sheet-overlay.active { opacity: 1; pointer-events: all; }
+        
+        .bottom-sheet {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: var(--surface); border-radius: 28px 28px 0 0;
+            padding: 24px 24px calc(30px + env(safe-area-inset-bottom));
+            z-index: 101; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-shadow: 0 -10px 40px var(--shadow); border-top: 1px solid var(--border);
+        }
+        .bottom-sheet.active { transform: translateY(0); }
+        
+        .sheet-handle {
+            width: 40px; height: 5px; background: var(--border); border-radius: 3px;
+            margin: 0 auto 20px;
+        }
+        .sheet-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+        .sheet-desc { color: var(--text-sec); margin-bottom: 24px; font-size: 15px; line-height: 1.5; }
+        
+        .sheet-stats {
+            display: flex; gap: 12px; margin-bottom: 24px;
+        }
+        .stat-box {
+            flex: 1; background: var(--bg); padding: 16px; border-radius: 16px;
+            text-align: center; border: 1px solid var(--border);
+        }
+        .stat-label { font-size: 12px; color: var(--text-sec); margin-bottom: 4px; font-weight: 600; }
+        .stat-value { font-size: 16px; font-weight: 700; color: var(--primary); }
+
+        /* --- НАЛАШТУВАННЯ (MODAL) --- */
+        .settings-modal {
+            position: absolute; inset: 0; background: var(--modal-bg); z-index: 200;
+            display: flex; flex-direction: column; justify-content: flex-end;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .settings-modal.active { opacity: 1; pointer-events: all; }
+        .settings-content {
+            background: var(--surface); border-radius: 24px 24px 0 0;
+            padding: 30px 24px calc(30px + env(safe-area-inset-bottom));
+            transform: translateY(100%); transition: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            border-top: 1px solid var(--border);
+        }
+        .settings-modal.active .settings-content { transform: translateY(0); }
+        .settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; font-size: 20px; font-weight: 700; }
+        .close-btn {
+            background: var(--bg); border: none; width: 32px; height: 32px;
+            border-radius: 50%; color: var(--text-main); font-size: 18px; cursor: pointer;
+        }
+        .theme-options { display: flex; gap: 12px; margin-top: 10px; }
+        .theme-btn {
+            flex: 1; padding: 16px 0; border-radius: 12px; border: 2px solid var(--border);
+            background: transparent; font-weight: 600; cursor: pointer; color: var(--text-sec); transition: 0.2s;
+        }
+        .theme-btn.active { border-color: var(--primary); color: var(--text-main); background: rgba(0, 210, 106, 0.05); }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- SPLASH SCREEN -->
+        <div id="splash-screen" class="screen">
+            <div class="splash-content">
+                <div class="splash-title">Вітаємо, <span id="splash-name-display"></span>!</div>
+                <div class="splash-subtitle">Завантаження кар'єри...</div>
+            </div>
+        </div>
+
+        <!-- АВТОРИЗАЦІЯ -->
+        <div id="auth-screen" class="screen">
+            <div class="auth-container">
+                <div class="auth-header">
+                    <h1>FOOTBALL<br>CAREER</h1>
+                </div>
+                
+                <label class="avatar-upload" id="avatar-preview-container">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                    <img id="final-avatar-img">
+                    <input type="file" id="file-input" accept="image/*" style="display:none;">
+                </label>
+                
+                <div class="input-group">
+                    <input type="text" id="first-name" placeholder="Ім'я гравця" autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <input type="text" id="last-name" placeholder="Прізвище" autocomplete="off">
+                </div>
+
+                <div class="input-group">
+                    <select id="favorite-club">
+                        <option value="" disabled selected>Улюблений клуб...</option>
+                        <option value="epicentr">ФК «Епіцентр»</option>
+                        <option value="dynamo">Динамо Київ</option>
+                        <option value="shakhtar">Шахтар Донецьк</option>
+                        <option value="polissya">Полісся</option>
+                        <option value="karpaty">Карпати</option>
+                    </select>
+                </div>
+
+                <button class="btn-main" onclick="registerUser()">ПОЧАТИ КАР'ЄРУ</button>
+            </div>
+        </div>
+
+        <!-- КРОП ФОТО -->
+        <div id="crop-overlay">
+            <div class="crop-header">Вирівняйте фото</div>
+            <div class="crop-area" id="crop-area">
+                <img id="crop-image" src="" alt="">
+            </div>
+            <div class="crop-controls">
+                <input type="range" id="zoom-slider" min="0.5" max="3" step="0.05" value="1" style="width: 100%; accent-color: var(--primary);">
+                <button class="btn-main" onclick="applyCrop()">Готово</button>
+            </div>
+        </div>
+
+        <!-- ГОЛОВНА -->
+        <div id="main-screen" class="screen">
+            
+            <div class="top-header">
+                <div class="profile-trigger" onclick="openSettings()">
+                    <div class="mini-avatar" id="top-avatar"></div>
+                    <div class="profile-info">
+                        <div class="label">Кар'єра</div>
+                        <div class="name" id="display-name">Гравець</div>
+                    </div>
+                </div>
+                <div class="score-box">
+                    <div class="score-val" id="display-score">0</div>
+                    <div class="score-label">Балів</div>
+                </div>
+            </div>
+
+            <div id="tab-home" class="tab-content active">
+                <div class="level-chain" id="level-chain">
+                    <div class="chain-line"></div>
+                </div>
+            </div>
+
+            <div id="tab-shop" class="tab-content">
+                <h2 style="margin: 20px 0; text-align: center;">Магазин</h2>
+                <div style="background: var(--surface); padding: 40px 20px; border-radius: 24px; text-align: center; border: 1px solid var(--border);">
+                    <p style="color: var(--text-sec);">Скоро тут будуть нові нагороди.</p>
+                </div>
+            </div>
+
+            <nav class="bottom-nav">
+                <div class="nav-item active" onclick="switchTab('home', this)">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                </div>
+                <div class="nav-item" onclick="switchTab('shop', this)">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                </div>
+            </nav>
+        </div>
+
+        <!-- BOTTOM SHEET (ІНФО ПРО РІВЕНЬ) -->
+        <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
+        <div class="bottom-sheet" id="bottom-sheet">
+            <div class="sheet-handle"></div>
+            <h3 class="sheet-title" id="sheet-title">Рівень 1</h3>
+            <p class="sheet-desc">Вгадайте, в якому клубі грає цей футболіст. З кожним рівнем завдання стає важчим.</p>
+            
+            <div class="sheet-stats">
+                <div class="stat-box">
+                    <div class="stat-label">Складність</div>
+                    <div class="stat-value" id="sheet-diff">⭐</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Нагорода</div>
+                    <div class="stat-value" id="sheet-reward">+50 балів</div>
+                </div>
+            </div>
+            
+            <button class="btn-main" onclick="startLevelPlay()">Грати</button>
+        </div>
+
+        <!-- НАЛАШТУВАННЯ -->
+        <div class="settings-modal" id="settings-modal">
+            <div class="settings-content">
+                <div class="settings-header">
+                    <span>Налаштування</span>
+                    <button class="close-btn" onclick="closeSettings()">✕</button>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <div style="font-size: 14px; color: var(--text-sec); margin-bottom: 10px;">Тема оформлення</div>
+                    <div class="theme-options">
+                        <button class="theme-btn" id="theme-btn-light" onclick="setTheme('light')">Біла</button>
+                        <button class="theme-btn" id="theme-btn-dark" onclick="setTheme('dark')">Чорна</button>
+                        <button class="theme-btn" id="theme-btn-blue" onclick="setTheme('blue')">Синя</button>
+                    </div>
+                </div>
+
+                <div class="input-group" style="margin-top: 30px;">
+                    <button class="btn-main" style="width: 100%; background: #ff3b30; color: #fff; box-shadow: none;" onclick="logout()">Скинути прогрес</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. СИСТЕМА ЗБЕРЕЖЕННЯ ДАНИХ (LocalStorage + Device ID) ---
+        const STORAGE_KEY = 'football_career_save';
+        
+        // Генерація унікального ID браузера (заміна перевірки IP)
+        function getDeviceId() {
+            let id = localStorage.getItem('device_fingerprint');
+            if (!id) {
+                id = 'dev_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+                localStorage.setItem('device_fingerprint', id);
+            }
+            return id;
+        }
+
+        let userData = {
+            name: '', lastName: '', club: '', avatar: '', 
+            level: 1, score: 0, theme: 'light', deviceId: getDeviceId()
+        };
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                // Перевірка надійності: чи збігається пристрій
+                if(parsed.deviceId === getDeviceId()) {
+                    userData = parsed;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function logout() {
+            localStorage.removeItem(STORAGE_KEY);
+            location.reload(); // Перезавантаження сторінки
+        }
+
+        // --- 2. ІНІЦІАЛІЗАЦІЯ ДОДАТКУ ---
+        window.onload = () => {
+            const hasData = loadData();
+            
+            if (hasData) {
+                // Застосовуємо збережені налаштування
+                applyThemeStyling(userData.theme);
+                setupProfileUI();
+                
+                // Анімація привітання
+                const splash = document.getElementById('splash-screen');
+                document.getElementById('splash-name-display').textContent = userData.name;
+                splash.classList.add('active');
+                
+                setTimeout(() => {
+                    splash.classList.add('fade-out'); // Плавне зникнення
+                    document.getElementById('main-screen').classList.add('active');
+                    setTimeout(() => { splash.classList.remove('active'); }, 500);
+                    
+                    generateLevels();
+                }, 2200);
+
+            } else {
+                // Якщо немає даних - показуємо реєстрацію
+                document.getElementById('auth-screen').classList.add('active');
+            }
+        };
+
+        function setupProfileUI() {
+            document.getElementById('display-name').textContent = userData.name;
+            document.getElementById('display-score').textContent = userData.score;
+            
+            const topAvatar = document.getElementById('top-avatar');
+            if (userData.avatar) {
+                topAvatar.style.backgroundImage = `url(${userData.avatar})`;
+                topAvatar.textContent = '';
+            } else {
+                topAvatar.style.backgroundImage = 'none';
+                topAvatar.textContent = userData.name.charAt(0).toUpperCase();
+            }
+        }
+
+        // --- 3. ЛОГІКА РЕЄСТРАЦІЇ ТА КРОПУ ---
+        let cropUrl = '';
+        let currentX = 0, currentY = 0, cropScale = 1;
+        const cropImage = document.getElementById('crop-image');
+        const cropArea = document.getElementById('crop-area');
+        
+        document.getElementById('file-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    cropUrl = event.target.result;
+                    cropImage.src = cropUrl;
+                    currentX = 0; currentY = 0; cropScale = 1;
+                    document.getElementById('zoom-slider').value = 1;
+                    cropImage.style.transform = `translate(0px, 0px) scale(1)`;
+                    document.getElementById('crop-overlay').classList.add('active');
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Драг для кропу
+        let isDragging = false, startX, startY;
+        function dragStart(cx, cy) { isDragging = true; startX = cx - currentX; startY = cy - currentY; }
+        function dragging(cx, cy) { if(!isDragging) return; currentX = cx - startX; currentY = cy - startY; cropImage.style.transform = `translate(${currentX}px, ${currentY}px) scale(${cropScale})`; }
+        function dragEnd() { isDragging = false; }
+        
+        cropArea.addEventListener('touchstart', (e) => dragStart(e.touches[0].clientX, e.touches[0].clientY));
+        cropArea.addEventListener('touchmove', (e) => { e.preventDefault(); dragging(e.touches[0].clientX, e.touches[0].clientY); });
+        cropArea.addEventListener('touchend', dragEnd);
+        cropArea.addEventListener('mousedown', (e) => dragStart(e.clientX, e.clientY));
+        window.addEventListener('mousemove', (e) => dragging(e.clientX, e.clientY));
+        window.addEventListener('mouseup', dragEnd);
+
+        document.getElementById('zoom-slider').addEventListener('input', (e) => {
+            cropScale = e.target.value;
+            cropImage.style.transform = `translate(${currentX}px, ${currentY}px) scale(${cropScale})`;
+        });
+
+        function applyCrop() {
+            document.getElementById('crop-overlay').classList.remove('active');
+            const previewImg = document.getElementById('final-avatar-img');
+            previewImg.src = cropUrl;
+            previewImg.style.display = 'block';
+            
+            // Створюємо спрощений canvas для збереження кропу (оптимізація для localStorage)
+            const canvas = document.createElement('canvas');
+            canvas.width = 150; canvas.height = 150;
+            const ctx = canvas.getContext('2d');
+            // Малюємо зі зсувом і масштабом
+            ctx.translate(75, 75); // Центр
+            ctx.scale(cropScale, cropScale);
+            ctx.translate(-75, -75);
+            // Тут спрощена логіка, для ідеалу треба вираховувати пропорції, 
+            // але для прототипу збережемо оригінал, якщо canvas складний
+            userData.avatar = cropUrl; 
+        }
+
+        function registerUser() {
+            const name = document.getElementById('first-name').value.trim();
+            const club = document.getElementById('favorite-club').value;
+            
+            if(!name) { alert("Введіть ім'я!"); return; }
+            
+            userData.name = name;
+            userData.lastName = document.getElementById('last-name').value.trim();
+            userData.club = club;
+            // Avatar вже збережений в applyCrop
+            
+            saveData();
+            setupProfileUI();
+
+            document.getElementById('auth-screen').classList.remove('active');
+            document.getElementById('main-screen').classList.add('active');
+            setTimeout(generateLevels, 300);
+        }
+
+        // --- 4. ГЕНЕРАЦІЯ РІВНІВ ТА АНІМАЦІЇ ---
+        function generateLevels() {
+            const chainContainer = document.getElementById('level-chain');
+            chainContainer.innerHTML = '<div class="chain-line"></div>';
+            const totalLevels = 15; 
+
+            for (let i = 1; i <= totalLevels; i++) {
+                setTimeout(() => {
+                    const levelNode = document.createElement('div');
+                    levelNode.className = 'level-node';
+                    
+                    if (i < userData.level) {
+                        levelNode.classList.add('completed');
+                        levelNode.innerHTML = `✓`;
+                        levelNode.style.animation = `popInNode 0.4s forwards`;
+                    } else if (i === userData.level) {
+                        levelNode.classList.add('current');
+                        levelNode.textContent = i;
+                        levelNode.style.animation = `popInCurrent 0.5s forwards`;
+                    } else {
+                        levelNode.textContent = i;
+                        levelNode.style.animation = `popInNode 0.4s forwards`;
+                    }
+
+                    // Клік по рівню відкриває Bottom Sheet
+                    levelNode.onclick = () => openLevelSheet(i);
+
+                    chainContainer.appendChild(levelNode);
+                }, i * 100); 
+            }
+        }
+
+        // --- 5. BOTTOM SHEET (Меню рівня) ---
+        function openLevelSheet(levelNum) {
+            if (levelNum > userData.level) {
+                // Якщо рівень закритий
+                document.getElementById('sheet-title').textContent = `Рівень ${levelNum} (Заблоковано)`;
+                document.getElementById('sheet-diff').textContent = '🔒';
+                document.getElementById('sheet-reward').textContent = '???';
+            } else {
+                // Якщо рівень відкритий або пройдений
+                document.getElementById('sheet-title').textContent = `Рівень ${levelNum}`;
+                
+                // Розрахунок складності
+                let diff = '⭐';
+                if(levelNum > 4) diff = '⭐⭐';
+                if(levelNum > 9) diff = '⭐⭐⭐';
+                document.getElementById('sheet-diff').textContent = diff;
+                
+                document.getElementById('sheet-reward').textContent = `+${levelNum * 10} балів`;
+            }
+
+            document.getElementById('sheet-overlay').classList.add('active');
+            document.getElementById('bottom-sheet').classList.add('active');
+        }
+
+        function closeSheet() {
+            document.getElementById('sheet-overlay').classList.remove('active');
+            document.getElementById('bottom-sheet').classList.remove('active');
+        }
+
+        function startLevelPlay() {
+            alert('Запуск ігрової логіки...');
+            closeSheet();
+            // Тут можна додати логіку перемоги
+            // userData.level++;
+            // userData.score += 50;
+            // saveData();
+            // generateLevels();
+        }
+
+        // --- 6. НАЛАШТУВАННЯ ТА ТЕМИ ---
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            element.classList.add('active');
+        }
+
+        function openSettings() { document.getElementById('settings-modal').classList.add('active'); }
+        function closeSettings() { document.getElementById('settings-modal').classList.remove('active'); }
+
+        function applyThemeStyling(theme) {
+            if (theme === 'light') { document.body.removeAttribute('data-theme'); } 
+            else { document.body.setAttribute('data-theme', theme); }
+            
+            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+            const activeBtn = document.getElementById(`theme-btn-${theme}`);
+            if(activeBtn) activeBtn.classList.add('active');
+        }
+
+        function setTheme(theme) {
+            userData.theme = theme;
+            saveData();
+            applyThemeStyling(theme);
+        }
+    </script>
+</body>
+</html>
