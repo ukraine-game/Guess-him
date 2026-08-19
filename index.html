@@ -6,9 +6,7 @@
     <title>Football Career Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* --- ТЕМИ --- */
         :root {
-            /* Light (Default) */
             --bg: #F4F6F8;
             --surface: #FFFFFF;
             --text-main: #111418;
@@ -17,8 +15,8 @@
             --primary-dark: #00B35A;
             --border: #E5E7EB;
             --shadow: rgba(0, 0, 0, 0.06);
-            --nav-bg: rgba(255, 255, 255, 0.85);
-            --modal-bg: rgba(0,0,0,0.3);
+            --nav-bg: rgba(255, 255, 255, 0.9);
+            --modal-bg: rgba(0,0,0,0.4);
             --splash-bg: #FFFFFF;
         }
         
@@ -31,7 +29,7 @@
             --primary-dark: #00C853;
             --border: #2D3136;
             --shadow: rgba(0, 0, 0, 0.4);
-            --nav-bg: rgba(26, 29, 33, 0.85);
+            --nav-bg: rgba(26, 29, 33, 0.9);
             --modal-bg: rgba(0,0,0,0.6);
             --splash-bg: #111315;
         }
@@ -45,7 +43,7 @@
             --primary-dark: #1DE9B6;
             --border: #233554;
             --shadow: rgba(2, 12, 27, 0.7);
-            --nav-bg: rgba(17, 34, 64, 0.85);
+            --nav-bg: rgba(17, 34, 64, 0.9);
             --modal-bg: rgba(10,25,47,0.7);
             --splash-bg: #0A192F;
         }
@@ -56,7 +54,7 @@
             padding: 0;
             font-family: 'Inter', sans-serif;
             -webkit-tap-highlight-color: transparent;
-            transition: background-color 0.3s, color 0.3s, border-color 0.3s, fill 0.3s;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
 
         body {
@@ -77,7 +75,6 @@
             background: var(--bg);
         }
 
-        /* --- СИСТЕМА ЕКРАНІВ --- */
         .screen {
             position: absolute;
             inset: 0;
@@ -85,7 +82,7 @@
             flex-direction: column;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            transition: opacity 0.4s ease, transform 0.4s ease;
             transform: scale(0.98);
             z-index: 1;
         }
@@ -95,13 +92,11 @@
             transform: scale(1);
         }
 
-        /* --- SPLASH ЕКРАН (ВІТАЛЬНИЙ) --- */
         #splash-screen {
             background: var(--splash-bg);
             z-index: 9999;
             justify-content: center;
             align-items: center;
-            transform: translateY(0);
         }
         #splash-screen.fade-out {
             opacity: 0;
@@ -112,7 +107,7 @@
             text-align: center;
             opacity: 0;
             transform: translateY(30px);
-            animation: splashIn 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 0.2s;
+            animation: splashIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 0.1s;
         }
         .splash-title {
             font-size: 32px;
@@ -130,20 +125,20 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* --- ЕКРАН АВТОРИЗАЦІЇ --- */
         .auth-container {
             padding: 40px 24px;
             display: flex;
             flex-direction: column;
             height: 100%;
             justify-content: center;
+            overflow-y: auto;
         }
-        .auth-header { text-align: center; margin-bottom: 40px; }
+        .auth-header { text-align: center; margin-bottom: 30px; }
         .auth-header h1 { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
         
         .avatar-upload {
             align-self: center;
-            margin-bottom: 30px;
+            margin-bottom: 24px;
             position: relative;
             width: 100px;
             height: 100px;
@@ -160,41 +155,97 @@
         .avatar-upload img { width: 100%; height: 100%; object-fit: cover; display: none; }
         .avatar-upload svg { color: var(--text-sec); width: 32px; height: 32px; }
 
-        .input-group { margin-bottom: 20px; }
-        .input-group input, .input-group select {
-            width: 100%; padding: 18px 20px; border-radius: 16px;
+        .input-group { margin-bottom: 16px; }
+        .input-group input {
+            width: 100%; padding: 16px 20px; border-radius: 16px;
             background: var(--surface); border: 1px solid var(--border);
             color: var(--text-main); font-size: 16px; font-weight: 500;
-            outline: none; box-shadow: 0 4px 12px var(--shadow); appearance: none;
+            outline: none; box-shadow: 0 4px 12px var(--shadow);
         }
-        .input-group input:focus, .input-group select:focus { border-color: var(--primary); }
+        .input-group input:focus { border-color: var(--primary); }
+
+        /* Кастомний випадаючий список */
+        .custom-select-trigger {
+            width: 100%; padding: 16px 20px; border-radius: 16px;
+            background: var(--surface); border: 1px solid var(--border);
+            color: var(--text-main); font-size: 16px; font-weight: 500;
+            display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; box-shadow: 0 4px 12px var(--shadow);
+        }
+        .custom-dropdown {
+            position: absolute; bottom: 0; left: 0; width: 100%; max-height: 60vh;
+            background: var(--surface); border-radius: 28px 28px 0 0; z-index: 30000;
+            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            display: flex; flex-direction: column; border-top: 1px solid var(--border);
+            box-shadow: 0 -10px 30px var(--shadow);
+        }
+        .custom-dropdown.active { transform: translateY(0); }
+        .dropdown-list { overflow-y: auto; padding: 10px 24px calc(30px + env(safe-area-inset-bottom)); }
+        .dropdown-item {
+            padding: 14px 16px; border-radius: 12px; font-size: 16px; font-weight: 500;
+            cursor: pointer; transition: 0.15s; margin-bottom: 4px;
+        }
+        .dropdown-item:active, .dropdown-item:hover { background: rgba(0, 210, 106, 0.1); color: var(--primary); }
 
         .btn-main {
             background: var(--primary); color: #fff; border: none;
-            padding: 20px; border-radius: 16px; font-size: 18px; font-weight: 700;
+            padding: 18px; border-radius: 16px; font-size: 18px; font-weight: 700;
             cursor: pointer; box-shadow: 0 10px 25px rgba(0, 210, 106, 0.3);
             transition: 0.2s; text-align: center; width: 100%;
         }
         .btn-main:active { transform: scale(0.96); background: var(--primary-dark); }
         [data-theme="dark"] .btn-main, [data-theme="blue"] .btn-main { color: #000; }
 
-        /* --- КАДРУВАННЯ ФОТО --- */
+        /* Кроппер фото двома пальцями */
         #crop-overlay {
             position: absolute; inset: 0; background: var(--bg);
-            z-index: 10000; display: flex; flex-direction: column; align-items: center;
+            z-index: 35000; display: flex; flex-direction: column; align-items: center;
             opacity: 0; pointer-events: none; transition: 0.3s;
         }
         #crop-overlay.active { opacity: 1; pointer-events: all; }
-        .crop-header { width: 100%; padding: calc(20px + env(safe-area-inset-top)) 20px 20px; text-align: center; font-weight: 600; }
-        .crop-area {
-            width: 300px; height: 300px; border-radius: 50%;
-            border: 4px solid var(--primary); position: relative; overflow: hidden;
-            margin: 40px 0; box-shadow: 0 0 0 1000px var(--modal-bg); touch-action: none;
+        .crop-top-bar {
+            width: 100%; padding: calc(16px + env(safe-area-inset-top)) 20px 16px;
+            display: flex; justify-content: space-between; align-items: center; font-weight: 600;
         }
-        .crop-area img { position: absolute; transform-origin: center; cursor: grab; }
-        .crop-controls { width: 80%; display: flex; flex-direction: column; gap: 20px; }
+        .crop-close-btn {
+            background: var(--surface); border: 1px solid var(--border); width: 36px; height: 36px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            color: var(--text-main); font-size: 18px; cursor: pointer; box-shadow: 0 4px 10px var(--shadow);
+        }
+        .crop-area {
+            width: 280px; height: 280px; border-radius: 50%;
+            border: 4px solid var(--primary); position: relative; overflow: hidden;
+            margin: auto; box-shadow: 0 0 0 2000px var(--modal-bg); touch-action: none;
+        }
+        .crop-area img { position: absolute; transform-origin: center; cursor: grab; user-select: none; }
+        .crop-footer { width: 100%; padding: 20px 24px calc(24px + env(safe-area-inset-bottom)); }
 
-        /* --- ГОЛОВНИЙ ЕКРАН --- */
+        /* Toast повідомлення про помилку заблокованого рівня */
+        .toast-notification {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--surface);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 14px 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px var(--shadow);
+            font-weight: 600;
+            font-size: 15px;
+            z-index: 50000;
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .toast-notification.active {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Хедера і навігація */
         .top-header {
             padding: calc(16px + env(safe-area-inset-top)) 24px 16px;
             background: var(--surface); display: flex; justify-content: space-between;
@@ -219,106 +270,146 @@
         }
         .tab-content.active { display: block; }
 
-        /* --- РІВНІ --- */
+        /* Рівні */
         .level-chain { display: flex; flex-direction: column; align-items: center; position: relative; gap: 50px; }
         .chain-line { position: absolute; top: 20px; bottom: 20px; width: 2px; background: var(--border); z-index: 1; }
+        
         .level-node {
             width: 60px; height: 60px; border-radius: 50%; background: var(--surface);
             border: 2px solid var(--border); z-index: 2; display: flex; align-items: center;
             justify-content: center; font-size: 20px; font-weight: 700; color: var(--text-sec);
-            position: relative; box-shadow: 0 4px 15px var(--shadow); transition: 0.3s;
-            transform: scale(0); cursor: pointer;
+            position: relative; box-shadow: 0 4px 15px var(--shadow); cursor: pointer;
+            opacity: 0; transform: scale(0) translateX(var(--offset));
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s, box-shadow 0.15s ease, border-color 0.15s ease;
         }
-        .level-node:active { transform: scale(0.9) !important; }
-        
         .level-node:nth-child(odd) { --offset: -40px; }
         .level-node:nth-child(even) { --offset: 40px; }
-
         .level-node.completed { background: var(--primary); border-color: var(--primary); color: #fff; }
-        .level-node.current {
+        .level-node.show { opacity: 1; transform: scale(1) translateX(var(--offset)); }
+        .level-node.show.current {
             background: var(--surface); border: 3px solid var(--primary); color: var(--text-main);
-            box-shadow: 0 0 0 6px rgba(0, 210, 106, 0.15); 
+            transform: scale(1.15) translateX(calc(var(--offset) * 0.8));
         }
 
-        @keyframes popInNode {
-            to { transform: scale(1) translateX(var(--offset)); }
-        }
-        @keyframes popInCurrent {
-            to { transform: scale(1.15) translateX(calc(var(--offset) * 0.8)); }
-        }
-
-        /* --- BOTTOM NAV --- */
+        /* Нижня панель */
         .bottom-nav {
-            position: absolute; bottom: calc(24px + env(safe-area-inset-bottom));
+            position: absolute; bottom: calc(20px + env(safe-area-inset-bottom));
             left: 50%; transform: translateX(-50%); width: calc(100% - 48px);
-            height: 64px; border-radius: 20px; background: var(--nav-bg);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            height: 68px; border-radius: 22px; background: var(--nav-bg);
+            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
             display: flex; justify-content: space-around; align-items: center;
             box-shadow: 0 10px 30px var(--shadow); border: 1px solid var(--border); z-index: 10;
         }
         .nav-item {
-            color: var(--text-sec); display: flex; align-items: center; justify-content: center;
-            width: 50px; height: 50px; border-radius: 16px; transition: 0.2s; cursor: pointer;
+            color: var(--text-sec); display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 3px; flex: 1; height: 100%; border-radius: 16px;
+            cursor: pointer; transition: 0.2s;
         }
-        .nav-item.active { color: var(--primary); background: rgba(0, 210, 106, 0.1); }
-        .nav-item svg { stroke: currentColor; transition: 0.3s; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item svg { stroke: currentColor; transition: 0.3s; width: 22px; height: 22px; }
+        .nav-text { font-size: 11px; font-weight: 600; }
 
-        /* --- BOTTOM SHEET (ІНФО РІВНЯ) --- */
-        .sheet-overlay {
+        /* Завдання та анімація зникнення */
+        .task-card {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+            padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 15px var(--shadow);
+            display: flex; flex-direction: column; gap: 12px;
+            transition: transform 0.4s ease, opacity 0.4s ease, max-height 0.4s ease, margin 0.4s ease, padding 0.4s ease;
+            max-height: 250px; overflow: hidden;
+        }
+        .task-card.slide-out {
+            transform: translateX(120%);
+            opacity: 0;
+            max-height: 0;
+            margin-bottom: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            border: none;
+        }
+        .task-title { font-size: 16px; font-weight: 700; }
+        .task-footer { display: flex; justify-content: space-between; align-items: center; }
+        .task-reward { font-size: 14px; font-weight: 700; color: var(--primary); }
+        .task-btn {
+            background: var(--bg); border: 1px solid var(--border); color: var(--text-main);
+            padding: 8px 16px; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer;
+            transition: 0.2s;
+        }
+        .task-btn.claim { background: var(--primary); color: #fff; border-color: var(--primary); }
+        
+        .session-progress-container {
+            width: 100%; height: 8px; background: var(--bg); border-radius: 4px;
+            overflow: hidden; border: 1px solid var(--border); margin-top: 4px;
+        }
+        .session-progress-bar {
+            height: 100%; background: var(--primary); width: 0%; transition: width 0.5s ease;
+            border-radius: 4px; box-shadow: 0 0 10px var(--primary);
+        }
+
+        /* Quiz Modal */
+        .quiz-modal {
+            position: absolute; inset: 0; background: var(--modal-bg);
+            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+            z-index: 40000; display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: 0.3s; padding: 20px;
+        }
+        .quiz-modal.active { opacity: 1; pointer-events: all; }
+        .quiz-card {
+            background: var(--surface); width: 100%; max-width: 350px; border-radius: 28px;
+            padding: 24px; border: 1px solid var(--border); box-shadow: 0 20px 40px var(--shadow);
+            display: flex; flex-direction: column; gap: 16px; transform: scale(0.9); transition: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .quiz-modal.active .quiz-card { transform: scale(1); }
+        .quiz-img-box {
+            width: 100%; height: 160px; border-radius: 16px; background: var(--bg);
+            border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+        .quiz-img-box img { width: 100%; height: 100%; object-fit: cover; }
+        .quiz-question { font-size: 17px; font-weight: 700; text-align: center; line-height: 1.4; }
+        .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+        .quiz-option-btn {
+            background: var(--bg); border: 1px solid var(--border); color: var(--text-main);
+            padding: 14px 16px; border-radius: 14px; font-weight: 600; font-size: 15px; cursor: pointer;
+            text-align: center; transition: 0.2s;
+        }
+        .quiz-option-btn:active { transform: scale(0.97); }
+        .quiz-option-btn.correct { background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important; }
+        .quiz-option-btn.wrong { background: #ff3b30 !important; color: #fff !important; border-color: #ff3b30 !important; }
+
+        /* Bottom Sheet */
+        .sheet-overlay, .settings-modal {
             position: absolute; inset: 0; background: var(--modal-bg);
             backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
             z-index: 100; opacity: 0; pointer-events: none; transition: 0.3s;
         }
-        .sheet-overlay.active { opacity: 1; pointer-events: all; }
+        .sheet-overlay.active, .settings-modal.active { opacity: 1; pointer-events: all; }
         
-        .bottom-sheet {
+        .bottom-sheet, .settings-content {
             position: absolute; bottom: 0; left: 0; width: 100%;
             background: var(--surface); border-radius: 28px 28px 0 0;
             padding: 24px 24px calc(30px + env(safe-area-inset-bottom));
             z-index: 101; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
             box-shadow: 0 -10px 40px var(--shadow); border-top: 1px solid var(--border);
+            max-height: 85vh; overflow-y: auto;
         }
-        .bottom-sheet.active { transform: translateY(0); }
+        .bottom-sheet.active, .settings-modal.active .settings-content { transform: translateY(0); }
         
-        .sheet-handle {
-            width: 40px; height: 5px; background: var(--border); border-radius: 3px;
-            margin: 0 auto 20px;
-        }
+        .sheet-handle { width: 40px; height: 5px; background: var(--border); border-radius: 3px; margin: 0 auto 20px; }
         .sheet-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
         .sheet-desc { color: var(--text-sec); margin-bottom: 24px; font-size: 15px; line-height: 1.5; }
-        
-        .sheet-stats {
-            display: flex; gap: 12px; margin-bottom: 24px;
-        }
-        .stat-box {
-            flex: 1; background: var(--bg); padding: 16px; border-radius: 16px;
-            text-align: center; border: 1px solid var(--border);
-        }
+        .sheet-stats { display: flex; gap: 12px; margin-bottom: 24px; }
+        .stat-box { flex: 1; background: var(--bg); padding: 16px; border-radius: 16px; text-align: center; border: 1px solid var(--border); }
         .stat-label { font-size: 12px; color: var(--text-sec); margin-bottom: 4px; font-weight: 600; }
         .stat-value { font-size: 16px; font-weight: 700; color: var(--primary); }
 
-        /* --- НАЛАШТУВАННЯ (MODAL) --- */
-        .settings-modal {
-            position: absolute; inset: 0; background: var(--modal-bg); z-index: 200;
-            display: flex; flex-direction: column; justify-content: flex-end;
-            opacity: 0; pointer-events: none; transition: 0.3s;
-        }
-        .settings-modal.active { opacity: 1; pointer-events: all; }
-        .settings-content {
-            background: var(--surface); border-radius: 24px 24px 0 0;
-            padding: 30px 24px calc(30px + env(safe-area-inset-bottom));
-            transform: translateY(100%); transition: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-            border-top: 1px solid var(--border);
-        }
-        .settings-modal.active .settings-content { transform: translateY(0); }
-        .settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; font-size: 20px; font-weight: 700; }
+        .settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 20px; font-weight: 700; }
         .close-btn {
             background: var(--bg); border: none; width: 32px; height: 32px;
             border-radius: 50%; color: var(--text-main); font-size: 18px; cursor: pointer;
+            border: 1px solid var(--border);
         }
         .theme-options { display: flex; gap: 12px; margin-top: 10px; }
         .theme-btn {
-            flex: 1; padding: 16px 0; border-radius: 12px; border: 2px solid var(--border);
+            flex: 1; padding: 14px 0; border-radius: 12px; border: 2px solid var(--border);
             background: transparent; font-weight: 600; cursor: pointer; color: var(--text-sec); transition: 0.2s;
         }
         .theme-btn.active { border-color: var(--primary); color: var(--text-main); background: rgba(0, 210, 106, 0.05); }
@@ -328,7 +419,13 @@
 
     <div class="app-container">
         
-        <!-- SPLASH SCREEN -->
+        <!-- TOAST ПОПЕРЕДЖЕННЯ -->
+        <div class="toast-notification" id="toast-notification">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span id="toast-text">Рівень заблоковано!</span>
+        </div>
+
+        <!-- SPLASH -->
         <div id="splash-screen" class="screen">
             <div class="splash-content">
                 <div class="splash-title">Вітаємо, <span id="splash-name-display"></span>!</div>
@@ -343,11 +440,11 @@
                     <h1>FOOTBALL<br>CAREER</h1>
                 </div>
                 
-                <label class="avatar-upload" id="avatar-preview-container">
+                <label class="avatar-upload" id="avatar-preview-container" onclick="triggerFileInput()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
                     <img id="final-avatar-img">
-                    <input type="file" id="file-input" accept="image/*" style="display:none;">
                 </label>
+                <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
                 
                 <div class="input-group">
                     <input type="text" id="first-name" placeholder="Ім'я гравця" autocomplete="off">
@@ -356,36 +453,52 @@
                     <input type="text" id="last-name" placeholder="Прізвище" autocomplete="off">
                 </div>
 
-                <div class="input-group">
-                    <select id="favorite-club">
-                        <option value="" disabled selected>Улюблений клуб...</option>
-                        <option value="epicentr">ФК «Епіцентр»</option>
-                        <option value="dynamo">Динамо Київ</option>
-                        <option value="shakhtar">Шахтар Донецьк</option>
-                        <option value="polissya">Полісся</option>
-                        <option value="karpaty">Карпати</option>
-                    </select>
+                <div class="input-group" style="position: relative;">
+                    <div class="custom-select-trigger" id="club-select-trigger" onclick="openClubDropdown()">
+                        <span id="selected-club-text">Улюблений клуб...</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                    </div>
                 </div>
 
-                <button class="btn-main" onclick="registerUser()">ПОЧАТИ КАР'ЄРУ</button>
+                <button class="btn-main" style="margin-top: 10px;" onclick="registerUser()">ПОЧАТИ КАР'ЄРУ</button>
             </div>
         </div>
 
-        <!-- КРОП ФОТО -->
+        <!-- КАСТОМНИЙ ВИПАДАЮЧИЙ СПИСОК КЛУБІВ -->
+        <div class="sheet-overlay" id="club-overlay" onclick="closeClubDropdown()"></div>
+        <div class="custom-dropdown" id="club-dropdown">
+            <div class="sheet-handle"></div>
+            <div style="padding: 0 24px 16px; font-weight: 700; font-size: 18px;">Оберіть клуб</div>
+            <div class="dropdown-list" id="club-list-container"></div>
+        </div>
+
+        <!-- КРОППЕР ФОТО (ДВОМА ПАЛЬЦЯМИ) -->
         <div id="crop-overlay">
-            <div class="crop-header">Вирівняйте фото</div>
+            <div class="crop-top-bar">
+                <span>Збільште та вирівняйте фото</span>
+                <div class="crop-close-btn" onclick="cancelCrop()">✕</div>
+            </div>
             <div class="crop-area" id="crop-area">
                 <img id="crop-image" src="" alt="">
             </div>
-            <div class="crop-controls">
-                <input type="range" id="zoom-slider" min="0.5" max="3" step="0.05" value="1" style="width: 100%; accent-color: var(--primary);">
+            <div class="crop-footer">
                 <button class="btn-main" onclick="applyCrop()">Готово</button>
             </div>
         </div>
 
-        <!-- ГОЛОВНА -->
+        <!-- QUIZ МОДАЛКА ДЛЯ РІВНІВ -->
+        <div class="quiz-modal" id="quiz-modal">
+            <div class="quiz-card">
+                <div class="quiz-img-box">
+                    <img id="quiz-img" src="" alt="Фото футболіста" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23717680\' stroke-width=\'2\'><circle cx=\'12\' cy=\'12\' r=\'10\'/><path d=\'M12 8v4l3 3\'/></svg>'">
+                </div>
+                <div class="quiz-question" id="quiz-question-text">Завантаження питання...</div>
+                <div class="quiz-options" id="quiz-options-container"></div>
+            </div>
+        </div>
+
+        <!-- ГОЛОВНИЙ ЕКРАН -->
         <div id="main-screen" class="screen">
-            
             <div class="top-header">
                 <div class="profile-trigger" onclick="openSettings()">
                     <div class="mini-avatar" id="top-avatar"></div>
@@ -400,36 +513,54 @@
                 </div>
             </div>
 
+            <!-- ТАБ 1: ГОЛОВНА -->
             <div id="tab-home" class="tab-content active">
                 <div class="level-chain" id="level-chain">
                     <div class="chain-line"></div>
                 </div>
             </div>
 
-            <div id="tab-shop" class="tab-content">
-                <h2 style="margin: 20px 0; text-align: center;">Магазин</h2>
-                <div style="background: var(--surface); padding: 40px 20px; border-radius: 24px; text-align: center; border: 1px solid var(--border);">
-                    <p style="color: var(--text-sec);">Скоро тут будуть нові нагороди.</p>
+            <!-- ТАБ 2: ЗАВДАННЯ -->
+            <div id="tab-tasks" class="tab-content">
+                <h2 style="margin-bottom: 20px; font-weight: 800;">Щотижневі завдання</h2>
+                <div id="tasks-container"></div>
+                <div id="tasks-finished-msg" style="display: none; text-align: center; padding: 40px 20px; background: var(--surface); border-radius: 24px; border: 1px solid var(--border);">
+                    <div style="font-size: 20px; font-weight: 800; margin-bottom: 8px;">Завдання закінчилися :(</div>
+                    <div style="color: var(--text-sec); font-size: 15px;" id="tasks-countdown-text">Наступні завдання з'являться через: 03:00:00</div>
                 </div>
             </div>
 
+            <!-- ТАБ 3: МАГАЗИН -->
+            <div id="tab-shop" class="tab-content">
+                <h2 style="margin: 20px 0; text-align: center; font-weight: 800;">Магазин</h2>
+                <div style="background: var(--surface); padding: 40px 20px; border-radius: 24px; text-align: center; border: 1px solid var(--border);">
+                    <p style="color: var(--text-sec);">Скоро тут будуть нові нагороди та скіни.</p>
+                </div>
+            </div>
+
+            <!-- НИЖНЯ ПАНЕЛЬ НАВІГАЦІЇ -->
             <nav class="bottom-nav">
                 <div class="nav-item active" onclick="switchTab('home', this)">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                    <span class="nav-text">Головна</span>
+                </div>
+                <div class="nav-item" onclick="switchTab('tasks', this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                    <span class="nav-text">Завдання</span>
                 </div>
                 <div class="nav-item" onclick="switchTab('shop', this)">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                    <span class="nav-text">Магазин</span>
                 </div>
             </nav>
         </div>
 
-        <!-- BOTTOM SHEET (ІНФО ПРО РІВЕНЬ) -->
+        <!-- ІНФО ПРО РІВЕНЬ (BOTTOM SHEET) -->
         <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
         <div class="bottom-sheet" id="bottom-sheet">
             <div class="sheet-handle"></div>
             <h3 class="sheet-title" id="sheet-title">Рівень 1</h3>
-            <p class="sheet-desc">Вгадайте, в якому клубі грає цей футболіст. З кожним рівнем завдання стає важчим.</p>
-            
+            <p class="sheet-desc">Вгадайте футболіста за фото та перевірте свої знання про український та світовий футбол!</p>
             <div class="sheet-stats">
                 <div class="stat-box">
                     <div class="stat-label">Складність</div>
@@ -437,23 +568,48 @@
                 </div>
                 <div class="stat-box">
                     <div class="stat-label">Нагорода</div>
-                    <div class="stat-value" id="sheet-reward">+50 балів</div>
+                    <div class="stat-value" id="sheet-reward">+10 балів</div>
                 </div>
             </div>
-            
-            <button class="btn-main" onclick="startLevelPlay()">Грати</button>
+            <button class="btn-main" onclick="startCurrentLevelQuiz()">Почати рівень</button>
         </div>
 
-        <!-- НАЛАШТУВАННЯ -->
+        <!-- НАЛАШТУВАННЯ ТА РЕДАГУВАННЯ ПРОФІЛЮ -->
         <div class="settings-modal" id="settings-modal">
             <div class="settings-content">
                 <div class="settings-header">
-                    <span>Налаштування</span>
+                    <span>Профіль та налаштування</span>
                     <button class="close-btn" onclick="closeSettings()">✕</button>
                 </div>
                 
-                <div style="margin-bottom: 20px;">
-                    <div style="font-size: 14px; color: var(--text-sec); margin-bottom: 10px;">Тема оформлення</div>
+                <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 24px; background: var(--bg); padding: 16px; border-radius: 20px; border: 1px solid var(--border);">
+                    <div class="mini-avatar" id="modal-avatar" style="width: 60px; height: 60px; font-size: 20px; cursor: pointer;" onclick="triggerFileInput()"></div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 700; font-size: 16px;" id="modal-display-name">Гравець</div>
+                        <div style="font-size: 13px; color: var(--text-sec);" id="modal-display-club">Клуб</div>
+                    </div>
+                    <button class="task-btn" onclick="triggerFileInput()">Змінити фото</button>
+                </div>
+
+                <div class="input-group">
+                    <div style="font-size: 13px; color: var(--text-sec); margin-bottom: 6px; font-weight: 600;">Ім'я</div>
+                    <input type="text" id="edit-first-name" autocomplete="off" oninput="updateProfileField('name', this.value)">
+                </div>
+                <div class="input-group">
+                    <div style="font-size: 13px; color: var(--text-sec); margin-bottom: 6px; font-weight: 600;">Прізвище</div>
+                    <input type="text" id="edit-last-name" autocomplete="off" oninput="updateProfileField('lastName', this.value)">
+                </div>
+
+                <div class="input-group">
+                    <div style="font-size: 13px; color: var(--text-sec); margin-bottom: 6px; font-weight: 600;">Улюблений клуб</div>
+                    <div class="custom-select-trigger" onclick="openClubDropdownFromSettings()">
+                        <span id="edit-club-text">Оберіть клуб</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                    </div>
+                </div>
+
+                <div style="margin: 20px 0;">
+                    <div style="font-size: 13px; color: var(--text-sec); margin-bottom: 8px; font-weight: 600;">Тема оформлення</div>
                     <div class="theme-options">
                         <button class="theme-btn" id="theme-btn-light" onclick="setTheme('light')">Біла</button>
                         <button class="theme-btn" id="theme-btn-dark" onclick="setTheme('dark')">Чорна</button>
@@ -461,8 +617,8 @@
                     </div>
                 </div>
 
-                <div class="input-group" style="margin-top: 30px;">
-                    <button class="btn-main" style="width: 100%; background: #ff3b30; color: #fff; box-shadow: none;" onclick="logout()">Скинути прогрес</button>
+                <div class="input-group" style="margin-top: 24px;">
+                    <button class="btn-main" style="background: #ff3b30; box-shadow: none;" onclick="logout()">Скинути прогрес</button>
                 </div>
             </div>
         </div>
@@ -470,10 +626,33 @@
     </div>
 
     <script>
-        // --- 1. СИСТЕМА ЗБЕРЕЖЕННЯ ДАНИХ (LocalStorage + Device ID) ---
-        const STORAGE_KEY = 'football_career_save';
+        const CLUBS = [
+            "Буковина", "Верес", "Динамо", "Епіцентр", "Зоря", "Карпати", 
+            "Колос", "Кривбас", "Кудрівка", "ЛНЗ", "Лівий Берег", 
+            "Металіст 1925", "Оболонь", "Полісся", "Чорноморець", "Шахтар"
+        ];
+
+        // Резервна база питань для рівнів (якщо файли зчитати не вдасться в локальному середовищі)
+        const FALLBACK_QUESTIONS = {
+            1: `"Що це за футболіст?", "Кріштіану Роналду", "Ліонель Мессі", "Неймар Джуніор", 2, 1, 10`,
+            2: `"У якому клубі грав Андрій Шевченко найуспішніше?", "Мілан", "Реал Мадрид", "Челсі", 1, 1, 15`,
+            3: `"Хто виграв чемпіонат світу з футболу у 2022 році?", "Франція", "Аргентина", "Бразилія", 2, 2, 20`,
+            4: `"Який український клуб виграв Кубок УЄФА у 2009 році?", "Динамо Київ", "Шахтар Донецьк", "Дніпро", 2, 2, 25`,
+            5: `"Хто володар Золотого м'яча 2023?", "Ерлінг Голанд", "Кіліан Мбаппе", "Ліонель Мессі", 3, 3, 30`,
+            6: `"Скільки гравців на полі в одній футбольній команді?", "10", "11", "12", 2, 1, 35`,
+            7: `"Яка з цих збірних є чотириразовим чемпіоном світу?", "Німеччина", "Італія", "Обидві", 3, 3, 40`,
+            8: `"Хто є найкращим бомбардиром в історії Ліги чемпіонів УЄФА?", "Ліонель Мессі", "Кріштіану Роналду", "Роберт Лєвандовскі", 2, 2, 45`,
+            9: `"Який стадіон є домашньою ареною клубу Барселона?", "Сантьяго Бернабеу", "Камп Ноу", "Ванда Метрополітано", 2, 2, 50`,
+            10: `"Хто тренував збірну України під час Євро-2020?", "Андрій Шевченко", "Олександр Петраков", "Сергій Ребров", 1, 3, 60`,
+            11: `"Яка національна збірна має найбільше титулів Чемпіона світу?", "Бразилія", "Німеччина", "Аргентина", 1, 2, 70`,
+            12: `"Хто забив переможний гол у фіналі ЧС-2014?", "Маріо Гетце", "Ліонель Мессі", "Томас Мюллер", 1, 4, 80`,
+            13: `"Який клуб називають 'Вершковими'?", "Реал Мадрид", "Ювентус", "Ліверпуль", 1, 2, 90`,
+            14: `"Хто виграв Євро-2020?", "Англія", "Італія", "Іспанія", 2, 3, 100`,
+            15: `"Скільки разів збірна України грала у чвертьфіналі Євро?", "1", "2", "0", 1, 4, 120`
+        };
+
+        const STORAGE_KEY = 'football_career_save_v3';
         
-        // Генерація унікального ID браузера (заміна перевірки IP)
         function getDeviceId() {
             let id = localStorage.getItem('device_fingerprint');
             if (!id) {
@@ -485,7 +664,11 @@
 
         let userData = {
             name: '', lastName: '', club: '', avatar: '', 
-            level: 1, score: 0, theme: 'light', deviceId: getDeviceId()
+            level: 1, score: 0, theme: 'light', deviceId: getDeviceId(),
+            tasksCompleted: [false, false, false, false],
+            tasksClaimed: [false, false, false, false],
+            sessionSeconds: 0,
+            tasksTimestamp: null
         };
 
         function saveData() {
@@ -496,9 +679,8 @@
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
                 const parsed = JSON.parse(saved);
-                // Перевірка надійності: чи збігається пристрій
                 if(parsed.deviceId === getDeviceId()) {
-                    userData = parsed;
+                    userData = Object.assign(userData, parsed);
                     return true;
                 }
             }
@@ -507,33 +689,85 @@
 
         function logout() {
             localStorage.removeItem(STORAGE_KEY);
-            location.reload(); // Перезавантаження сторінки
+            location.reload();
         }
 
-        // --- 2. ІНІЦІАЛІЗАЦІЯ ДОДАТКУ ---
+        // Toast сповіщення
+        let toastTimeout = null;
+        function showToast(text) {
+            const toast = document.getElementById('toast-notification');
+            document.getElementById('toast-text').textContent = text;
+            toast.classList.add('active');
+            if(toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('active');
+            }, 3000);
+        }
+
+        // Ініціалізація списку клубів
+        function initClubDropdown() {
+            const container = document.getElementById('club-list-container');
+            container.innerHTML = '';
+            CLUBS.forEach(club => {
+                const div = document.createElement('div');
+                div.className = 'dropdown-item';
+                div.textContent = club;
+                div.onclick = () => selectClub(club);
+                container.appendChild(div);
+            });
+        }
+
+        let selectingForSettings = false;
+        function openClubDropdown() {
+            selectingForSettings = false;
+            document.getElementById('club-dropdown').classList.add('active');
+            document.getElementById('club-overlay').classList.add('active');
+        }
+        function openClubDropdownFromSettings() {
+            selectingForSettings = true;
+            document.getElementById('club-dropdown').classList.add('active');
+            document.getElementById('club-overlay').classList.add('active');
+        }
+        function closeClubDropdown() {
+            document.getElementById('club-dropdown').classList.remove('active');
+            document.getElementById('club-overlay').classList.remove('active');
+        }
+        function selectClub(clubName) {
+            if (selectingForSettings) {
+                userData.club = clubName;
+                document.getElementById('edit-club-text').textContent = clubName;
+                document.getElementById('modal-display-club').textContent = clubName;
+                saveData();
+            } else {
+                document.getElementById('selected-club-text').textContent = clubName;
+                window.tempSelectedClub = clubName;
+            }
+            closeClubDropdown();
+        }
+
         window.onload = () => {
+            initClubDropdown();
+            checkWeeklyTasksReset();
             const hasData = loadData();
             
             if (hasData) {
-                // Застосовуємо збережені налаштування
                 applyThemeStyling(userData.theme);
                 setupProfileUI();
                 
-                // Анімація привітання
                 const splash = document.getElementById('splash-screen');
                 document.getElementById('splash-name-display').textContent = userData.name;
                 splash.classList.add('active');
                 
                 setTimeout(() => {
-                    splash.classList.add('fade-out'); // Плавне зникнення
+                    splash.classList.add('fade-out');
                     document.getElementById('main-screen').classList.add('active');
-                    setTimeout(() => { splash.classList.remove('active'); }, 500);
-                    
+                    setTimeout(() => { splash.classList.remove('active'); }, 400);
                     generateLevels();
-                }, 2200);
+                    renderTasks();
+                    startSessionTimer();
+                }, 2000);
 
             } else {
-                // Якщо немає даних - показуємо реєстрацію
                 document.getElementById('auth-screen').classList.add('active');
             }
         };
@@ -541,24 +775,49 @@
         function setupProfileUI() {
             document.getElementById('display-name').textContent = userData.name;
             document.getElementById('display-score').textContent = userData.score;
+            document.getElementById('edit-first-name').value = userData.name;
+            document.getElementById('edit-last-name').value = userData.lastName || '';
+            document.getElementById('edit-club-text').textContent = userData.club || 'Оберіть клуб';
+            document.getElementById('modal-display-name').textContent = `${userData.name} ${userData.lastName || ''}`;
+            document.getElementById('modal-display-club').textContent = userData.club || 'Футболіст';
             
-            const topAvatar = document.getElementById('top-avatar');
+            const avatars = [document.getElementById('top-avatar'), document.getElementById('modal-avatar')];
+            avatars.forEach(av => {
+                if (av) {
+                    if (userData.avatar) {
+                        av.style.backgroundImage = `url(${userData.avatar})`;
+                        av.textContent = '';
+                    } else {
+                        av.style.backgroundImage = 'none';
+                        av.textContent = userData.name.charAt(0).toUpperCase();
+                    }
+                }
+            });
+            
+            const previewImg = document.getElementById('final-avatar-img');
             if (userData.avatar) {
-                topAvatar.style.backgroundImage = `url(${userData.avatar})`;
-                topAvatar.textContent = '';
-            } else {
-                topAvatar.style.backgroundImage = 'none';
-                topAvatar.textContent = userData.name.charAt(0).toUpperCase();
+                previewImg.src = userData.avatar;
+                previewImg.style.display = 'block';
             }
         }
 
-        // --- 3. ЛОГІКА РЕЄСТРАЦІЇ ТА КРОПУ ---
+        function updateProfileField(field, val) {
+            userData[field] = val.trim();
+            saveData();
+            setupProfileUI();
+        }
+
+        // КРОППЕР ФОТО (ДВОМА ПАЛЬЦЯМИ)
         let cropUrl = '';
         let currentX = 0, currentY = 0, cropScale = 1;
         const cropImage = document.getElementById('crop-image');
         const cropArea = document.getElementById('crop-area');
-        
-        document.getElementById('file-input').addEventListener('change', function(e) {
+
+        function triggerFileInput() {
+            document.getElementById('file-input').click();
+        }
+
+        function handleFileSelect(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
@@ -566,122 +825,153 @@
                     cropUrl = event.target.result;
                     cropImage.src = cropUrl;
                     currentX = 0; currentY = 0; cropScale = 1;
-                    document.getElementById('zoom-slider').value = 1;
-                    cropImage.style.transform = `translate(0px, 0px) scale(1)`;
+                    updateTransform();
                     document.getElementById('crop-overlay').classList.add('active');
                 }
                 reader.readAsDataURL(file);
             }
+        }
+
+        function cancelCrop() {
+            document.getElementById('crop-overlay').classList.remove('active');
+        }
+
+        function updateTransform() {
+            cropImage.style.transform = `translate(${currentX}px, ${currentY}px) scale(${cropScale})`;
+        }
+
+        let initialDist = null;
+        let startScale = 1;
+        let startX = 0, startY = 0, isDragging = false;
+        let lastTouchX = 0, lastTouchY = 0;
+
+        cropArea.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                initialDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                startScale = cropScale;
+            } else if (e.touches.length === 1) {
+                isDragging = true;
+                lastTouchX = e.touches[0].clientX;
+                lastTouchY = e.touches[0].clientY;
+            }
         });
 
-        // Драг для кропу
-        let isDragging = false, startX, startY;
-        function dragStart(cx, cy) { isDragging = true; startX = cx - currentX; startY = cy - currentY; }
-        function dragging(cx, cy) { if(!isDragging) return; currentX = cx - startX; currentY = cy - startY; cropImage.style.transform = `translate(${currentX}px, ${currentY}px) scale(${cropScale})`; }
-        function dragEnd() { isDragging = false; }
-        
-        cropArea.addEventListener('touchstart', (e) => dragStart(e.touches[0].clientX, e.touches[0].clientY));
-        cropArea.addEventListener('touchmove', (e) => { e.preventDefault(); dragging(e.touches[0].clientX, e.touches[0].clientY); });
-        cropArea.addEventListener('touchend', dragEnd);
-        cropArea.addEventListener('mousedown', (e) => dragStart(e.clientX, e.clientY));
-        window.addEventListener('mousemove', (e) => dragging(e.clientX, e.clientY));
-        window.addEventListener('mouseup', dragEnd);
+        cropArea.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (e.touches.length === 2 && initialDist) {
+                let dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                cropScale = Math.min(Math.max(0.5, startScale * (dist / initialDist)), 4);
+                updateTransform();
+            } else if (e.touches.length === 1 && isDragging) {
+                let dx = e.touches[0].clientX - lastTouchX;
+                let dy = e.touches[0].clientY - lastTouchY;
+                currentX += dx;
+                currentY += dy;
+                lastTouchX = e.touches[0].clientX;
+                lastTouchY = e.touches[0].clientY;
+                updateTransform();
+            }
+        }, { passive: false });
 
-        document.getElementById('zoom-slider').addEventListener('input', (e) => {
-            cropScale = e.target.value;
-            cropImage.style.transform = `translate(${currentX}px, ${currentY}px) scale(${cropScale})`;
+        cropArea.addEventListener('touchend', (e) => {
+            if (e.touches.length < 2) initialDist = null;
+            if (e.touches.length === 0) isDragging = false;
+        });
+
+        let isMouseDown = false;
+        cropArea.addEventListener('mousedown', (e) => {
+            isMouseDown = true;
+            startX = e.clientX - currentX;
+            startY = e.clientY - currentY;
+        });
+        window.addEventListener('mousemove', (e) => {
+            if (!isMouseDown) return;
+            currentX = e.clientX - startX;
+            currentY = e.clientY - startY;
+            updateTransform();
+        });
+        window.addEventListener('mouseup', () => { isMouseDown = false; });
+        cropArea.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            cropScale = Math.min(Math.max(0.5, cropScale + (e.deltaY < 0 ? 0.1 : -0.1)), 4);
+            updateTransform();
         });
 
         function applyCrop() {
-            document.getElementById('crop-overlay').classList.remove('active');
-            const previewImg = document.getElementById('final-avatar-img');
-            previewImg.src = cropUrl;
-            previewImg.style.display = 'block';
-            
-            // Створюємо спрощений canvas для збереження кропу (оптимізація для localStorage)
-            const canvas = document.createElement('canvas');
-            canvas.width = 150; canvas.height = 150;
-            const ctx = canvas.getContext('2d');
-            // Малюємо зі зсувом і масштабом
-            ctx.translate(75, 75); // Центр
-            ctx.scale(cropScale, cropScale);
-            ctx.translate(-75, -75);
-            // Тут спрощена логіка, для ідеалу треба вираховувати пропорції, 
-            // але для прототипу збережемо оригінал, якщо canvas складний
-            userData.avatar = cropUrl; 
+            userData.avatar = cropUrl;
+            saveData();
+            setupProfileUI();
+            cancelCrop();
         }
 
         function registerUser() {
             const name = document.getElementById('first-name').value.trim();
-            const club = document.getElementById('favorite-club').value;
+            const club = window.tempSelectedClub;
             
-            if(!name) { alert("Введіть ім'я!"); return; }
+            if(!name) { alert("Введіть ім'я гравця!"); return; }
+            if(!club) { alert("Оберіть улюблений клуб!"); return; }
             
             userData.name = name;
             userData.lastName = document.getElementById('last-name').value.trim();
             userData.club = club;
-            // Avatar вже збережений в applyCrop
             
             saveData();
             setupProfileUI();
 
             document.getElementById('auth-screen').classList.remove('active');
             document.getElementById('main-screen').classList.add('active');
-            setTimeout(generateLevels, 300);
+            setTimeout(generateLevels, 200);
+            renderTasks();
+            startSessionTimer();
         }
 
-        // --- 4. ГЕНЕРАЦІЯ РІВНІВ ТА АНІМАЦІЇ ---
+        // РІВНІ ТА ПЕРЕВІРКА БЛОКУВАННЯ
         function generateLevels() {
             const chainContainer = document.getElementById('level-chain');
             chainContainer.innerHTML = '<div class="chain-line"></div>';
             const totalLevels = 15; 
 
             for (let i = 1; i <= totalLevels; i++) {
+                const levelNode = document.createElement('div');
+                levelNode.className = 'level-node';
+                
+                if (i < userData.level) {
+                    levelNode.classList.add('completed');
+                    levelNode.innerHTML = `✓`;
+                } else if (i === userData.level) {
+                    levelNode.classList.add('current');
+                    levelNode.textContent = i;
+                } else {
+                    levelNode.textContent = i;
+                }
+
+                levelNode.onclick = () => handleLevelClick(i);
+                chainContainer.appendChild(levelNode);
+
                 setTimeout(() => {
-                    const levelNode = document.createElement('div');
-                    levelNode.className = 'level-node';
-                    
-                    if (i < userData.level) {
-                        levelNode.classList.add('completed');
-                        levelNode.innerHTML = `✓`;
-                        levelNode.style.animation = `popInNode 0.4s forwards`;
-                    } else if (i === userData.level) {
-                        levelNode.classList.add('current');
-                        levelNode.textContent = i;
-                        levelNode.style.animation = `popInCurrent 0.5s forwards`;
-                    } else {
-                        levelNode.textContent = i;
-                        levelNode.style.animation = `popInNode 0.4s forwards`;
-                    }
-
-                    // Клік по рівню відкриває Bottom Sheet
-                    levelNode.onclick = () => openLevelSheet(i);
-
-                    chainContainer.appendChild(levelNode);
-                }, i * 100); 
+                    levelNode.classList.add('show');
+                }, i * 50); 
             }
         }
 
-        // --- 5. BOTTOM SHEET (Меню рівня) ---
-        function openLevelSheet(levelNum) {
-            if (levelNum > userData.level) {
-                // Якщо рівень закритий
-                document.getElementById('sheet-title').textContent = `Рівень ${levelNum} (Заблоковано)`;
-                document.getElementById('sheet-diff').textContent = '🔒';
-                document.getElementById('sheet-reward').textContent = '???';
-            } else {
-                // Якщо рівень відкритий або пройдений
-                document.getElementById('sheet-title').textContent = `Рівень ${levelNum}`;
-                
-                // Розрахунок складності
-                let diff = '⭐';
-                if(levelNum > 4) diff = '⭐⭐';
-                if(levelNum > 9) diff = '⭐⭐⭐';
-                document.getElementById('sheet-diff').textContent = diff;
-                
-                document.getElementById('sheet-reward').textContent = `+${levelNum * 10} балів`;
-            }
+        let selectedLevelNum = 1;
 
+        function handleLevelClick(levelNum) {
+            if (levelNum > userData.level) {
+                // Якщо не пройдено попередні рівні
+                showToast(`${userData.level} рівень ще не пройдено!`);
+                return;
+            }
+            selectedLevelNum = levelNum;
+            openLevelSheet(levelNum);
+        }
+
+        function openLevelSheet(levelNum) {
+            document.getElementById('sheet-title').textContent = `Рівень ${levelNum}`;
+            let diff = levelNum > 10 ? '⭐⭐⭐⭐' : (levelNum > 7 ? '⭐⭐⭐' : (levelNum > 3 ? '⭐⭐' : '⭐'));
+            document.getElementById('sheet-diff').textContent = diff;
+            document.getElementById('sheet-reward').textContent = `+${levelNum * 10} балів`;
+            
             document.getElementById('sheet-overlay').classList.add('active');
             document.getElementById('bottom-sheet').classList.add('active');
         }
@@ -691,17 +981,263 @@
             document.getElementById('bottom-sheet').classList.remove('active');
         }
 
-        function startLevelPlay() {
-            alert('Запуск ігрової логіки...');
+        // ЗАВАНТАЖЕННЯ ДАНИХ ПИТАНЬ З .TXT ТА ЗОБРАЖЕНЬ З img/footboler/
+        async function startCurrentLevelQuiz() {
             closeSheet();
-            // Тут можна додати логіку перемоги
-            // userData.level++;
-            // userData.score += 50;
-            // saveData();
-            // generateLevels();
+            const level = selectedLevelNum;
+            const txtPath = `img/footboler/${level}.txt`;
+            const imgPath = `img/footboler/${level}.png`;
+
+            let rawText = '';
+            try {
+                const res = await fetch(txtPath);
+                if (res.ok) {
+                    rawText = await res.text();
+                } else {
+                    rawText = FALLBACK_QUESTIONS[level] || FALLBACK_QUESTIONS[1];
+                }
+            } catch (err) {
+                rawText = FALLBACK_QUESTIONS[level] || FALLBACK_QUESTIONS[1];
+            }
+
+            const parsed = parseQuestionFileText(rawText);
+            
+            // Встановлюємо зображення та питання
+            document.getElementById('quiz-img').src = imgPath;
+            document.getElementById('quiz-question-text').textContent = parsed.question;
+
+            const optionsContainer = document.getElementById('quiz-options-container');
+            optionsContainer.innerHTML = '';
+
+            parsed.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'quiz-option-btn';
+                btn.textContent = opt;
+                btn.onclick = () => checkQuizAnswer(idx + 1, parsed.correctIndex, parsed.points);
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('quiz-modal').classList.add('active');
         }
 
-        // --- 6. НАЛАШТУВАННЯ ТА ТЕМИ ---
+        function parseQuestionFileText(text) {
+            const quotes = [...text.matchAll(/"([^"]*)"/g)].map(m => m[1]);
+            const question = quotes[0] || "Хто це?";
+            const options = quotes.slice(1);
+            
+            const unquoted = text.replace(/"([^"]*)"/g, '');
+            const numbers = unquoted.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+            
+            const correctIndex = numbers[0] || 1;
+            const difficulty = numbers[1] || 1;
+            const points = numbers[2] || 10;
+            
+            return { question, options, correctIndex, difficulty, points };
+        }
+
+        function checkQuizAnswer(selectedOpt, correctOpt, pointsEarned) {
+            const buttons = document.querySelectorAll('.quiz-option-btn');
+            
+            buttons.forEach((btn, idx) => {
+                if ((idx + 1) === correctOpt) {
+                    btn.classList.add('correct');
+                } else if ((idx + 1) === selectedOpt) {
+                    btn.classList.add('wrong');
+                }
+                btn.style.pointerEvents = 'none';
+            });
+
+            setTimeout(() => {
+                document.getElementById('quiz-modal').classList.remove('active');
+                if (selectedOpt === correctOpt) {
+                    if (selectedLevelNum === userData.level) {
+                        userData.score += pointsEarned;
+                        userData.level++;
+                    }
+                    saveData();
+                    setupProfileUI();
+                    generateLevels();
+                    showToast(`Чудово! +${pointsEarned} балів`);
+                } else {
+                    showToast('Помилка! Спробуйте ще раз.');
+                }
+            }, 1000);
+        }
+
+        // ЗАВДАННЯ ТА СЕСІЯ (20 хв)
+        const TOTAL_SESSION_SECONDS = 20 * 60; // 20 хвилин
+
+        function startSessionTimer() {
+            setInterval(() => {
+                if (userData.sessionSeconds < TOTAL_SESSION_SECONDS) {
+                    userData.sessionSeconds++;
+                    if (userData.sessionSeconds % 5 === 0) saveData();
+                    updateSessionProgressUI();
+                }
+            }, 1000);
+        }
+
+        function updateSessionProgressUI() {
+            const bar = document.getElementById('session-progress-bar');
+            const statusText = document.getElementById('session-status-text');
+            const btn = document.getElementById('session-task-btn');
+            if (!bar) return;
+
+            let percent = Math.min(100, (userData.sessionSeconds / TOTAL_SESSION_SECONDS) * 100);
+            bar.style.width = percent + '%';
+
+            let minsLeft = Math.ceil((TOTAL_SESSION_SECONDS - userData.sessionSeconds) / 60);
+            if (userData.sessionSeconds >= TOTAL_SESSION_SECONDS) {
+                statusText.textContent = 'Випробування завершено!';
+                if (!userData.tasksCompleted[3]) {
+                    userData.tasksCompleted[3] = true;
+                    if(btn) {
+                        btn.textContent = 'Отримати';
+                        btn.classList.add('claim');
+                    }
+                    saveData();
+                }
+            } else {
+                statusText.textContent = `Залишилось часу: ~${minsLeft} хв`;
+            }
+        }
+
+        function handleTaskAction(index) {
+            const btn = document.getElementById(`task-btn-${index}`);
+            const card = document.getElementById(`task-card-${index}`);
+
+            if (index === 3) {
+                if (userData.sessionSeconds < TOTAL_SESSION_SECONDS) {
+                    showToast('Ви ще не відсиділи 20 хвилин!');
+                    return;
+                }
+            }
+
+            if (!userData.tasksCompleted[index]) {
+                // Переводимо у статус "Отримати"
+                userData.tasksCompleted[index] = true;
+                btn.textContent = 'Отримати';
+                btn.classList.add('claim');
+                saveData();
+            } else if (!userData.tasksClaimed[index]) {
+                // Натиснуто "Отримати" -> Нараховуємо бали та анімуємо зникнення картки в бік
+                userData.tasksClaimed[index] = true;
+                let rewards = [20, 35, 50, 50];
+                userData.score += rewards[index];
+                saveData();
+                setupProfileUI();
+
+                if (card) {
+                    card.classList.add('slide-out');
+                    setTimeout(() => {
+                        card.style.display = 'none';
+                        checkAllTasksFinished();
+                    }, 400);
+                }
+            }
+        }
+
+        function checkAllTasksFinished() {
+            if (userData.tasksClaimed.every(val => val === true)) {
+                document.getElementById('tasks-finished-msg').style.display = 'block';
+                if (!userData.tasksTimestamp) {
+                    userData.tasksTimestamp = Date.now() + (3 * 60 * 60 * 1000); // 3 години
+                    saveData();
+                }
+            }
+        }
+
+        function checkWeeklyTasksReset() {
+            if (userData.tasksTimestamp && Date.now() >= userData.tasksTimestamp) {
+                userData.tasksCompleted = [false, false, false, false];
+                userData.tasksClaimed = [false, false, false, false];
+                userData.tasksTimestamp = null;
+                saveData();
+            }
+        }
+
+        // Таймер 3 години для оновлення завдань
+        setInterval(() => {
+            if (userData.tasksTimestamp) {
+                let diff = userData.tasksTimestamp - Date.now();
+                if (diff <= 0) {
+                    checkWeeklyTasksReset();
+                    renderTasks();
+                } else {
+                    let hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                    let minutes = Math.floor((diff / (1000 * 60)) % 60);
+                    let seconds = Math.floor((diff / 1000) % 60);
+                    const cdText = document.getElementById('tasks-countdown-text');
+                    if (cdText) {
+                        cdText.textContent = `Наступні завдання з'являться через: ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                    }
+                }
+            }
+        }, 1000);
+
+        function renderTasks() {
+            const container = document.getElementById('tasks-container');
+            container.innerHTML = '';
+
+            const tasksData = [
+                { title: "Виконай 10 завдань за один день", reward: "+20 балів" },
+                { title: "Виконай 15 завдань за один день", reward: "+35 балів" },
+                { title: "Виконай 20 завдань за один день", reward: "+50 балів" },
+                { title: "Проведи 20 хвилин у додатку підряд", reward: "+50 балів", isSession: true }
+            ];
+
+            let allClaimed = true;
+
+            tasksData.forEach((task, index) => {
+                if (userData.tasksClaimed[index]) return; // Якщо вже забрано, не рендеримо
+                allClaimed = false;
+
+                const card = document.createElement('div');
+                card.className = 'task-card';
+                card.id = `task-card-${index}`;
+
+                let btnText = 'Виконати';
+                let btnClass = 'task-btn';
+
+                if (userData.tasksCompleted[index]) {
+                    btnText = 'Отримати';
+                    btnClass = 'task-btn claim';
+                }
+
+                if (task.isSession) {
+                    card.innerHTML = `
+                        <div class="task-title">${task.title}</div>
+                        <div style="font-size: 13px; color: var(--text-sec);" id="session-status-text">Підрахунок часу...</div>
+                        <div class="session-progress-container">
+                            <div class="session-progress-bar" id="session-progress-bar"></div>
+                        </div>
+                        <div class="task-footer">
+                            <div class="task-reward">${task.reward}</div>
+                            <button class="${btnClass}" id="task-btn-${index}" onclick="handleTaskAction(${index})">${userData.tasksCompleted[index] ? 'Отримати' : 'У процесі'}</button>
+                        </div>
+                    `;
+                } else {
+                    card.innerHTML = `
+                        <div class="task-title">${task.title}</div>
+                        <div class="task-footer">
+                            <div class="task-reward">${task.reward}</div>
+                            <button class="${btnClass}" id="task-btn-${index}" onclick="handleTaskAction(${index})">${btnText}</button>
+                        </div>
+                    `;
+                }
+                container.appendChild(card);
+            });
+
+            if (allClaimed && userData.tasksClaimed.some(v => v)) {
+                document.getElementById('tasks-finished-msg').style.display = 'block';
+            } else {
+                document.getElementById('tasks-finished-msg').style.display = 'none';
+            }
+
+            updateSessionProgressUI();
+        }
+
+        // НАВІГАЦІЯ ТА ТЕМИ
         function switchTab(tabId, element) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
