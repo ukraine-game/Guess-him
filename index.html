@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Football Career Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -16,7 +16,7 @@
             --border: #E5E7EB;
             --shadow: rgba(0, 0, 0, 0.06);
             --nav-bg: rgba(255, 255, 255, 0.9);
-            --modal-bg: rgba(0,0,0,0.4);
+            --modal-bg: rgba(0,0,0,0.5);
             --splash-bg: #FFFFFF;
         }
         
@@ -30,7 +30,7 @@
             --border: #2D3136;
             --shadow: rgba(0, 0, 0, 0.4);
             --nav-bg: rgba(26, 29, 33, 0.9);
-            --modal-bg: rgba(0,0,0,0.6);
+            --modal-bg: rgba(0,0,0,0.7);
             --splash-bg: #111315;
         }
 
@@ -44,7 +44,7 @@
             --border: #233554;
             --shadow: rgba(2, 12, 27, 0.7);
             --nav-bg: rgba(17, 34, 64, 0.9);
-            --modal-bg: rgba(10,25,47,0.7);
+            --modal-bg: rgba(10,25,47,0.8);
             --splash-bg: #0A192F;
         }
 
@@ -52,23 +52,31 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
             transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
 
-        body {
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
             background-color: var(--bg);
             color: var(--text-main);
+            overscroll-behavior-y: none;
+        }
+
+        body {
             display: flex;
             justify-content: center;
-            overflow: hidden;
-            overscroll-behavior-y: none;
+            align-items: center;
         }
 
         .app-container {
             width: 100%;
-            max-width: 390px;
+            max-width: 430px;
+            height: 100vh;
             height: 100dvh;
             position: relative;
             overflow: hidden;
@@ -82,7 +90,7 @@
             flex-direction: column;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.4s ease, transform 0.4s ease;
+            transition: opacity 0.35s ease, transform 0.35s ease;
             transform: scale(0.98);
             z-index: 1;
         }
@@ -92,6 +100,7 @@
             transform: scale(1);
         }
 
+        /* Splash Screen */
         #splash-screen {
             background: var(--splash-bg);
             z-index: 9999;
@@ -106,13 +115,13 @@
         .splash-content {
             text-align: center;
             opacity: 0;
-            transform: translateY(30px);
+            transform: translateY(20px);
             animation: splashIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 0.1s;
         }
         .splash-title {
-            font-size: 32px;
+            font-size: 30px;
             font-weight: 800;
-            letter-spacing: -1px;
+            letter-spacing: -0.5px;
             margin-bottom: 8px;
         }
         .splash-subtitle {
@@ -125,16 +134,17 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Auth Screen */
         .auth-container {
-            padding: 40px 24px;
+            padding: calc(20px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));
             display: flex;
             flex-direction: column;
             height: 100%;
             justify-content: center;
             overflow-y: auto;
         }
-        .auth-header { text-align: center; margin-bottom: 30px; }
-        .auth-header h1 { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+        .auth-header { text-align: center; margin-bottom: 24px; }
+        .auth-header h1 { font-size: 32px; font-weight: 800; letter-spacing: -1px; line-height: 1.1; }
         
         .avatar-upload {
             align-self: center;
@@ -172,6 +182,222 @@
             display: flex; justify-content: space-between; align-items: center;
             cursor: pointer; box-shadow: 0 4px 12px var(--shadow);
         }
+
+        .btn-main {
+            background: var(--primary); color: #fff; border: none;
+            padding: 18px; border-radius: 16px; font-size: 17px; font-weight: 700;
+            cursor: pointer; box-shadow: 0 10px 25px rgba(0, 210, 106, 0.3);
+            transition: 0.2s; text-align: center; width: 100%;
+        }
+        .btn-main:active { transform: scale(0.97); background: var(--primary-dark); }
+        [data-theme="dark"] .btn-main, [data-theme="blue"] .btn-main { color: #000; }
+
+        /* Crop Overlay */
+        #crop-overlay {
+            position: absolute; inset: 0; background: var(--bg);
+            z-index: 35000; display: flex; flex-direction: column; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        #crop-overlay.active { opacity: 1; pointer-events: all; }
+        .crop-top-bar {
+            width: 100%; padding: calc(16px + env(safe-area-inset-top)) 20px 16px;
+            display: flex; justify-content: space-between; align-items: center; font-weight: 600;
+        }
+        .crop-close-btn {
+            background: var(--surface); border: 1px solid var(--border); width: 36px; height: 36px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            color: var(--text-main); font-size: 18px; cursor: pointer; box-shadow: 0 4px 10px var(--shadow);
+        }
+        .crop-container {
+            flex: 1; display: flex; align-items: center; justify-content: center; width: 100%;
+        }
+        .crop-area {
+            width: 280px; height: 280px; border-radius: 50%;
+            border: 3px solid var(--primary); position: relative; overflow: hidden;
+            box-shadow: 0 0 0 2000px var(--modal-bg); touch-action: none;
+        }
+        .crop-area img {
+            position: absolute;
+            top: 50%; left: 50%;
+            max-width: none; max-height: none;
+            transform-origin: center center;
+            cursor: grab; user-select: none;
+            -webkit-user-select: none;
+        }
+        .crop-footer { width: 100%; padding: 20px 24px calc(24px + env(safe-area-inset-bottom)); }
+
+        /* Toast */
+        .toast-notification {
+            position: fixed; top: calc(20px + env(safe-area-inset-top)); left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--surface); color: var(--text-main); border: 1px solid var(--border);
+            padding: 14px 20px; border-radius: 16px; box-shadow: 0 10px 30px var(--shadow);
+            font-weight: 600; font-size: 14px; z-index: 50000;
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            text-align: center; display: flex; align-items: center; gap: 10px; width: 90%; max-width: 360px;
+        }
+        .toast-notification.active { transform: translateX(-50%) translateY(0); }
+
+        /* Top Header */
+        .top-header {
+            padding: calc(12px + env(safe-area-inset-top)) 20px 12px;
+            background: var(--surface); display: flex; justify-content: space-between;
+            align-items: center; border-bottom: 1px solid var(--border);
+            box-shadow: 0 4px 20px var(--shadow); z-index: 10; position: relative;
+        }
+        .profile-trigger { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .mini-avatar {
+            width: 44px; height: 44px; border-radius: 50%; background-color: var(--primary);
+            background-size: cover !important; background-position: center !important;
+            box-shadow: 0 4px 10px var(--shadow);
+            display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff;
+            flex-shrink: 0;
+        }
+        .profile-info .label { font-size: 11px; color: var(--text-sec); font-weight: 600; text-transform: uppercase; }
+        .profile-info .name { font-size: 15px; font-weight: 700; }
+        
+        .score-box { text-align: right; cursor: pointer; }
+        .score-val { font-size: 20px; font-weight: 800; color: var(--primary); }
+        .score-label { font-size: 11px; color: var(--text-sec); font-weight: 500; }
+
+        /* Tabs */
+        .tab-content {
+            display: none; height: calc(100% - 70px); overflow-y: auto;
+            padding: 20px 20px calc(100px + env(safe-area-inset-bottom));
+            -webkit-overflow-scrolling: touch;
+        }
+        .tab-content.active { display: block; }
+
+        /* Levels Chain */
+        .level-chain { display: flex; flex-direction: column; align-items: center; position: relative; gap: 40px; padding: 20px 0; }
+        .chain-line { position: absolute; top: 30px; bottom: 30px; width: 2px; background: var(--border); z-index: 1; }
+        
+        .level-node {
+            width: 62px; height: 62px; border-radius: 50%; background: var(--surface);
+            border: 2px solid var(--border); z-index: 2; display: flex; align-items: center;
+            justify-content: center; font-size: 20px; font-weight: 700; color: var(--text-sec);
+            position: relative; box-shadow: 0 4px 15px var(--shadow); cursor: pointer;
+            opacity: 0; transform: scale(0) translateX(var(--offset));
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s;
+        }
+        .level-node:nth-child(odd) { --offset: -36px; }
+        .level-node:nth-child(even) { --offset: 36px; }
+        .level-node.completed { background: var(--primary); border-color: var(--primary); color: #fff; }
+        .level-node.failed { background: #ff3b30; border-color: #ff3b30; color: #fff; }
+        .level-node.show { opacity: 1; transform: scale(1) translateX(var(--offset)); }
+        .level-node.show.current {
+            background: var(--surface); border: 3px solid var(--primary); color: var(--text-main);
+            transform: scale(1.15) translateX(calc(var(--offset) * 0.8));
+        }
+
+        .cloud-barrier {
+            background: var(--surface); border: 1px dashed var(--border); border-radius: 20px;
+            padding: 20px; text-align: center; margin: 10px 0; width: 100%;
+            box-shadow: 0 4px 15px var(--shadow); z-index: 2; position: relative;
+        }
+        .cloud-icon { font-size: 32px; margin-bottom: 6px; }
+        .cloud-text { font-size: 13px; font-weight: 600; color: var(--text-sec); line-height: 1.4; }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: absolute; bottom: calc(16px + env(safe-area-inset-bottom));
+            left: 50%; transform: translateX(-50%); width: calc(100% - 40px);
+            height: 64px; border-radius: 22px; background: var(--nav-bg);
+            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+            display: flex; justify-content: space-around; align-items: center;
+            box-shadow: 0 10px 30px var(--shadow); border: 1px solid var(--border); z-index: 10;
+        }
+        .nav-item {
+            color: var(--text-sec); display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 3px; flex: 1; height: 100%; border-radius: 16px;
+            cursor: pointer; transition: 0.2s;
+        }
+        .nav-item.active { color: var(--primary); }
+        .nav-item svg { stroke: currentColor; transition: 0.3s; width: 22px; height: 22px; }
+        .nav-text { font-size: 11px; font-weight: 600; }
+
+        /* Tasks */
+        .task-card {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+            padding: 18px; margin-bottom: 14px; box-shadow: 0 4px 15px var(--shadow);
+            display: flex; flex-direction: column; gap: 10px;
+            transition: transform 0.4s ease, opacity 0.4s ease, max-height 0.4s ease, margin 0.4s ease, padding 0.4s ease;
+            max-height: 250px; overflow: hidden;
+        }
+        .task-card.slide-out {
+            transform: translateX(120%); opacity: 0; max-height: 0;
+            margin-bottom: 0; padding-top: 0; padding-bottom: 0; border: none;
+        }
+        .task-title { font-size: 15px; font-weight: 700; }
+        .task-footer { display: flex; justify-content: space-between; align-items: center; }
+        .task-reward { font-size: 14px; font-weight: 700; color: var(--primary); }
+        .task-btn {
+            background: var(--bg); border: 1px solid var(--border); color: var(--text-main);
+            padding: 8px 16px; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer;
+        }
+        .task-btn.claim { background: var(--primary); color: #fff; border-color: var(--primary); }
+        
+        .session-progress-container {
+            width: 100%; height: 8px; background: var(--bg); border-radius: 4px;
+            overflow: hidden; border: 1px solid var(--border); margin-top: 2px;
+        }
+        .session-progress-bar {
+            height: 100%; background: var(--primary); width: 0%; transition: width 0.5s ease;
+            border-radius: 4px; box-shadow: 0 0 10px var(--primary);
+        }
+
+        /* Quiz Modal */
+        .quiz-modal {
+            position: absolute; inset: 0; background: var(--bg);
+            z-index: 40000; display: flex; flex-direction: column;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .quiz-modal.active { opacity: 1; pointer-events: all; }
+        .quiz-card {
+            background: var(--surface); width: 100%; height: 100%;
+            padding: calc(16px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom));
+            display: flex; flex-direction: column; justify-content: space-between; gap: 14px;
+            overflow-y: auto;
+        }
+        .quiz-header-bar { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px; }
+        .quiz-img-box {
+            width: 100%; flex: 1; max-height: 250px; border-radius: 20px; background: var(--bg);
+            border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+        .quiz-img-box img { width: 100%; height: 100%; object-fit: cover; }
+        .quiz-question { font-size: 18px; font-weight: 800; text-align: center; line-height: 1.35; margin: 8px 0; }
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+        .quiz-option-btn {
+            background: var(--bg); border: 1px solid var(--border); color: var(--text-main);
+            padding: 16px; border-radius: 16px; font-weight: 600; font-size: 15px; cursor: pointer;
+            text-align: center; transition: 0.15s; box-shadow: 0 4px 10px var(--shadow);
+        }
+        .quiz-option-btn:active { transform: scale(0.97); }
+        .quiz-option-btn.correct { background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important; }
+        .quiz-option-btn.wrong { background: #ff3b30 !important; color: #fff !important; border-color: #ff3b30 !important; }
+
+        .quiz-feedback-box { text-align: center; padding: 20px 0; display: none; }
+        .quiz-feedback-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+        .quiz-feedback-desc { font-size: 15px; color: var(--text-sec); margin-bottom: 24px; }
+
+        /* Modals & Bottom Sheets */
+        .sheet-overlay, .settings-modal {
+            position: absolute; inset: 0; background: var(--modal-bg);
+            backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+            z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .sheet-overlay.active, .settings-modal.active { opacity: 1; pointer-events: all; }
+        
+        .bottom-sheet, .settings-content {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: var(--surface); border-radius: 28px 28px 0 0;
+            padding: 20px 24px calc(24px + env(safe-area-inset-bottom));
+            z-index: 101; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-shadow: 0 -10px 40px var(--shadow); border-top: 1px solid var(--border);
+            max-height: 85vh; overflow-y: auto;
+        }
+        .bottom-sheet.active, .settings-modal.active .settings-content { transform: translateY(0); }
+        
         .custom-dropdown {
             position: absolute; bottom: 0; left: 0; width: 100%; max-height: 60vh;
             background: var(--surface); border-radius: 28px 28px 0 0; z-index: 30000;
@@ -187,264 +413,39 @@
         }
         .dropdown-item:active, .dropdown-item:hover { background: rgba(0, 210, 106, 0.1); color: var(--primary); }
 
-        .btn-main {
-            background: var(--primary); color: #fff; border: none;
-            padding: 18px; border-radius: 16px; font-size: 18px; font-weight: 700;
-            cursor: pointer; box-shadow: 0 10px 25px rgba(0, 210, 106, 0.3);
-            transition: 0.2s; text-align: center; width: 100%;
-        }
-        .btn-main:active { transform: scale(0.96); background: var(--primary-dark); }
-        [data-theme="dark"] .btn-main, [data-theme="blue"] .btn-main { color: #000; }
+        .sheet-handle { width: 40px; height: 5px; background: var(--border); border-radius: 3px; margin: 0 auto 16px; }
+        .sheet-title { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+        .sheet-desc { color: var(--text-sec); margin-bottom: 20px; font-size: 14px; line-height: 1.5; }
+        .sheet-stats { display: flex; gap: 12px; margin-bottom: 20px; }
+        .stat-box { flex: 1; background: var(--bg); padding: 14px; border-radius: 16px; text-align: center; border: 1px solid var(--border); }
+        .stat-label { font-size: 11px; color: var(--text-sec); margin-bottom: 4px; font-weight: 600; }
+        .stat-value { font-size: 15px; font-weight: 700; color: var(--primary); }
 
-        #crop-overlay {
-            position: absolute; inset: 0; background: var(--bg);
-            z-index: 35000; display: flex; flex-direction: column; align-items: center;
-            opacity: 0; pointer-events: none; transition: 0.3s;
-        }
-        #crop-overlay.active { opacity: 1; pointer-events: all; }
-        .crop-top-bar {
-            width: 100%; padding: calc(16px + env(safe-area-inset-top)) 20px 16px;
-            display: flex; justify-content: space-between; align-items: center; font-weight: 600;
-        }
-        .crop-close-btn {
-            background: var(--surface); border: 1px solid var(--border); width: 36px; height: 36px;
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            color: var(--text-main); font-size: 18px; cursor: pointer; box-shadow: 0 4px 10px var(--shadow);
-        }
-        .crop-area {
-            width: 280px; height: 280px; border-radius: 50%;
-            border: 4px solid var(--primary); position: relative; overflow: hidden;
-            margin: auto; box-shadow: 0 0 0 2000px var(--modal-bg); touch-action: none;
-        }
-        .crop-area img { position: absolute; transform-origin: center; cursor: grab; user-select: none; }
-        .crop-footer { width: 100%; padding: 20px 24px calc(24px + env(safe-area-inset-bottom)); }
-
-        .toast-notification {
-            position: fixed;
-            top: 24px;
-            left: 50%;
-            transform: translateX(-50%) translateY(-100px);
-            background: var(--surface);
-            color: var(--text-main);
-            border: 1px solid var(--border);
-            padding: 14px 24px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px var(--shadow);
-            font-weight: 600;
-            font-size: 15px;
-            z-index: 50000;
-            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-            text-align: center;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .toast-notification.active {
-            transform: translateX(-50%) translateY(0);
-        }
-
-        .top-header {
-            padding: calc(16px + env(safe-area-inset-top)) 24px 16px;
-            background: var(--surface); display: flex; justify-content: space-between;
-            align-items: center; border-bottom: 1px solid var(--border);
-            box-shadow: 0 4px 20px var(--shadow); z-index: 10; position: relative;
-        }
-        .profile-trigger { display: flex; align-items: center; gap: 12px; cursor: pointer; }
-        .mini-avatar {
-            width: 44px; height: 44px; border-radius: 50%; background-color: var(--primary);
-            background-size: cover !important; background-position: center !important;
-            box-shadow: 0 4px 10px var(--shadow);
-            display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff;
-            flex-shrink: 0;
-        }
-        .profile-info .label { font-size: 12px; color: var(--text-sec); font-weight: 600; text-transform: uppercase; }
-        .profile-info .name { font-size: 16px; font-weight: 700; }
-        
-        .score-box { text-align: right; cursor: pointer; }
-        .score-val { font-size: 20px; font-weight: 800; color: var(--primary); }
-        .score-label { font-size: 12px; color: var(--text-sec); font-weight: 500; }
-
-        .tab-content {
-            display: none; height: calc(100% - 76px); overflow-y: auto; padding: 24px 24px 120px;
-        }
-        .tab-content.active { display: block; }
-
-        .level-chain { display: flex; flex-direction: column; align-items: center; position: relative; gap: 50px; }
-        .chain-line { position: absolute; top: 20px; bottom: 20px; width: 2px; background: var(--border); z-index: 1; }
-        
-        .level-node {
-            width: 60px; height: 60px; border-radius: 50%; background: var(--surface);
-            border: 2px solid var(--border); z-index: 2; display: flex; align-items: center;
-            justify-content: center; font-size: 20px; font-weight: 700; color: var(--text-sec);
-            position: relative; box-shadow: 0 4px 15px var(--shadow); cursor: pointer;
-            opacity: 0; transform: scale(0) translateX(var(--offset));
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s, box-shadow 0.15s ease, border-color 0.15s ease;
-        }
-        .level-node:nth-child(odd) { --offset: -40px; }
-        .level-node:nth-child(even) { --offset: 40px; }
-        .level-node.completed { background: var(--primary); border-color: var(--primary); color: #fff; }
-        .level-node.failed { background: #ff3b30; border-color: #ff3b30; color: #fff; }
-        .level-node.show { opacity: 1; transform: scale(1) translateX(var(--offset)); }
-        .level-node.show.current {
-            background: var(--surface); border: 3px solid var(--primary); color: var(--text-main);
-            transform: scale(1.15) translateX(calc(var(--offset) * 0.8));
-        }
-
-        .cloud-barrier {
-            background: var(--surface);
-            border: 1px dashed var(--border);
-            border-radius: 20px;
-            padding: 24px;
-            text-align: center;
-            margin: 10px 0;
-            width: 100%;
-            box-shadow: 0 4px 15px var(--shadow);
-            z-index: 2;
-            position: relative;
-        }
-        .cloud-icon { font-size: 36px; margin-bottom: 8px; }
-        .cloud-text { font-size: 14px; font-weight: 600; color: var(--text-sec); line-height: 1.4; }
-
-        .bottom-nav {
-            position: absolute; bottom: calc(20px + env(safe-area-inset-bottom));
-            left: 50%; transform: translateX(-50%); width: calc(100% - 48px);
-            height: 68px; border-radius: 22px; background: var(--nav-bg);
-            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-            display: flex; justify-content: space-around; align-items: center;
-            box-shadow: 0 10px 30px var(--shadow); border: 1px solid var(--border); z-index: 10;
-        }
-        .nav-item {
-            color: var(--text-sec); display: flex; flex-direction: column; align-items: center;
-            justify-content: center; gap: 3px; flex: 1; height: 100%; border-radius: 16px;
-            cursor: pointer; transition: 0.2s;
-        }
-        .nav-item.active { color: var(--primary); }
-        .nav-item svg { stroke: currentColor; transition: 0.3s; width: 22px; height: 22px; }
-        .nav-text { font-size: 11px; font-weight: 600; }
-
-        .task-card {
-            background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
-            padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 15px var(--shadow);
-            display: flex; flex-direction: column; gap: 12px;
-            transition: transform 0.4s ease, opacity 0.4s ease, max-height 0.4s ease, margin 0.4s ease, padding 0.4s ease;
-            max-height: 250px; overflow: hidden;
-        }
-        .task-card.slide-out {
-            transform: translateX(120%);
-            opacity: 0;
-            max-height: 0;
-            margin-bottom: 0;
-            padding-top: 0;
-            padding-bottom: 0;
-            border: none;
-        }
-        .task-title { font-size: 16px; font-weight: 700; }
-        .task-footer { display: flex; justify-content: space-between; align-items: center; }
-        .task-reward { font-size: 14px; font-weight: 700; color: var(--primary); }
-        .task-btn {
-            background: var(--bg); border: 1px solid var(--border); color: var(--text-main);
-            padding: 8px 16px; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer;
-            transition: 0.2s;
-        }
-        .task-btn.claim { background: var(--primary); color: #fff; border-color: var(--primary); }
-        
-        .session-progress-container {
-            width: 100%; height: 8px; background: var(--bg); border-radius: 4px;
-            overflow: hidden; border: 1px solid var(--border); margin-top: 4px;
-        }
-        .session-progress-bar {
-            height: 100%; background: var(--primary); width: 0%; transition: width 0.5s ease;
-            border-radius: 4px; box-shadow: 0 0 10px var(--primary);
-        }
-
-        .quiz-modal {
-            position: absolute; inset: 0; background: var(--bg);
-            z-index: 40000; display: flex; flex-direction: column;
-            opacity: 0; pointer-events: none; transition: 0.3s;
-        }
-        .quiz-modal.active { opacity: 1; pointer-events: all; }
-        .quiz-card {
-            background: var(--surface); width: 100%; height: 100%; border-radius: 0;
-            padding: calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));
-            display: flex; flex-direction: column; justify-content: space-between; gap: 16px;
-            box-sizing: border-box; overflow-y: auto;
-        }
-        .quiz-header-bar { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px; }
-        .quiz-img-box {
-            width: 100%; flex: 1; max-height: 240px; border-radius: 20px; background: var(--bg);
-            border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center;
-        }
-        .quiz-img-box img { width: 100%; height: 100%; object-fit: cover; }
-        .quiz-question { font-size: 20px; font-weight: 800; text-align: center; line-height: 1.4; margin: 10px 0; }
-        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
-        .quiz-option-btn {
-            background: var(--bg); border: 1px solid var(--border); color: var(--text-main);
-            padding: 16px; border-radius: 16px; font-weight: 600; font-size: 16px; cursor: pointer;
-            text-align: center; transition: 0.2s; box-shadow: 0 4px 10px var(--shadow);
-        }
-        .quiz-option-btn:active { transform: scale(0.97); }
-        .quiz-option-btn.correct { background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important; }
-        .quiz-option-btn.wrong { background: #ff3b30 !important; color: #fff !important; border-color: #ff3b30 !important; }
-
-        .quiz-feedback-box {
-            text-align: center; padding: 20px; display: none; animation: scaleIn 0.3s ease;
-        }
-        .quiz-feedback-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
-        .quiz-feedback-desc { font-size: 15px; color: var(--text-sec); margin-bottom: 24px; }
-
-        @keyframes scaleIn {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        .sheet-overlay, .settings-modal {
-            position: absolute; inset: 0; background: var(--modal-bg);
-            backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-            z-index: 100; opacity: 0; pointer-events: none; transition: 0.3s;
-        }
-        .sheet-overlay.active, .settings-modal.active { opacity: 1; pointer-events: all; }
-        
-        .bottom-sheet, .settings-content {
-            position: absolute; bottom: 0; left: 0; width: 100%;
-            background: var(--surface); border-radius: 28px 28px 0 0;
-            padding: 24px 24px calc(30px + env(safe-area-inset-bottom));
-            z-index: 101; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-            box-shadow: 0 -10px 40px var(--shadow); border-top: 1px solid var(--border);
-            max-height: 85vh; overflow-y: auto;
-        }
-        .bottom-sheet.active, .settings-modal.active .settings-content { transform: translateY(0); }
-        
-        .sheet-handle { width: 40px; height: 5px; background: var(--border); border-radius: 3px; margin: 0 auto 20px; }
-        .sheet-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
-        .sheet-desc { color: var(--text-sec); margin-bottom: 24px; font-size: 15px; line-height: 1.5; }
-        .sheet-stats { display: flex; gap: 12px; margin-bottom: 24px; }
-        .stat-box { flex: 1; background: var(--bg); padding: 16px; border-radius: 16px; text-align: center; border: 1px solid var(--border); }
-        .stat-label { font-size: 12px; color: var(--text-sec); margin-bottom: 4px; font-weight: 600; }
-        .stat-value { font-size: 16px; font-weight: 700; color: var(--primary); }
-
-        .settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 20px; font-weight: 700; }
+        .settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 18px; font-weight: 700; }
         .close-btn {
             background: var(--bg); border: none; width: 32px; height: 32px;
-            border-radius: 50%; color: var(--text-main); font-size: 18px; cursor: pointer;
-            border: 1px solid var(--border);
+            border-radius: 50%; color: var(--text-main); font-size: 16px; cursor: pointer;
+            border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
         }
-        .theme-options { display: flex; gap: 12px; margin-top: 10px; }
+        .theme-options { display: flex; gap: 10px; margin-top: 10px; }
         .theme-btn {
-            flex: 1; padding: 14px 0; border-radius: 12px; border: 2px solid var(--border);
+            flex: 1; padding: 12px 0; border-radius: 12px; border: 2px solid var(--border);
             background: transparent; font-weight: 600; cursor: pointer; color: var(--text-sec); transition: 0.2s;
         }
-        .theme-btn.active { border-color: var(--primary); color: var(--text-main); background: rgba(0, 210, 106, 0.05); }
+        .theme-btn.active { border-color: var(--primary); color: var(--text-main); background: rgba(0, 210, 106, 0.08); }
     </style>
 </head>
 <body>
 
     <div class="app-container">
         
+        <!-- Toast Spowischennya -->
         <div class="toast-notification" id="toast-notification">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <span id="toast-text">Рівень заблоковано!</span>
+            <span id="toast-text">Сповіщення</span>
         </div>
 
+        <!-- Splash Screen -->
         <div id="splash-screen" class="screen">
             <div class="splash-content">
                 <div class="splash-title">Вітаємо, <span id="splash-name-display"></span>!</div>
@@ -452,6 +453,7 @@
             </div>
         </div>
 
+        <!-- Auth Screen -->
         <div id="auth-screen" class="screen">
             <div class="auth-container">
                 <div class="auth-header">
@@ -460,7 +462,7 @@
                 
                 <label class="avatar-upload" id="avatar-preview-container" onclick="triggerFileInput()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-                    <img id="final-avatar-img">
+                    <img id="final-avatar-img" alt="Аватар">
                 </label>
                 <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
                 
@@ -482,6 +484,7 @@
             </div>
         </div>
 
+        <!-- Club Selector Dropdown -->
         <div class="sheet-overlay" id="club-overlay" onclick="closeClubDropdown()"></div>
         <div class="custom-dropdown" id="club-dropdown">
             <div class="sheet-handle"></div>
@@ -489,19 +492,23 @@
             <div class="dropdown-list" id="club-list-container"></div>
         </div>
 
+        <!-- Photo Cropper Overlay -->
         <div id="crop-overlay">
             <div class="crop-top-bar">
                 <span>Збільште та вирівняйте фото</span>
                 <div class="crop-close-btn" onclick="cancelCrop()">✕</div>
             </div>
-            <div class="crop-area" id="crop-area">
-                <img id="crop-image" src="" alt="">
+            <div class="crop-container">
+                <div class="crop-area" id="crop-area">
+                    <img id="crop-image" src="" alt="">
+                </div>
             </div>
             <div class="crop-footer">
                 <button class="btn-main" onclick="applyCrop()">Готово</button>
             </div>
         </div>
 
+        <!-- Quiz Modal -->
         <div class="quiz-modal" id="quiz-modal">
             <div class="quiz-card">
                 <div class="quiz-header-bar">
@@ -509,12 +516,12 @@
                     <button class="close-btn" onclick="closeQuizModal()">✕</button>
                 </div>
                 
-                <div id="quiz-gameplay-section" style="display: flex; flex-direction: column; flex: 1; justify-content: space-between; gap: 16px;">
+                <div id="quiz-gameplay-section" style="display: flex; flex-direction: column; flex: 1; justify-content: space-between; gap: 12px;">
                     <div class="quiz-img-box">
                         <img id="quiz-img" src="" alt="Фото футболіста">
                     </div>
                     <div>
-                        <div class="quiz-question" id="quiz-question-text">Завантаження питання...</div>
+                        <div class="quiz-question" id="quiz-question-text">Завантаження...</div>
                     </div>
                     <div class="quiz-options" id="quiz-options-container"></div>
                 </div>
@@ -522,11 +529,12 @@
                 <div class="quiz-feedback-box" id="quiz-feedback-box">
                     <div class="quiz-feedback-title" id="quiz-feedback-title">Супер!</div>
                     <div class="quiz-feedback-desc" id="quiz-feedback-desc">Рівень пройдено успішно.</div>
-                    <button class="btn-main" id="quiz-feedback-btn" onclick="handleQuizFeedbackNext()">Наступний рівень</button>
+                    <button class="btn-main" id="quiz-feedback-btn" onclick="handleQuizFeedbackNext()">Далі</button>
                 </div>
             </div>
         </div>
 
+        <!-- Main Screen -->
         <div id="main-screen" class="screen">
             <div class="top-header">
                 <div class="profile-trigger" onclick="openSettings()">
@@ -542,28 +550,32 @@
                 </div>
             </div>
 
+            <!-- Tab: Home -->
             <div id="tab-home" class="tab-content active">
                 <div class="level-chain" id="level-chain">
                     <div class="chain-line"></div>
                 </div>
             </div>
 
+            <!-- Tab: Tasks -->
             <div id="tab-tasks" class="tab-content">
-                <h2 style="margin-bottom: 20px; font-weight: 800;">Щотижневі завдання</h2>
+                <h2 style="margin-bottom: 16px; font-weight: 800;">Щотижневі завдання</h2>
                 <div id="tasks-container"></div>
                 <div id="tasks-finished-msg" style="display: none; text-align: center; padding: 40px 20px; background: var(--surface); border-radius: 24px; border: 1px solid var(--border);">
-                    <div style="font-size: 20px; font-weight: 800; margin-bottom: 8px;">Завдання закінчилися :(</div>
-                    <div style="color: var(--text-sec); font-size: 15px;" id="tasks-countdown-text">Наступні завдання з'являться через: 03:00:00</div>
+                    <div style="font-size: 18px; font-weight: 800; margin-bottom: 8px;">Завдання закінчилися :(</div>
+                    <div style="color: var(--text-sec); font-size: 14px;" id="tasks-countdown-text">Оновлення через: 03:00:00</div>
                 </div>
             </div>
 
+            <!-- Tab: Shop -->
             <div id="tab-shop" class="tab-content">
-                <h2 style="margin: 20px 0; text-align: center; font-weight: 800;">Магазин</h2>
+                <h2 style="margin: 16px 0; text-align: center; font-weight: 800;">Магазин</h2>
                 <div style="background: var(--surface); padding: 40px 20px; border-radius: 24px; text-align: center; border: 1px solid var(--border);">
                     <p style="color: var(--text-sec);">Скоро тут будуть нові нагороди та скіни.</p>
                 </div>
             </div>
 
+            <!-- Bottom Nav -->
             <nav class="bottom-nav">
                 <div class="nav-item active" onclick="switchTab('home', this)">
                     <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
@@ -580,11 +592,12 @@
             </nav>
         </div>
 
+        <!-- Level Info Sheet -->
         <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
         <div class="bottom-sheet" id="bottom-sheet">
             <div class="sheet-handle"></div>
             <h3 class="sheet-title" id="sheet-title">Рівень 1</h3>
-            <p class="sheet-desc">Вгадайте футболіста за фото та перевірте свої знання про український та світовий футбол!</p>
+            <p class="sheet-desc">Вгадайте футболіста за фото та перевірте свої знання про футбольний світ!</p>
             <div class="sheet-stats">
                 <div class="stat-box">
                     <div class="stat-label">Складність</div>
@@ -598,32 +611,33 @@
             <button class="btn-main" onclick="startCurrentLevelQuiz()">Почати рівень</button>
         </div>
 
+        <!-- Stats Sheet -->
         <div class="sheet-overlay" id="stats-overlay" onclick="closeStats()"></div>
         <div class="bottom-sheet" id="stats-sheet">
             <div class="sheet-handle"></div>
             <h3 class="sheet-title">Статистика гравця</h3>
             <div class="sheet-stats" style="flex-direction: column; gap: 8px; margin-bottom: 20px;">
-                <div class="stat-box" style="display: flex; justify-content: space-between; align-items: center; text-align: left;">
+                <div class="stat-box" style="display: flex; justify-content: space-between; align-items: center;">
                     <span class="stat-label" style="margin:0;">Бали:</span>
                     <span class="stat-value" id="stat-points">0</span>
                 </div>
-                <div class="stat-box" style="display: flex; justify-content: space-between; align-items: center; text-align: left;">
+                <div class="stat-box" style="display: flex; justify-content: space-between; align-items: center;">
                     <span class="stat-label" style="margin:0;">Пройдено рівнів:</span>
                     <span class="stat-value" id="stat-levels">0 / 50</span>
                 </div>
-                <div class="stat-box" style="display: flex; justify-content: space-between; align-items: center; text-align: left;">
+                <div class="stat-box" style="display: flex; justify-content: space-between; align-items: center;">
                     <span class="stat-label" style="margin:0;">Поточна ера:</span>
                     <span class="stat-value" id="stat-era">Ера 1</span>
                 </div>
-                <div class="stat-box" style="display: flex; justify-content: space-between; align-items: center; text-align: left;">
+                <div class="stat-box" style="display: flex; justify-content: space-between; align-items: center;">
                     <span class="stat-label" style="margin:0;">Виконано завдань:</span>
                     <span class="stat-value" id="stat-tasks">0</span>
                 </div>
-                <div class="stat-box" style="display: flex; justify-content: space-between; align-items: center; text-align: left;">
+                <div class="stat-box" style="display: flex; justify-content: space-between; align-items: center;">
                     <span class="stat-label" style="margin:0;">Правильних відповідей:</span>
                     <span class="stat-value" id="stat-correct" style="color: var(--primary);">0</span>
                 </div>
-                <div class="stat-box" style="display: flex; justify-content: space-between; align-items: center; text-align: left;">
+                <div class="stat-box" style="display: flex; justify-content: space-between; align-items: center;">
                     <span class="stat-label" style="margin:0;">Неправильних відповідей:</span>
                     <span class="stat-value" id="stat-incorrect" style="color: #ff3b30;">0</span>
                 </div>
@@ -631,6 +645,7 @@
             <button class="btn-main" onclick="closeStats()">Закрити</button>
         </div>
 
+        <!-- Settings Modal -->
         <div class="settings-modal" id="settings-modal">
             <div class="settings-content">
                 <div class="settings-header">
@@ -638,26 +653,26 @@
                     <button class="close-btn" onclick="closeSettings()">✕</button>
                 </div>
                 
-                <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 24px; background: var(--bg); padding: 16px; border-radius: 20px; border: 1px solid var(--border);">
-                    <div class="mini-avatar" id="modal-avatar" style="width: 60px; height: 60px; font-size: 20px; cursor: pointer;" onclick="triggerFileInput()"></div>
+                <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 20px; background: var(--bg); padding: 14px; border-radius: 20px; border: 1px solid var(--border);">
+                    <div class="mini-avatar" id="modal-avatar" style="width: 56px; height: 56px; font-size: 18px; cursor: pointer;" onclick="triggerFileInput()"></div>
                     <div style="flex: 1;">
-                        <div style="font-weight: 700; font-size: 16px;" id="modal-display-name">Гравець</div>
-                        <div style="font-size: 13px; color: var(--text-sec);" id="modal-display-club">Клуб</div>
+                        <div style="font-weight: 700; font-size: 15px;" id="modal-display-name">Гравець</div>
+                        <div style="font-size: 12px; color: var(--text-sec);" id="modal-display-club">Клуб</div>
                     </div>
                     <button class="task-btn" onclick="triggerFileInput()">Змінити фото</button>
                 </div>
 
                 <div class="input-group">
-                    <div style="font-size: 13px; color: var(--text-sec); margin-bottom: 6px; font-weight: 600;">Ім'я</div>
+                    <div style="font-size: 12px; color: var(--text-sec); margin-bottom: 6px; font-weight: 600;">Ім'я</div>
                     <input type="text" id="edit-first-name" autocomplete="off" oninput="updateProfileField('name', this.value)">
                 </div>
                 <div class="input-group">
-                    <div style="font-size: 13px; color: var(--text-sec); margin-bottom: 6px; font-weight: 600;">Прізвище</div>
+                    <div style="font-size: 12px; color: var(--text-sec); margin-bottom: 6px; font-weight: 600;">Прізвище</div>
                     <input type="text" id="edit-last-name" autocomplete="off" oninput="updateProfileField('lastName', this.value)">
                 </div>
 
                 <div class="input-group">
-                    <div style="font-size: 13px; color: var(--text-sec); margin-bottom: 6px; font-weight: 600;">Улюблений клуб</div>
+                    <div style="font-size: 12px; color: var(--text-sec); margin-bottom: 6px; font-weight: 600;">Улюблений клуб</div>
                     <div class="custom-select-trigger" onclick="openClubDropdownFromSettings()">
                         <span id="edit-club-text">Оберіть клуб</span>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
@@ -665,7 +680,7 @@
                 </div>
 
                 <div style="margin: 20px 0;">
-                    <div style="font-size: 13px; color: var(--text-sec); margin-bottom: 8px; font-weight: 600;">Тема оформлення</div>
+                    <div style="font-size: 12px; color: var(--text-sec); margin-bottom: 8px; font-weight: 600;">Тема оформлення</div>
                     <div class="theme-options">
                         <button class="theme-btn" id="theme-btn-light" onclick="setTheme('light')">Біла</button>
                         <button class="theme-btn" id="theme-btn-dark" onclick="setTheme('dark')">Чорна</button>
@@ -688,7 +703,7 @@
             "Металіст 1925", "Оболонь", "Полісся", "Чорноморець", "Шахтар"
         ];
 
-        const STORAGE_KEY = 'football_career_save_v5';
+        const STORAGE_KEY = 'football_career_save_v6';
         
         function getDeviceId() {
             let id;
@@ -720,7 +735,7 @@
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
             } catch(e) {
-                console.warn("Помилка збереження: можливо, вимкнено localStorage", e);
+                console.warn("localStorage не доступний", e);
             }
         }
 
@@ -735,15 +750,13 @@
                     }
                 }
             } catch(e) {
-                console.warn("Помилка завантаження даних", e);
+                console.warn("Помилка зчитування даних", e);
             }
             return false;
         }
 
         function logout() {
-            try {
-                localStorage.removeItem(STORAGE_KEY);
-            } catch(e) {}
+            try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
             location.reload();
         }
 
@@ -753,13 +766,11 @@
             document.getElementById('toast-text').textContent = text;
             toast.classList.add('active');
             if(toastTimeout) clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => {
-                toast.classList.remove('active');
-            }, 3000);
+            toastTimeout = setTimeout(() => { toast.classList.remove('active'); }, 3000);
         }
 
         function triggerConfetti() {
-            for (let i = 0; i < 60; i++) {
+            for (let i = 0; i < 50; i++) {
                 const particle = document.createElement('div');
                 const colors = ['#00D26A', '#FF3B30', '#FFCC00', '#007AFF', '#AF52DE'];
                 particle.style.background = colors[Math.floor(Math.random() * colors.length)];
@@ -784,6 +795,7 @@
             showToast("🎉 Вітаємо! Нову еру розблоковано!");
         }
 
+        /* Club Selector */
         function initClubDropdown() {
             const container = document.getElementById('club-list-container');
             container.innerHTML = '';
@@ -824,6 +836,7 @@
             closeClubDropdown();
         }
 
+        /* Application Init */
         window.onload = () => {
             initClubDropdown();
             checkWeeklyTasksReset();
@@ -844,7 +857,7 @@
                     setTimeout(() => { splash.classList.remove('active'); }, 400);
                     renderTasks();
                     startSessionTimer();
-                }, 2000);
+                }, 1800);
 
             } else {
                 document.getElementById('auth-screen').classList.add('active');
@@ -869,13 +882,13 @@
                         av.textContent = '';
                     } else {
                         av.style.backgroundImage = 'none';
-                        av.textContent = userData.name.charAt(0).toUpperCase();
+                        av.textContent = userData.name ? userData.name.charAt(0).toUpperCase() : '⚽';
                     }
                 }
             });
             
             const previewImg = document.getElementById('final-avatar-img');
-            if (userData.avatar) {
+            if (previewImg && userData.avatar) {
                 previewImg.src = userData.avatar;
                 previewImg.style.display = 'block';
             }
@@ -887,7 +900,8 @@
             setupProfileUI();
         }
 
-        let cropUrl = '';
+        /* Avatar Cropping Logic (Canvas-based) */
+        let cropRawUrl = '';
         let currentX = 0, currentY = 0, cropScale = 1;
         const cropImage = document.getElementById('crop-image');
         const cropArea = document.getElementById('crop-area');
@@ -901,12 +915,14 @@
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    cropUrl = event.target.result;
-                    cropImage.src = cropUrl;
-                    currentX = 0; currentY = 0; cropScale = 1;
-                    updateTransform();
+                    cropRawUrl = event.target.result;
+                    cropImage.onload = () => {
+                        currentX = 0; currentY = 0; cropScale = 1;
+                        updateTransform();
+                    };
+                    cropImage.src = cropRawUrl;
                     document.getElementById('crop-overlay').classList.add('active');
-                }
+                };
                 reader.readAsDataURL(file);
             }
         }
@@ -916,12 +932,13 @@
         }
 
         function updateTransform() {
-            cropImage.style.transform = `translate(${currentX}px, ${currentY}px) scale(${cropScale})`;
+            cropImage.style.transform = `translate(-50%, -50%) translate(${currentX}px, ${currentY}px) scale(${cropScale})`;
         }
 
+        /* Touch & Mouse Handlers for Cropper */
         let initialDist = null;
         let startScale = 1;
-        let startX = 0, startY = 0, isDragging = false;
+        let isDragging = false;
         let lastTouchX = 0, lastTouchY = 0;
 
         cropArea.addEventListener('touchstart', (e) => {
@@ -939,7 +956,7 @@
             e.preventDefault(); 
             if (e.touches.length === 2 && initialDist) {
                 let dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-                cropScale = Math.min(Math.max(0.5, startScale * (dist / initialDist)), 4);
+                cropScale = Math.min(Math.max(0.3, startScale * (dist / initialDist)), 5);
                 updateTransform();
             } else if (e.touches.length === 1 && isDragging) {
                 let dx = e.touches[0].clientX - lastTouchX;
@@ -957,32 +974,60 @@
             if (e.touches.length === 0) isDragging = false;
         });
 
-        let isMouseDown = false;
+        let isMouseDown = false, mouseStartX = 0, mouseStartY = 0;
         cropArea.addEventListener('mousedown', (e) => {
             isMouseDown = true;
-            startX = e.clientX - currentX;
-            startY = e.clientY - currentY;
+            mouseStartX = e.clientX - currentX;
+            mouseStartY = e.clientY - currentY;
         });
         window.addEventListener('mousemove', (e) => {
             if (!isMouseDown) return;
-            currentX = e.clientX - startX;
-            currentY = e.clientY - startY;
+            currentX = e.clientX - mouseStartX;
+            currentY = e.clientY - mouseStartY;
             updateTransform();
         });
         window.addEventListener('mouseup', () => { isMouseDown = false; });
         cropArea.addEventListener('wheel', (e) => {
             e.preventDefault();
-            cropScale = Math.min(Math.max(0.5, cropScale + (e.deltaY < 0 ? 0.1 : -0.1)), 4);
+            cropScale = Math.min(Math.max(0.3, cropScale + (e.deltaY < 0 ? 0.1 : -0.1)), 5);
             updateTransform();
         }, { passive: false });
 
+        /* Perform Precise Crop via Canvas */
         function applyCrop() {
-            userData.avatar = cropUrl;
+            if (!cropImage || !cropImage.naturalWidth) {
+                cancelCrop();
+                return;
+            }
+
+            const canvas = document.createElement('canvas');
+            const canvasSize = 400; // Resolution of exported avatar
+            canvas.width = canvasSize;
+            canvas.height = canvasSize;
+            const ctx = canvas.getContext('2d');
+
+            const areaSize = cropArea.clientWidth || 280;
+            const ratio = canvasSize / areaSize;
+
+            ctx.save();
+            ctx.translate(canvasSize / 2, canvasSize / 2);
+            ctx.translate(currentX * ratio, currentY * ratio);
+            ctx.scale(cropScale * ratio, cropScale * ratio);
+            
+            ctx.drawImage(
+                cropImage,
+                -cropImage.naturalWidth / 2,
+                -cropImage.naturalHeight / 2
+            );
+            ctx.restore();
+
+            userData.avatar = canvas.toDataURL('image/jpeg', 0.9);
             saveData();
             setupProfileUI();
             cancelCrop();
         }
 
+        /* Registration */
         function registerUser() {
             const name = document.getElementById('first-name').value.trim();
             const club = window.tempSelectedClub;
@@ -1011,6 +1056,7 @@
             return "Експерт";
         }
 
+        /* Levels Rendering */
         function generateLevels() {
             const chainContainer = document.getElementById('level-chain');
             chainContainer.innerHTML = '<div class="chain-line"></div>';
@@ -1044,7 +1090,7 @@
 
                 setTimeout(() => {
                     levelNode.classList.add('show');
-                }, i * 20); 
+                }, i * 15); 
             }
 
             if (userData.level <= 20) {
@@ -1064,14 +1110,14 @@
                 if (currentNode) {
                     currentNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
-            }, 300);
+            }, 250);
         }
 
         let selectedLevelNum = 1;
 
         function handleLevelClick(levelNum) {
             if (levelNum > userData.level) {
-                showToast(`${userData.level} рівень ще не пройдено!`);
+                showToast(`Пройдіть попередні рівні!`);
                 return;
             }
             selectedLevelNum = levelNum;
@@ -1112,65 +1158,55 @@
             document.getElementById('stats-sheet').classList.remove('active');
         }
 
-        /**
-         * Завантаження рівня з:
-         *   img/footballer/1.png
-         *   img/footballer/1.txt
-         *
-         * Формат TXT:
-         * "Питання?", "Відповідь 1" "Відповідь 2" "Відповідь 3", 1, 1, 10
-         *
-         * Останні 3 числа:
-         * 1) номер правильної відповіді (рахунок з 1)
-         * 2) складність (1-4)
-         * 3) кількість балів
-         */
+        /* 
+           Завантаження файлів рівнів:
+           Шлях: img/footboler/${level}.txt та img/footboler/${level}.png
+        */
         async function startCurrentLevelQuiz() {
             closeSheet();
-
             const level = selectedLevelNum;
-            const txtPath = `img/footballer/${level}.txt`;
-            const imgPath = `img/footballer/${level}.png`;
+
+            const candidateFolders = [
+                `img/footboler/${level}`,
+                `img/footballer/${level}`
+            ];
+
+            let rawText = null;
+            let foundImgPath = null;
+
+            for (const basePath of candidateFolders) {
+                try {
+                    const txtRes = await fetch(`${basePath}.txt`, { cache: 'no-store' });
+                    if (txtRes.ok) {
+                        rawText = await txtRes.text();
+                        foundImgPath = `${basePath}.png`;
+                        break;
+                    }
+                } catch (e) { }
+            }
+
+            if (!rawText) {
+                showLevelError(`Рівень ${level}: не створено! Перевірте наявність файлів img/footboler/${level}.txt та .png`);
+                return;
+            }
 
             try {
-                // Обидва файли ОБОВ'ЯЗКОВІ.
-                // Резервних/вигаданих питань немає.
-                const [resTxt, resImg] = await Promise.all([
-                    fetch(txtPath, { cache: 'no-store' }),
-                    fetch(imgPath, { cache: 'no-store' })
-                ]);
-
-                if (!resTxt.ok || !resImg.ok) {
-                    throw new Error(
-                        !resImg.ok && !resTxt.ok
-                            ? 'Не знайдено PNG та TXT'
-                            : !resImg.ok
-                                ? 'Не знайдено PNG'
-                                : 'Не знайдено TXT'
-                    );
-                }
-
-                const rawText = await resTxt.text();
                 const parsed = parseQuestionFileText(rawText);
 
                 if (!parsed || !parsed.question || parsed.options.length < 2) {
-                    throw new Error('TXT має неправильний формат або недостатньо варіантів відповіді');
-                }
-
-                if (parsed.correctIndex < 1 || parsed.correctIndex > parsed.options.length) {
-                    throw new Error('У TXT вказано неправильний номер правильної відповіді');
-                }
-
-                if (parsed.difficulty < 1 || parsed.difficulty > 4) {
-                    throw new Error('Складність у TXT повинна бути від 1 до 4');
-                }
-
-                if (!Number.isFinite(parsed.points) || parsed.points < 0) {
-                    throw new Error('Кількість балів у TXT вказана неправильно');
+                    throw new Error('Невірний формат файлу TXT або замало відповідей.');
                 }
 
                 document.getElementById('quiz-level-title').textContent = `Рівень ${level}`;
-                document.getElementById('quiz-img').src = imgPath;
+                
+                const quizImg = document.getElementById('quiz-img');
+                quizImg.onerror = function() {
+                    if (quizImg.src.endsWith('.png')) {
+                        quizImg.src = quizImg.src.replace('.png', '.jpg');
+                    }
+                };
+                quizImg.src = foundImgPath;
+                
                 document.getElementById('quiz-question-text').textContent = parsed.question;
 
                 const optionsContainer = document.getElementById('quiz-options-container');
@@ -1184,8 +1220,6 @@
                     btn.className = 'quiz-option-btn';
                     btn.textContent = opt;
 
-                    // Номер кнопки починається з 1.
-                    // Тому correctIndex=1 означає ПЕРШУ кнопку.
                     btn.onclick = () => checkQuizAnswer(
                         idx + 1,
                         parsed.correctIndex,
@@ -1199,24 +1233,11 @@
 
             } catch (err) {
                 console.error(`Помилка рівня ${level}:`, err);
-                document.getElementById('quiz-modal').classList.remove('active');
-
-                showLevelError(
-                    `Рівень ${level}: цей рівень не було створено, або виникла помилка!`
-                );
+                showLevelError(`Помилка завантаження рівня ${level}: ${err.message}`);
             }
         }
 
-        /**
-         * Розбір TXT.
-         *
-         * Приклад:
-         * "Що це за футболіст?", "Кріштіану Роналду" "Ліонель Мессі" "Неймар Джуніор", 1, 1, 10
-         *
-         * 1-ше значення в лапках = питання
-         * решта значень в лапках = кнопки
-         * останні 3 числа = правильна кнопка, складність, бали
-         */
+        /* Гнучкий парсер для файлів .txt */
         function parseQuestionFileText(text) {
             const cleanText = String(text || '').replace(/^\uFEFF/, '').trim();
 
@@ -1224,13 +1245,12 @@
                 .map(match => match[1].trim());
 
             if (quotes.length < 3) {
-                throw new Error('У TXT повинно бути питання та щонайменше 2 варіанти відповіді');
+                throw new Error('TXT повинен містити питання та мінімум 2 варіанти в лапках');
             }
 
             const question = quotes[0];
             const options = quotes.slice(1);
 
-            // Беремо числа тільки ПІСЛЯ останнього тексту в лапках.
             const lastQuoteIndex = cleanText.lastIndexOf('"');
             const numericPart = cleanText.slice(lastQuoteIndex + 1);
 
@@ -1238,7 +1258,13 @@
                 .map(match => Number(match[0]));
 
             if (numbers.length < 3) {
-                throw new Error('У TXT відсутні правильна відповідь, складність або бали');
+                return {
+                    question,
+                    options,
+                    correctIndex: 1,
+                    difficulty: 1,
+                    points: 10
+                };
             }
 
             return {
@@ -1252,36 +1278,27 @@
 
         function showLevelError(message) {
             showToast(message);
-
-            setTimeout(() => {
-                alert(message);
-            }, 50);
         }
 
         let lastQuizResult = false;
 
         function checkQuizAnswer(selectedOpt, correctOpt, pointsEarned) {
             const buttons = document.querySelectorAll('.quiz-option-btn');
-
-            // selectedOpt і correctOpt — номери кнопок, починаючи з 1.
             const isCorrect = Number(selectedOpt) === Number(correctOpt);
             lastQuizResult = isCorrect;
 
             buttons.forEach((btn, idx) => {
                 const buttonNumber = idx + 1;
-
                 if (buttonNumber === Number(correctOpt)) {
                     btn.classList.add('correct');
                 } else if (buttonNumber === Number(selectedOpt) && !isCorrect) {
                     btn.classList.add('wrong');
                 }
-
                 btn.style.pointerEvents = 'none';
             });
 
             setTimeout(() => {
                 document.getElementById('quiz-gameplay-section').style.display = 'none';
-
                 const feedbackBox = document.getElementById('quiz-feedback-box');
                 feedbackBox.style.display = 'block';
 
@@ -1291,23 +1308,20 @@
 
                 if (isCorrect) {
                     userData.correctCount = (userData.correctCount || 0) + 1;
-                    titleEl.textContent = "Супер! ⚽";
+                    titleEl.textContent = "Вірно! ⚽";
 
                     const wasFailed = userData.failedLevels.includes(selectedLevelNum);
 
                     if (!wasFailed) {
                         userData.score += pointsEarned;
-                        descEl.textContent = `Правильно! Ви заробили +${pointsEarned} балів.`;
+                        descEl.textContent = `Чудово! Ви отримали +${pointsEarned} балів.`;
                     } else {
-                        descEl.textContent = `Правильно! (Бали не нараховані через попередню помилку).`;
-                        userData.failedLevels = userData.failedLevels.filter(
-                            l => l !== selectedLevelNum
-                        );
+                        descEl.textContent = `Правильно! (Перепроходження без балів).`;
+                        userData.failedLevels = userData.failedLevels.filter(l => l !== selectedLevelNum);
                     }
 
                     if (selectedLevelNum === userData.level) {
                         userData.level++;
-
                         if (selectedLevelNum === 20 || selectedLevelNum === 40) {
                             triggerConfetti();
                         }
@@ -1316,14 +1330,12 @@
                     saveData();
                     setupProfileUI();
                     generateLevels();
-
                     btnEl.textContent = "Наступний рівень";
 
                 } else {
                     userData.incorrectCount = (userData.incorrectCount || 0) + 1;
-
                     titleEl.textContent = "Помилка! ❌";
-                    descEl.textContent = "На жаль, відповідь неправильна. Бали не нараховані.";
+                    descEl.textContent = "Невірна відповідь. Спробуйте ще раз!";
                     btnEl.textContent = "Спробувати знову";
 
                     if (!userData.failedLevels.includes(selectedLevelNum)) {
@@ -1333,12 +1345,11 @@
                     saveData();
                     generateLevels();
                 }
-            }, 800);
+            }, 700);
         }
 
         function handleQuizFeedbackNext() {
             document.getElementById('quiz-modal').classList.remove('active');
-
             if (!lastQuizResult) {
                 setTimeout(() => startCurrentLevelQuiz(), 300);
             }
@@ -1348,14 +1359,14 @@
             document.getElementById('quiz-modal').classList.remove('active');
         }
 
-
+        /* Timers & Tasks */
         const TOTAL_SESSION_SECONDS = 20 * 60;
 
         function startSessionTimer() {
             setInterval(() => {
                 if (userData.sessionSeconds < TOTAL_SESSION_SECONDS) {
                     userData.sessionSeconds++;
-                    if (userData.sessionSeconds % 5 === 0) saveData();
+                    if (userData.sessionSeconds % 10 === 0) saveData();
                     updateSessionProgressUI();
                 }
             }, 1000);
@@ -1391,22 +1402,10 @@
             const card = document.getElementById(`task-card-${index}`);
 
             let passedLevels = userData.level - 1;
-            if (index === 0 && passedLevels < 10) {
-                showToast("Ви ще не виконали 10 рівнів!");
-                return;
-            }
-            if (index === 1 && passedLevels < 15) {
-                showToast("Ви ще не виконали 15 рівнів!");
-                return;
-            }
-            if (index === 2 && passedLevels < 20) {
-                showToast("Ви ще не виконали 20 рівнів!");
-                return;
-            }
-            if (index === 3 && userData.sessionSeconds < TOTAL_SESSION_SECONDS) {
-                showToast("Ви ще не відсиділи 20 хвилин!");
-                return;
-            }
+            if (index === 0 && passedLevels < 10) { showToast("Пройдіть 10 рівнів!"); return; }
+            if (index === 1 && passedLevels < 15) { showToast("Пройдіть 15 рівнів!"); return; }
+            if (index === 2 && passedLevels < 20) { showToast("Пройдіть 20 рівнів!"); return; }
+            if (index === 3 && userData.sessionSeconds < TOTAL_SESSION_SECONDS) { showToast("Залишайтесь у грі 20 хвилин!"); return; }
 
             if (!userData.tasksCompleted[index]) {
                 userData.tasksCompleted[index] = true;
@@ -1461,7 +1460,7 @@
                     let seconds = Math.floor((diff / 1000) % 60);
                     const cdText = document.getElementById('tasks-countdown-text');
                     if (cdText) {
-                        cdText.textContent = `Наступні завдання з'являться через: ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                        cdText.textContent = `Оновлення через: ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
                     }
                 }
             }
@@ -1485,16 +1484,8 @@
                 if (userData.tasksClaimed[index]) return;
                 allClaimed = false;
 
-                let isReady = false;
-                if (task.isSession) {
-                    isReady = userData.sessionSeconds >= TOTAL_SESSION_SECONDS;
-                } else {
-                    isReady = passedLevels >= task.targetLevel;
-                }
-
-                if (isReady) {
-                    userData.tasksCompleted[index] = true;
-                }
+                let isReady = task.isSession ? (userData.sessionSeconds >= TOTAL_SESSION_SECONDS) : (passedLevels >= task.targetLevel);
+                if (isReady) userData.tasksCompleted[index] = true;
 
                 const card = document.createElement('div');
                 card.className = 'task-card';
@@ -1506,7 +1497,7 @@
                 if (task.isSession) {
                     card.innerHTML = `
                         <div class="task-title">${task.title}</div>
-                        <div style="font-size: 13px; color: var(--text-sec);" id="session-status-text">Підрахунок часу...</div>
+                        <div style="font-size: 12px; color: var(--text-sec);" id="session-status-text">Підрахунок часу...</div>
                         <div class="session-progress-container">
                             <div class="session-progress-bar" id="session-progress-bar"></div>
                         </div>
@@ -1536,6 +1527,7 @@
             updateSessionProgressUI();
         }
 
+        /* Navigation & Settings */
         function switchTab(tabId, element) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
