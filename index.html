@@ -391,9 +391,19 @@
             border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
         }
+        .quiz-img-box { position: relative; cursor: zoom-in; touch-action: none; }
         .quiz-img-box img {
-            height: 100%; width: auto; max-width: 100%; object-fit: contain; display: block;
+            width: 100%; height: 100%; max-width: none; max-height: none; object-fit: contain; display: block;
+            transform-origin: center center; will-change: transform; user-select: none; -webkit-user-drag: none;
         }
+        .quiz-zoom-hint {
+            position: absolute; right: 10px; bottom: 10px; z-index: 2;
+            background: rgba(0,0,0,.58); color:#fff; padding:6px 9px; border-radius:10px;
+            font-size:11px; font-weight:700; pointer-events:none;
+        }
+        .quiz-zoom-controls { display:flex; gap:7px; justify-content:center; margin-top:6px; }
+        .quiz-zoom-btn { border:1px solid var(--border); background:var(--bg); color:var(--text-main);
+            width:38px;height:32px;border-radius:10px;font-size:18px;font-weight:800;cursor:pointer; }
 
         .quiz-question { font-size: 18px; font-weight: 800; text-align: center; line-height: 1.35; margin: 8px 0; flex-shrink: 0;}
         .quiz-options { display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;}
@@ -597,8 +607,14 @@
                 </div>
                 
                 <div id="quiz-gameplay-section" style="display: flex; flex-direction: column; flex: 1; justify-content: space-between; gap: 12px;">
-                    <div class="quiz-img-box">
-                        <img id="quiz-img" src="" alt="Фото футболіста">
+                    <div class="quiz-img-box" id="quiz-img-box">
+                        <img id="quiz-img" src="" alt="Фото футболіста" draggable="false">
+                        <div class="quiz-zoom-hint">Колесо / pinch — масштаб</div>
+                    </div>
+                    <div class="quiz-zoom-controls">
+                        <button class="quiz-zoom-btn" type="button" onclick="zoomQuizImage(-1)">−</button>
+                        <button class="quiz-zoom-btn" type="button" onclick="resetQuizImageZoom()">↺</button>
+                        <button class="quiz-zoom-btn" type="button" onclick="zoomQuizImage(1)">+</button>
                     </div>
                     <div>
                         <div class="quiz-question" id="quiz-question-text">Завантаження...</div>
@@ -920,38 +936,45 @@
             closeClubDropdown();
         }
 
-        /* Preloader: готуємо всі ресурси наперед, а не тільки поточні 5 файлів */
+        /*
+         * PRELOADER
+         * Структура: img/footboler/0.txt + 0.png,
+         * далі 1..300 для 60 рівнів по 5 питань.
+         * Використовуємо точний шлях img/footboler/.
+         */
         async function preloadAssets() {
             const infoEl = document.getElementById('splash-loading-info');
-            if (infoEl) infoEl.textContent = "Завантаження всіх ресурсів кар'єри...";
+            if (infoEl) infoEl.textContent = 'Завантаження футболістів...';
 
-            // 0 = навчання, 1..300 = питання для 60 рівнів по 5 питань.
-            // Завантажуємо саме твою структуру img/footboler/N.png та img/footboler/N.txt.
-            const uniqueUrls = [];
-            for (let n = 0; n <= 300; n++) {
-                uniqueUrls.push(`img/footboler/${n}.png`, `img/footboler/${n}.txt`);
-            }
-            const concurrency = 12;
-            let cursor = 0;
+            const totalQuestions = 301;
             let loaded = 0;
+            const concurrency = 8;
+            let cursor = 0;
+
+            async function preloadOne(number) {
+                const txtUrl = getFootbolerUrl(number, 'txt');
+                const txtPromise = fetch(txtUrl, { cache: 'force-cache' }).catch(() => null);
+                const imagePromise = new Promise(resolve => {
+                    const img = new Image();
+                    img.onload = () => resolve(true);
+                    img.onerror = () => resolve(false);
+                    img.src = getFootbolerUrl(number, 'png');
+                });
+                const txt = await txtPromise;
+                await imagePromise;
+                if (txt && txt.ok) loaded++;
+                if (infoEl) infoEl.textContent = `Підготовлено ${loaded} з ${totalQuestions} питань...`;
+            }
 
             async function worker() {
                 while (true) {
-                    const index = cursor++;
-                    if (index >= uniqueUrls.length) return;
-                    const url = uniqueUrls[index];
-                    try {
-                        const response = await fetch(url, { cache: 'force-cache' });
-                        if (response.ok) loaded++;
-                    } catch (e) { }
-                    if (infoEl && (index % 20 === 0 || index === uniqueUrls.length - 1)) {
-                        infoEl.textContent = `Підготовлено ресурсів: ${loaded}`;
-                    }
+                    const n = cursor++;
+                    if (n >= totalQuestions) return;
+                    await preloadOne(n);
                 }
             }
-
             await Promise.all(Array.from({ length: concurrency }, worker));
-            if (infoEl) infoEl.textContent = `Ресурси готові: ${loaded}`;
+            if (infoEl) infoEl.textContent = `Ресурси готові: ${loaded} питань`;
         }
 
         /* Application Init */
@@ -1251,11 +1274,14 @@
             document.getElementById('bottom-sheet').classList.remove('active');
         }
 
+        // ВСІ файли питань лежать строго тут: img/footboler/
+        // Наприклад: img/footboler/1.png + img/footboler/1.txt
+        function getFootbolerUrl(number, extension) {
+            return new URL(`img/footboler/${number}.${extension}`, document.baseURI).href;
+        }
+
         function findAssetCandidates(number, extension) {
-            return [
-                `img/footboler/${number}.${extension}`,
-                `img/footballer/${number}.${extension}`
-            ];
+            return [getFootbolerUrl(number, extension)];
         }
 
         async function fetchFirstAvailable(candidates, options = {}) {
@@ -1269,19 +1295,81 @@
         }
 
         async function loadQuestionAsset(questionNumber) {
-            const txtResult = await fetchFirstAvailable(findAssetCandidates(questionNumber, 'txt'));
-            if (!txtResult) throw new Error(`Не знайдено ${questionNumber}.txt`);
+            const txtUrl = getFootbolerUrl(questionNumber, 'txt');
+            const rawTextResponse = await fetch(txtUrl, { cache: 'force-cache' });
+            if (!rawTextResponse.ok) throw new Error(`Не знайдено img/footboler/${questionNumber}.txt`);
+            const rawText = await rawTextResponse.text();
 
-            const rawText = await txtResult.response.text();
+            const imageExtensions = ['png', 'jpg', 'jpeg', 'webp', 'gif'];
             let imageUrl = null;
-            for (const ext of ['png', 'jpg', 'jpeg', 'webp']) {
-                const imgResult = await fetchFirstAvailable(findAssetCandidates(questionNumber, ext), { method: 'GET' });
-                if (imgResult) { imageUrl = imgResult.url; break; }
+            for (const ext of imageExtensions) {
+                const candidate = getFootbolerUrl(questionNumber, ext);
+                const exists = await new Promise(resolve => {
+                    const img = new Image();
+                    img.onload = () => resolve(true);
+                    img.onerror = () => resolve(false);
+                    img.src = candidate;
+                });
+                if (exists) { imageUrl = candidate; break; }
             }
-
-            if (!imageUrl) throw new Error(`Не знайдено фото ${questionNumber}`);
+            if (!imageUrl) throw new Error(`Не знайдено фото img/footboler/${questionNumber}`);
             return { number: questionNumber, rawText, imageUrl };
         }
+
+        /* Безлімітний практично масштаб фото: від 5% до 1000%, плюс перетягування. */
+        let quizImageScale = 1;
+        let quizImageX = 0;
+        let quizImageY = 0;
+        let quizImageDragging = false;
+        let quizImageLastX = 0;
+        let quizImageLastY = 0;
+        let quizPinchStartDistance = null;
+        let quizPinchStartScale = 1;
+
+        function applyQuizImageTransform() {
+            const img = document.getElementById('quiz-img');
+            if (img) img.style.transform = `translate(${quizImageX}px, ${quizImageY}px) scale(${quizImageScale})`;
+        }
+        function resetQuizImageZoom() { quizImageScale = 1; quizImageX = 0; quizImageY = 0; applyQuizImageTransform(); }
+        function zoomQuizImage(direction) {
+            quizImageScale *= direction > 0 ? 1.35 : 0.74;
+            quizImageScale = Math.min(1000, Math.max(0.05, quizImageScale));
+            applyQuizImageTransform();
+        }
+        function initQuizImageZoom() {
+            const box = document.getElementById('quiz-img-box');
+            if (!box || box.dataset.zoomReady) return;
+            box.dataset.zoomReady = '1';
+            box.addEventListener('wheel', e => { e.preventDefault(); zoomQuizImage(e.deltaY < 0 ? 1 : -1); }, { passive:false });
+            box.addEventListener('pointerdown', e => {
+                quizImageDragging = true; quizImageLastX = e.clientX; quizImageLastY = e.clientY;
+                box.setPointerCapture?.(e.pointerId);
+            });
+            box.addEventListener('pointermove', e => {
+                if (!quizImageDragging) return;
+                quizImageX += e.clientX - quizImageLastX; quizImageY += e.clientY - quizImageLastY;
+                quizImageLastX = e.clientX; quizImageLastY = e.clientY; applyQuizImageTransform();
+            });
+            box.addEventListener('pointerup', () => quizImageDragging = false);
+            box.addEventListener('pointercancel', () => quizImageDragging = false);
+            box.addEventListener('dblclick', resetQuizImageZoom);
+            box.addEventListener('touchstart', e => {
+                if (e.touches.length === 2) {
+                    quizPinchStartDistance = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+                    quizPinchStartScale = quizImageScale;
+                }
+            }, {passive:true});
+            box.addEventListener('touchmove', e => {
+                if (e.touches.length === 2 && quizPinchStartDistance) {
+                    e.preventDefault();
+                    const d = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+                    quizImageScale = Math.min(1000, Math.max(0.05, quizPinchStartScale * d / quizPinchStartDistance));
+                    applyQuizImageTransform();
+                }
+            }, {passive:false});
+            box.addEventListener('touchend', () => { quizPinchStartDistance = null; });
+        }
+        initQuizImageZoom();
 
         async function startCurrentLevelQuiz() {
             closeAllQuizRelatedSheets();
@@ -1309,6 +1397,7 @@
                 const quizImg = document.getElementById('quiz-img');
                 quizImg.onerror = null;
                 quizImg.src = asset.imageUrl;
+                resetQuizImageZoom();
                 document.getElementById('quiz-question-text').textContent = parsed.question;
 
                 const optionsContainer = document.getElementById('quiz-options-container');
