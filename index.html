@@ -359,6 +359,7 @@
         .task-btn.claim { background: var(--primary); color: #fff; border-color: var(--primary); }
         
         .session-progress-container {
+            display:none !important;
             width: 100%; height: 8px; background: var(--bg); border-radius: 4px;
             overflow: hidden; border: 1px solid var(--border); margin-top: 2px;
         }
@@ -409,7 +410,17 @@
 
         .quiz-feedback-box { text-align: center; padding: 20px 0; display: none; flex: 1; flex-direction: column; justify-content: center; }
         .quiz-feedback-title { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
-        .quiz-feedback-desc { font-size: 15px; color: var(--text-sec); margin-bottom: 24px; line-height: 1.5;}
+        .quiz-feedback-desc { font-size: 15px; color: var(--text-sec); margin-bottom: 16px; line-height: 1.5;}
+        .quiz-rating { display:flex; justify-content:center; gap:7px; margin:4px 0 14px; }
+        .quiz-star { width:28px; height:28px; display:block; }
+        .quiz-star svg { width:100%; height:100%; display:block; }
+        .quiz-star.filled path { fill:var(--primary); stroke:var(--primary); }
+        .quiz-star.empty path { fill:#D1D5DB; stroke:#B8BEC7; }
+        .quiz-reward-status { min-height:22px; margin-bottom:18px; font-size:13px; font-weight:700; color:var(--primary); }
+        .quiz-progress-wrap { width:100%; flex-shrink:0; }
+        .quiz-progress-meta { display:flex; align-items:center; margin-bottom:7px; font-size:12px; color:var(--text-sec); font-weight:700; }
+        .quiz-progress-track { width:100%; height:8px; background:var(--bg); border:1px solid var(--border); border-radius:999px; overflow:hidden; }
+        .quiz-progress-fill { width:0%; height:100%; background:var(--primary); border-radius:999px; transition:width .18s ease; }
 
         /* Modals & Bottom Sheets Fix */
         .sheet-overlay, .settings-modal {
@@ -587,19 +598,16 @@
             <div class="quiz-card">
                 <div class="quiz-header-bar">
                     <span id="quiz-level-title">Рівень 1</span>
-                    <span id="quiz-question-counter" style="font-size:13px;color:var(--text-sec);font-weight:700;">1 / 5</span>
                     <button class="close-btn" onclick="closeQuizModal()">✕</button>
                 </div>
                 <div class="quiz-progress-wrap" id="quiz-progress-wrap">
                     <div class="quiz-progress-meta">
                         <span id="quiz-progress-label">Питання 1 з 5</span>
-                        <span id="quiz-progress-percent">0%</span>
                     </div>
                     <div class="quiz-progress-track">
                         <div class="quiz-progress-fill" id="quiz-progress-fill"></div>
                     </div>
                 </div>
-                <div class="session-progress-container" style="margin:0 0 4px; flex-shrink:0;"><div class="session-progress-bar" id="quiz-progress-bar" style="width:0%;"></div></div>
                 
                 <div id="quiz-gameplay-section" style="display: flex; flex-direction: column; flex: 1; justify-content: space-between; gap: 12px;">
                     <div class="quiz-img-box">
@@ -613,10 +621,11 @@
 
                 <div class="quiz-feedback-box" id="quiz-feedback-box">
                     <div class="quiz-feedback-title" id="quiz-feedback-title">Супер!</div>
+                    <div class="quiz-rating" id="quiz-rating" aria-label="Рейтинг рівня"></div>
                     <div class="quiz-feedback-desc" id="quiz-feedback-desc">Рівень пройдено успішно.</div>
-                    
+                    <div class="quiz-reward-status" id="quiz-reward-status"></div>
                     <button class="btn-main" id="quiz-feedback-next-btn" onclick="handleQuizFeedbackNext()" style="margin-bottom: 10px;">Наступний рівень</button>
-                    <button class="btn-secondary" id="quiz-feedback-retry-btn" onclick="retryCurrentLevelQuiz()" style="display:none;">Спробувати знову</button>
+                    <button class="btn-secondary" id="quiz-feedback-retry-btn" onclick="retryCurrentLevelQuiz()" style="display:none;">Почати знову</button>
                 </div>
             </div>
         </div>
@@ -963,6 +972,7 @@
             const hasData = loadData();
             
             if (hasData) {
+                if (!['light','dark','blue'].includes(userData.theme)) userData.theme = 'light';
                 applyThemeStyling(userData.theme);
                 setupProfileUI();
                 generateLevels(); 
@@ -1200,7 +1210,9 @@
         function openLevelSheet(levelNum) {
             document.getElementById('sheet-title').textContent = `Рівень ${levelNum}`;
             document.getElementById('sheet-diff').textContent = levelNum === 0 ? 'Навчання' : getDifficultyText(levelNum);
-            document.getElementById('sheet-reward').textContent = levelNum === 0 ? '+0 балів' : '+10 балів';
+            const completed = Array.isArray(userData.completedLevels) && userData.completedLevels.includes(levelNum);
+            document.getElementById('sheet-reward').textContent = levelNum === 0 ? '+0 балів' : (completed ? 'Винагороду отримано' : '+10 балів');
+            document.getElementById('start-lvl-btn').textContent = completed ? 'Почати знову' : 'Почати рівень';
             document.getElementById('sheet-overlay').classList.add('active');
             document.getElementById('bottom-sheet').classList.add('active');
         }
@@ -1225,8 +1237,8 @@
             try {
                 const {parsed,images}=await loadQuizQuestion(qn);
                 document.getElementById('quiz-level-title').textContent=`Рівень ${level}`;
-                document.getElementById('quiz-question-counter').textContent=`${quizQuestionIndex+1} / ${total}`;
-                document.getElementById('quiz-progress-bar').style.width=`${(quizQuestionIndex/total)*100}%`;
+                document.getElementById('quiz-progress-label').textContent = total === 1 ? 'Питання 1 з 1' : `Питання ${quizQuestionIndex+1} з 5`;
+                document.getElementById('quiz-progress-fill').style.width=`${(quizQuestionIndex/total)*100}%`;
                 const img=document.getElementById('quiz-img'); let ii=0;
                 img.onerror=()=>{ ii++; if(ii<images.length) img.src=images[ii]; }; img.src=images[0]; img.draggable=false;
                 document.getElementById('quiz-question-text').textContent=parsed.question;
@@ -1247,46 +1259,92 @@
         }
         function closeQuizModal(){ if(quizQuestionTimer){clearTimeout(quizQuestionTimer);quizQuestionTimer=null;} document.getElementById('quiz-modal').classList.remove('active'); }
 
-        function finishLevelQuiz(){
-            const level=selectedLevelNum, passed=quizCorrectAnswers===getLevelQuestionCount(level);
-            document.getElementById('quiz-progress-bar').style.width='100%';
-            document.getElementById('quiz-gameplay-section').style.display='none';
-            document.getElementById('quiz-feedback-box').style.display='flex';
-            const title=document.getElementById('quiz-feedback-title'), desc=document.getElementById('quiz-feedback-desc'), next=document.getElementById('quiz-feedback-next-btn'), retry=document.getElementById('quiz-feedback-retry-btn');
-            if(level===0){ title.textContent='Готово! ⚽'; desc.textContent=passed?'Тестове питання пройдено.':'Тест завершено.'; next.textContent='Продовжити навчання'; retry.style.display='none'; return; }
-            if(passed){
-                if(!Array.isArray(userData.completedLevels)) userData.completedLevels=[];
-                const firstPass=!userData.completedLevels.includes(level);
-                if(firstPass){userData.completedLevels.push(level);userData.score+=10;}
-                userData.correctCount=(userData.correctCount||0)+quizCorrectAnswers;
-                if(level===userData.level) userData.level++;
-                userData.failedLevels=(userData.failedLevels||[]).filter(x=>x!==level);
-                saveData(); setupProfileUI(); generateLevels(); renderTasks();
-                triggerConfetti(); showToast(firstPass?'+10 балів за 5 завдань!':'Рівень пройдено!');
-                title.textContent='Рівень пройдено! ⚽'; desc.textContent='5/5 правильних відповідей.'+(firstPass?' +10 балів.':''); next.textContent='Наступний рівень'; retry.style.display='none';
-            }else{
-                userData.incorrectCount=(userData.incorrectCount||0)+quizWrongAnswers;
-                if(!Array.isArray(userData.failedLevels)) userData.failedLevels=[]; if(!userData.failedLevels.includes(level)) userData.failedLevels.push(level);
-                saveData(); setupProfileUI(); generateLevels();
-                title.textContent='Спробуйте ще раз'; desc.textContent=`Правильних відповідей: ${quizCorrectAnswers}/5. Потрібно 5/5.`; next.textContent='Наступний рівень'; retry.style.display='block';
+        function renderQuizStars(correct, total) {
+            const wrap = document.getElementById('quiz-rating');
+            if (!wrap) return;
+            wrap.innerHTML = '';
+            for (let i = 1; i <= total; i++) {
+                const star = document.createElement('span');
+                star.className = `quiz-star ${i <= correct ? 'filled' : 'empty'}`;
+                star.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.7l2.84 5.76 6.36.92-4.6 4.48 1.09 6.33L12 17.2l-5.69 2.99 1.09-6.33-4.6-4.48 6.36-.92L12 2.7z" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
+                wrap.appendChild(star);
             }
         }
 
+        function finishLevelQuiz(){
+            const level=selectedLevelNum, total=getLevelQuestionCount(level), correct=quizCorrectAnswers;
+            const rating=Math.max(0, Math.min(total, correct));
+            document.getElementById('quiz-progress-fill').style.width='100%';
+            document.getElementById('quiz-gameplay-section').style.display='none';
+            document.getElementById('quiz-feedback-box').style.display='flex';
+            const title=document.getElementById('quiz-feedback-title'), desc=document.getElementById('quiz-feedback-desc'), next=document.getElementById('quiz-feedback-next-btn'), retry=document.getElementById('quiz-feedback-retry-btn'), reward=document.getElementById('quiz-reward-status');
+            renderQuizStars(rating, total);
+            reward.textContent='';
+
+            if(level===0){
+                title.textContent='Готово!';
+                desc.textContent=correct ? 'Тестове питання пройдено правильно.' : 'Тестове питання завершено.';
+                next.textContent='Продовжити навчання';
+                retry.style.display='none';
+                return;
+            }
+
+            if(!Array.isArray(userData.completedLevels)) userData.completedLevels=[];
+            const firstPass=!userData.completedLevels.includes(level);
+            if(firstPass){
+                userData.completedLevels.push(level);
+                userData.score += 10;
+            }
+            userData.correctCount=(userData.correctCount||0)+correct;
+            userData.incorrectCount=(userData.incorrectCount||0)+quizWrongAnswers;
+            if(level===userData.level) userData.level++;
+            userData.failedLevels=(userData.failedLevels||[]).filter(x=>x!==level);
+            saveData(); setupProfileUI(); generateLevels(); renderTasks();
+
+            triggerConfetti();
+            title.textContent='Рівень пройдено!';
+            desc.textContent=`Результат: ${correct} з ${total} правильних відповідей.`;
+            reward.textContent=firstPass ? 'Винагорода: +10 балів' : 'Винагороду за цей рівень вже отримано';
+            next.textContent='Наступний рівень';
+            retry.style.display='block';
+            retry.textContent='Почати знову';
+        }
+
         function checkQuizAnswer(selectedOpt,correctOpt){
-            if(quizAnswerLocked)return; quizAnswerLocked=true;
-            if(Number(selectedOpt)===Number(correctOpt)) quizCorrectAnswers++; else quizWrongAnswers++;
-            document.querySelectorAll('.quiz-option-btn').forEach(b=>b.style.pointerEvents='none');
+            if(quizAnswerLocked)return;
+            quizAnswerLocked=true;
+            const isCorrect=Number(selectedOpt)===Number(correctOpt);
+            if(isCorrect) quizCorrectAnswers++; else quizWrongAnswers++;
+
+            const buttons=document.querySelectorAll('.quiz-option-btn');
+            buttons.forEach((b,idx)=>{
+                const n=idx+1;
+                if(n===Number(correctOpt)) b.classList.add('correct');
+                if(n===Number(selectedOpt) && !isCorrect) b.classList.add('wrong');
+                b.style.pointerEvents='none';
+            });
+
+            // Без старої затримки в 1 секунду: лише короткий момент, щоб було видно зелений/червоний стан.
             quizQuestionTimer=setTimeout(()=>{
-                quizQuestionTimer=null; const total=getLevelQuestionCount(selectedLevelNum); quizQuestionIndex++;
-                if(quizQuestionIndex>=total) finishLevelQuiz(); else {quizAnswerLocked=false; startCurrentLevelQuiz();}
-            },1000);
+                quizQuestionTimer=null;
+                const total=getLevelQuestionCount(selectedLevelNum);
+                quizQuestionIndex++;
+                if(quizQuestionIndex>=total) finishLevelQuiz();
+                else { quizAnswerLocked=false; startCurrentLevelQuiz(); }
+            },180);
         }
         function handleQuizFeedbackNext(){
             closeQuizModal(); closeAllQuizSheets();
-            if(selectedLevelNum===0){tutStep=2;setTimeout(nextTutorialStep,100);return;}
-            selectedLevelNum++; quizQuestionIndex=0; quizCorrectAnswers=0; quizWrongAnswers=0; setTimeout(startCurrentLevelQuiz,150);
+            if(selectedLevelNum===0){ tutStep=2; nextTutorialStep(); return; }
+            selectedLevelNum++; quizQuestionIndex=0; quizCorrectAnswers=0; quizWrongAnswers=0; quizAnswerLocked=false;
+            startCurrentLevelQuiz();
         }
-        function retryCurrentLevelQuiz(){ closeQuizModal(); closeAllQuizSheets(); quizQuestionIndex=0;quizCorrectAnswers=0;quizWrongAnswers=0;quizAnswerLocked=false;setTimeout(startCurrentLevelQuiz,150); }
+
+        function retryCurrentLevelQuiz(){
+            closeQuizModal(); closeAllQuizSheets();
+            quizQuestionIndex=0; quizCorrectAnswers=0; quizWrongAnswers=0; quizAnswerLocked=false;
+            startCurrentLevelQuiz();
+        }
 
         function showEraModal(eraNum) {
             document.getElementById('era-title').textContent = `Еру ${eraNum} Розблоковано!`;
@@ -1400,6 +1458,7 @@
         function closeSettings(){document.getElementById('settings-modal').classList.remove('active');if(tutorialPanelTimer)clearTimeout(tutorialPanelTimer);}
         function setTheme(theme) { userData.theme = theme; saveData(); applyThemeStyling(theme); }
         function applyThemeStyling(theme) {
+            theme = ['light','dark','blue'].includes(theme) ? theme : 'light';
             document.body.setAttribute('data-theme', theme);
             document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
             const btn = document.getElementById(`theme-btn-${theme}`);
