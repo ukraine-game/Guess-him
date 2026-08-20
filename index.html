@@ -129,6 +129,13 @@
             font-weight: 600;
             font-size: 16px;
         }
+        .splash-loading-info {
+            margin-top: 15px;
+            font-size: 13px;
+            color: var(--text-sec);
+            font-weight: 500;
+            min-height: 20px;
+        }
 
         @keyframes splashIn {
             to { opacity: 1; transform: translateY(0); }
@@ -191,11 +198,17 @@
         }
         .btn-main:active { transform: scale(0.97); background: var(--primary-dark); }
         [data-theme="dark"] .btn-main, [data-theme="blue"] .btn-main { color: #000; }
+        .btn-secondary {
+            background: var(--bg); color: var(--text-main); border: 1px solid var(--border);
+            padding: 18px; border-radius: 16px; font-size: 17px; font-weight: 700;
+            cursor: pointer; transition: 0.2s; text-align: center; width: 100%; margin-top: 10px;
+        }
+        .btn-secondary:active { transform: scale(0.97); background: var(--border); }
 
         /* Crop Overlay */
         #crop-overlay {
             position: absolute; inset: 0; background: var(--bg);
-            z-index: 35000; display: flex; flex-direction: column; align-items: center;
+            z-index: 70000; display: flex; flex-direction: column; align-items: center;
             opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
         }
         #crop-overlay.active { opacity: 1; pointer-events: all; }
@@ -232,7 +245,7 @@
             transform: translateX(-50%) translateY(-100px);
             background: var(--surface); color: var(--text-main); border: 1px solid var(--border);
             padding: 14px 20px; border-radius: 16px; box-shadow: 0 10px 30px var(--shadow);
-            font-weight: 600; font-size: 14px; z-index: 50000;
+            font-weight: 600; font-size: 14px; z-index: 90000;
             transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
             text-align: center; display: flex; align-items: center; gap: 10px; width: 90%; max-width: 360px;
         }
@@ -254,9 +267,9 @@
             flex-shrink: 0;
         }
         .profile-info .label { font-size: 11px; color: var(--text-sec); font-weight: 600; text-transform: uppercase; }
-        .profile-info .name { font-size: 15px; font-weight: 700; }
+        .profile-info .name { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
         
-        .score-box { text-align: right; cursor: pointer; }
+        .score-box { text-align: right; cursor: pointer; flex-shrink: 0; }
         .score-val { font-size: 20px; font-weight: 800; color: var(--primary); }
         .score-label { font-size: 11px; color: var(--text-sec); font-weight: 500; }
 
@@ -359,14 +372,14 @@
             display: flex; flex-direction: column; justify-content: space-between; gap: 14px;
             overflow-y: auto;
         }
-        .quiz-header-bar { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px; }
+        .quiz-header-bar { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px; flex-shrink: 0;}
         .quiz-img-box {
-            width: 100%; flex: 1; max-height: 250px; border-radius: 20px; background: var(--bg);
+            width: 100%; flex: 1; min-height: 200px; max-height: 350px; border-radius: 20px; background: #000;
             border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center;
         }
-        .quiz-img-box img { width: 100%; height: 100%; object-fit: cover; }
-        .quiz-question { font-size: 18px; font-weight: 800; text-align: center; line-height: 1.35; margin: 8px 0; }
-        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+        .quiz-img-box img { width: 100%; height: 100%; object-fit: contain; }
+        .quiz-question { font-size: 18px; font-weight: 800; text-align: center; line-height: 1.35; margin: 8px 0; flex-shrink: 0;}
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;}
         .quiz-option-btn {
             background: var(--bg); border: 1px solid var(--border); color: var(--text-main);
             padding: 16px; border-radius: 16px; font-weight: 600; font-size: 15px; cursor: pointer;
@@ -376,9 +389,9 @@
         .quiz-option-btn.correct { background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important; }
         .quiz-option-btn.wrong { background: #ff3b30 !important; color: #fff !important; border-color: #ff3b30 !important; }
 
-        .quiz-feedback-box { text-align: center; padding: 20px 0; display: none; }
-        .quiz-feedback-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
-        .quiz-feedback-desc { font-size: 15px; color: var(--text-sec); margin-bottom: 24px; }
+        .quiz-feedback-box { text-align: center; padding: 20px 0; display: none; flex: 1; flex-direction: column; justify-content: center; }
+        .quiz-feedback-title { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+        .quiz-feedback-desc { font-size: 15px; color: var(--text-sec); margin-bottom: 24px; line-height: 1.5;}
 
         /* Modals & Bottom Sheets */
         .sheet-overlay, .settings-modal {
@@ -398,14 +411,16 @@
         }
         .bottom-sheet.active, .settings-modal.active .settings-content { transform: translateY(0); }
         
+        /* Dropdown Fix */
         .custom-dropdown {
             position: absolute; bottom: 0; left: 0; width: 100%; max-height: 60vh;
-            background: var(--surface); border-radius: 28px 28px 0 0; z-index: 30000;
+            background: var(--surface); border-radius: 28px 28px 0 0; z-index: 60000;
             transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
             display: flex; flex-direction: column; border-top: 1px solid var(--border);
             box-shadow: 0 -10px 30px var(--shadow);
+            visibility: hidden;
         }
-        .custom-dropdown.active { transform: translateY(0); }
+        .custom-dropdown.active { transform: translateY(0); visibility: visible; }
         .dropdown-list { overflow-y: auto; padding: 10px 24px calc(30px + env(safe-area-inset-bottom)); }
         .dropdown-item {
             padding: 14px 16px; border-radius: 12px; font-size: 16px; font-weight: 500;
@@ -433,6 +448,28 @@
             background: transparent; font-weight: 600; cursor: pointer; color: var(--text-sec); transition: 0.2s;
         }
         .theme-btn.active { border-color: var(--primary); color: var(--text-main); background: rgba(0, 210, 106, 0.08); }
+
+        /* Tutorial Classes */
+        .tutorial-mask {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.6); z-index: 55000;
+            opacity: 0; pointer-events: none; transition: 0.3s; display: flex; justify-content: center; align-items: center;
+        }
+        .tutorial-mask.active { opacity: 1; pointer-events: all; }
+        .tutorial-dialog {
+            background: var(--surface); padding: 24px; border-radius: 24px; width: 85%;
+            text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); border: 2px solid var(--primary);
+        }
+        .tutorial-highlight {
+            position: relative; z-index: 56000 !important; pointer-events: all !important;
+            box-shadow: 0 0 0 4px var(--primary), 0 10px 20px rgba(0,0,0,0.3) !important;
+            border-radius: inherit; background: var(--surface);
+            animation: pulseHigh 1.5s infinite;
+        }
+        @keyframes pulseHigh {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body>
@@ -450,6 +487,7 @@
             <div class="splash-content">
                 <div class="splash-title">Вітаємо, <span id="splash-name-display"></span>!</div>
                 <div class="splash-subtitle">Завантаження кар'єри...</div>
+                <div class="splash-loading-info" id="splash-loading-info"></div>
             </div>
         </div>
 
@@ -485,7 +523,7 @@
         </div>
 
         <!-- Club Selector Dropdown -->
-        <div class="sheet-overlay" id="club-overlay" onclick="closeClubDropdown()"></div>
+        <div class="sheet-overlay" id="club-overlay" onclick="closeClubDropdown()" style="z-index: 59000;"></div>
         <div class="custom-dropdown" id="club-dropdown">
             <div class="sheet-handle"></div>
             <div style="padding: 0 24px 16px; font-weight: 700; font-size: 18px;">Оберіть клуб</div>
@@ -505,6 +543,15 @@
             </div>
             <div class="crop-footer">
                 <button class="btn-main" onclick="applyCrop()">Готово</button>
+            </div>
+        </div>
+
+        <!-- Tutorial Mask -->
+        <div class="tutorial-mask" id="tutorial-mask">
+            <div class="tutorial-dialog" id="tutorial-dialog">
+                <h3 style="margin-bottom: 12px; font-size: 20px; font-weight: 800;" id="tutorial-title">Навчання</h3>
+                <p style="color: var(--text-sec); margin-bottom: 20px; font-size: 15px; line-height: 1.4;" id="tutorial-desc"></p>
+                <button class="btn-main" onclick="nextTutorialStep()">Зрозуміло</button>
             </div>
         </div>
 
@@ -529,22 +576,24 @@
                 <div class="quiz-feedback-box" id="quiz-feedback-box">
                     <div class="quiz-feedback-title" id="quiz-feedback-title">Супер!</div>
                     <div class="quiz-feedback-desc" id="quiz-feedback-desc">Рівень пройдено успішно.</div>
-                    <button class="btn-main" id="quiz-feedback-btn" onclick="handleQuizFeedbackNext()">Далі</button>
+                    
+                    <button class="btn-main" id="quiz-feedback-next-btn" onclick="handleQuizFeedbackNext()" style="margin-bottom: 10px;">Наступний рівень</button>
+                    <button class="btn-secondary" id="quiz-feedback-retry-btn" onclick="retryCurrentLevelQuiz()" style="display:none;">Спробувати знову</button>
                 </div>
             </div>
         </div>
 
         <!-- Main Screen -->
         <div id="main-screen" class="screen">
-            <div class="top-header">
-                <div class="profile-trigger" onclick="openSettings()">
+            <div class="top-header" id="header-container">
+                <div class="profile-trigger" id="tut-profile" onclick="openSettings()">
                     <div class="mini-avatar" id="top-avatar"></div>
                     <div class="profile-info">
                         <div class="label" id="top-level-label">Рівень: 1</div>
                         <div class="name" id="display-name">Гравець</div>
                     </div>
                 </div>
-                <div class="score-box" onclick="openStats()">
+                <div class="score-box" id="tut-score" onclick="openStats()">
                     <div class="score-val" id="display-score">0</div>
                     <div class="score-label">Балів 📊</div>
                 </div>
@@ -581,11 +630,11 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
                     <span class="nav-text">Головна</span>
                 </div>
-                <div class="nav-item" onclick="switchTab('tasks', this)">
+                <div class="nav-item" id="tut-nav-tasks" onclick="switchTab('tasks', this)">
                     <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
                     <span class="nav-text">Завдання</span>
                 </div>
-                <div class="nav-item" onclick="switchTab('shop', this)">
+                <div class="nav-item" id="tut-nav-shop" onclick="switchTab('shop', this)">
                     <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
                     <span class="nav-text">Магазин</span>
                 </div>
@@ -608,7 +657,7 @@
                     <div class="stat-value" id="sheet-reward">+10 балів</div>
                 </div>
             </div>
-            <button class="btn-main" onclick="startCurrentLevelQuiz()">Почати рівень</button>
+            <button class="btn-main" id="start-lvl-btn" onclick="startCurrentLevelQuiz()">Почати рівень</button>
         </div>
 
         <!-- Stats Sheet -->
@@ -703,7 +752,7 @@
             "Металіст 1925", "Оболонь", "Полісся", "Чорноморець", "Шахтар"
         ];
 
-        const STORAGE_KEY = 'football_career_save_v6';
+        const STORAGE_KEY = 'football_career_save_v7';
         
         function getDeviceId() {
             let id;
@@ -728,15 +777,12 @@
             tasksTimestamp: null,
             failedLevels: [],
             correctCount: 0,
-            incorrectCount: 0
+            incorrectCount: 0,
+            tutorialCompleted: false
         };
 
         function saveData() {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
-            } catch(e) {
-                console.warn("localStorage не доступний", e);
-            }
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(userData)); } catch(e) { }
         }
 
         function loadData() {
@@ -749,9 +795,7 @@
                         return true;
                     }
                 }
-            } catch(e) {
-                console.warn("Помилка зчитування даних", e);
-            }
+            } catch(e) {}
             return false;
         }
 
@@ -784,15 +828,12 @@
                 particle.style.pointerEvents = 'none';
                 particle.style.transition = `transform ${Math.random() * 1.5 + 1}s ease-in, opacity ${Math.random() * 1.5 + 1}s ease-in`;
                 document.body.appendChild(particle);
-
                 setTimeout(() => {
                     particle.style.transform = `translate(${Math.random() * 200 - 100}px, ${window.innerHeight + 50}px) rotate(${Math.random() * 720}deg)`;
                     particle.style.opacity = '0';
                 }, 50);
-
                 setTimeout(() => { particle.remove(); }, 2000);
             }
-            showToast("🎉 Вітаємо! Нову еру розблоковано!");
         }
 
         /* Club Selector */
@@ -836,6 +877,38 @@
             closeClubDropdown();
         }
 
+        /* Preloader */
+        async function preloadAssets() {
+            const infoEl = document.getElementById('splash-loading-info');
+            infoEl.textContent = userData.level <= 1 ? "Синхронізація ресурсів для першого запуску..." : "Завантаження рівнів...";
+            
+            try {
+                if ('caches' in window) {
+                    const cache = await caches.open('fc-assets-v1');
+                    const baseLevel = userData.level || 1;
+                    let urls = [];
+                    // Preload current level + next 4 levels
+                    for(let i = baseLevel; i <= baseLevel + 4; i++) {
+                        urls.push(`img/footboler/${i}.png`, `img/footboler/${i}.txt`);
+                    }
+                    if(!userData.tutorialCompleted) {
+                        urls.push(`img/footboler/0.png`, `img/footboler/0.txt`);
+                    }
+                    
+                    // Fire and forget (don't block UI entirely if slow)
+                    urls.forEach(url => {
+                        cache.match(url).then(res => {
+                            if(!res) {
+                                fetch(url).then(netRes => {
+                                    if(netRes.ok) cache.put(url, netRes.clone());
+                                }).catch(()=>{});
+                            }
+                        });
+                    });
+                }
+            } catch(e) { console.warn("Cache API не підтримується"); }
+        }
+
         /* Application Init */
         window.onload = () => {
             initClubDropdown();
@@ -851,13 +924,19 @@
                 document.getElementById('splash-name-display').textContent = userData.name;
                 splash.classList.add('active');
                 
+                preloadAssets(); // Кешуємо ресурси
+                
                 setTimeout(() => {
                     splash.classList.add('fade-out');
                     document.getElementById('main-screen').classList.add('active');
                     setTimeout(() => { splash.classList.remove('active'); }, 400);
                     renderTasks();
                     startSessionTimer();
-                }, 1800);
+                    
+                    if (!userData.tutorialCompleted) {
+                        setTimeout(initTutorial, 500);
+                    }
+                }, 2000);
 
             } else {
                 document.getElementById('auth-screen').classList.add('active');
@@ -886,12 +965,6 @@
                     }
                 }
             });
-            
-            const previewImg = document.getElementById('final-avatar-img');
-            if (previewImg && userData.avatar) {
-                previewImg.src = userData.avatar;
-                previewImg.style.display = 'block';
-            }
         }
 
         function updateProfileField(field, val) {
@@ -900,155 +973,76 @@
             setupProfileUI();
         }
 
-        /* Avatar Cropping Logic (Canvas-based) */
-        let cropRawUrl = '';
-        let currentX = 0, currentY = 0, cropScale = 1;
+        /* Avatar Cropper Logic (Same as before) */
+        let cropRawUrl = ''; let currentX = 0, currentY = 0, cropScale = 1;
         const cropImage = document.getElementById('crop-image');
         const cropArea = document.getElementById('crop-area');
-
-        function triggerFileInput() {
-            document.getElementById('file-input').click();
-        }
-
+        
+        function triggerFileInput() { document.getElementById('file-input').click(); }
         function handleFileSelect(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     cropRawUrl = event.target.result;
-                    cropImage.onload = () => {
-                        currentX = 0; currentY = 0; cropScale = 1;
-                        updateTransform();
-                    };
+                    cropImage.onload = () => { currentX = 0; currentY = 0; cropScale = 1; updateTransform(); };
                     cropImage.src = cropRawUrl;
                     document.getElementById('crop-overlay').classList.add('active');
                 };
                 reader.readAsDataURL(file);
             }
         }
-
-        function cancelCrop() {
-            document.getElementById('crop-overlay').classList.remove('active');
-        }
-
-        function updateTransform() {
-            cropImage.style.transform = `translate(-50%, -50%) translate(${currentX}px, ${currentY}px) scale(${cropScale})`;
-        }
-
-        /* Touch & Mouse Handlers for Cropper */
-        let initialDist = null;
-        let startScale = 1;
-        let isDragging = false;
-        let lastTouchX = 0, lastTouchY = 0;
-
+        function cancelCrop() { document.getElementById('crop-overlay').classList.remove('active'); }
+        function updateTransform() { cropImage.style.transform = `translate(-50%, -50%) translate(${currentX}px, ${currentY}px) scale(${cropScale})`; }
+        
+        let initialDist = null, startScale = 1, isDragging = false, lastTouchX = 0, lastTouchY = 0;
         cropArea.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 2) {
-                initialDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-                startScale = cropScale;
-            } else if (e.touches.length === 1) {
-                isDragging = true;
-                lastTouchX = e.touches[0].clientX;
-                lastTouchY = e.touches[0].clientY;
-            }
+            if (e.touches.length === 2) { initialDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); startScale = cropScale; }
+            else if (e.touches.length === 1) { isDragging = true; lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; }
         }, { passive: false });
-
         cropArea.addEventListener('touchmove', (e) => {
             e.preventDefault(); 
             if (e.touches.length === 2 && initialDist) {
                 let dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-                cropScale = Math.min(Math.max(0.3, startScale * (dist / initialDist)), 5);
-                updateTransform();
+                cropScale = Math.min(Math.max(0.3, startScale * (dist / initialDist)), 5); updateTransform();
             } else if (e.touches.length === 1 && isDragging) {
-                let dx = e.touches[0].clientX - lastTouchX;
-                let dy = e.touches[0].clientY - lastTouchY;
-                currentX += dx;
-                currentY += dy;
-                lastTouchX = e.touches[0].clientX;
-                lastTouchY = e.touches[0].clientY;
-                updateTransform();
+                let dx = e.touches[0].clientX - lastTouchX, dy = e.touches[0].clientY - lastTouchY;
+                currentX += dx; currentY += dy; lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; updateTransform();
             }
         }, { passive: false });
-
-        cropArea.addEventListener('touchend', (e) => {
-            if (e.touches.length < 2) initialDist = null;
-            if (e.touches.length === 0) isDragging = false;
-        });
-
-        let isMouseDown = false, mouseStartX = 0, mouseStartY = 0;
-        cropArea.addEventListener('mousedown', (e) => {
-            isMouseDown = true;
-            mouseStartX = e.clientX - currentX;
-            mouseStartY = e.clientY - currentY;
-        });
-        window.addEventListener('mousemove', (e) => {
-            if (!isMouseDown) return;
-            currentX = e.clientX - mouseStartX;
-            currentY = e.clientY - mouseStartY;
-            updateTransform();
-        });
-        window.addEventListener('mouseup', () => { isMouseDown = false; });
-        cropArea.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            cropScale = Math.min(Math.max(0.3, cropScale + (e.deltaY < 0 ? 0.1 : -0.1)), 5);
-            updateTransform();
-        }, { passive: false });
-
-        /* Perform Precise Crop via Canvas */
+        cropArea.addEventListener('touchend', (e) => { if (e.touches.length < 2) initialDist = null; if (e.touches.length === 0) isDragging = false; });
         function applyCrop() {
-            if (!cropImage || !cropImage.naturalWidth) {
-                cancelCrop();
-                return;
-            }
-
-            const canvas = document.createElement('canvas');
-            const canvasSize = 400; // Resolution of exported avatar
-            canvas.width = canvasSize;
-            canvas.height = canvasSize;
-            const ctx = canvas.getContext('2d');
-
-            const areaSize = cropArea.clientWidth || 280;
-            const ratio = canvasSize / areaSize;
-
-            ctx.save();
-            ctx.translate(canvasSize / 2, canvasSize / 2);
-            ctx.translate(currentX * ratio, currentY * ratio);
-            ctx.scale(cropScale * ratio, cropScale * ratio);
-            
-            ctx.drawImage(
-                cropImage,
-                -cropImage.naturalWidth / 2,
-                -cropImage.naturalHeight / 2
-            );
-            ctx.restore();
-
+            if (!cropImage || !cropImage.naturalWidth) { cancelCrop(); return; }
+            const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d');
+            canvas.width = 400; canvas.height = 400;
+            const ratio = 400 / (cropArea.clientWidth || 280);
+            ctx.save(); ctx.translate(200, 200); ctx.translate(currentX * ratio, currentY * ratio); ctx.scale(cropScale * ratio, cropScale * ratio);
+            ctx.drawImage(cropImage, -cropImage.naturalWidth / 2, -cropImage.naturalHeight / 2); ctx.restore();
             userData.avatar = canvas.toDataURL('image/jpeg', 0.9);
-            saveData();
-            setupProfileUI();
-            cancelCrop();
+            saveData(); setupProfileUI(); cancelCrop();
+            const previewImg = document.getElementById('final-avatar-img');
+            if (previewImg) { previewImg.src = userData.avatar; previewImg.style.display = 'block'; }
         }
 
         /* Registration */
         function registerUser() {
             const name = document.getElementById('first-name').value.trim();
             const club = window.tempSelectedClub;
-            
             if(!name) { alert("Введіть ім'я гравця!"); return; }
             if(!club) { alert("Оберіть улюблений клуб!"); return; }
             
-            userData.name = name;
-            userData.lastName = document.getElementById('last-name').value.trim();
-            userData.club = club;
-            
-            saveData();
-            setupProfileUI();
+            userData.name = name; userData.lastName = document.getElementById('last-name').value.trim();
+            userData.club = club; userData.tutorialCompleted = false; // Почнемо туторіал
+            saveData(); setupProfileUI();
 
             document.getElementById('auth-screen').classList.remove('active');
+            preloadAssets();
             document.getElementById('main-screen').classList.add('active');
-            generateLevels();
-            renderTasks();
-            startSessionTimer();
+            generateLevels(); renderTasks(); startSessionTimer();
+            setTimeout(initTutorial, 500);
         }
 
+        /* Levels */
         function getDifficultyText(lvl) {
             if (lvl <= 10) return "Легко";
             if (lvl <= 25) return "Середньо";
@@ -1056,23 +1050,32 @@
             return "Експерт";
         }
 
-        /* Levels Rendering */
         function generateLevels() {
             const chainContainer = document.getElementById('level-chain');
             chainContainer.innerHTML = '<div class="chain-line"></div>';
             
-            let maxRenderLevel = 20;
-            if (userData.level > 20 && userData.level <= 40) {
-                maxRenderLevel = 40;
-            } else if (userData.level > 40) {
-                maxRenderLevel = 50;
+            // Якщо туторіал ще не пройдено, додаємо 0 рівень
+            if (!userData.tutorialCompleted) {
+                const node0 = document.createElement('div');
+                node0.className = 'level-node current';
+                node0.id = 'level-node-0';
+                node0.textContent = '0';
+                node0.onclick = () => handleLevelClick(0);
+                chainContainer.appendChild(node0);
+                setTimeout(() => node0.classList.add('show'), 15);
             }
+
+            let maxRenderLevel = 20;
+            if (userData.level > 20 && userData.level <= 40) maxRenderLevel = 40;
+            else if (userData.level > 40) maxRenderLevel = 50;
 
             for (let i = 1; i <= maxRenderLevel; i++) {
                 const levelNode = document.createElement('div');
                 levelNode.className = 'level-node';
+                levelNode.id = `level-node-${i}`;
                 
-                if (userData.failedLevels && userData.failedLevels.includes(i) && i < userData.level) {
+                // Перевірка на провалений рівень (постійний хрестик)
+                if (userData.failedLevels && userData.failedLevels.includes(i)) {
                     levelNode.classList.add('failed');
                     levelNode.innerHTML = `✕`;
                 } else if (i < userData.level) {
@@ -1087,36 +1090,20 @@
 
                 levelNode.onclick = () => handleLevelClick(i);
                 chainContainer.appendChild(levelNode);
-
-                setTimeout(() => {
-                    levelNode.classList.add('show');
-                }, i * 15); 
+                setTimeout(() => levelNode.classList.add('show'), i * 15); 
             }
-
-            if (userData.level <= 20) {
-                const cloud = document.createElement('div');
-                cloud.className = 'cloud-barrier';
-                cloud.innerHTML = `<div class="cloud-icon">☁️</div><div class="cloud-text">Щоб розблокувати 2 еру виконайте усі 20 рівнів</div>`;
-                chainContainer.appendChild(cloud);
-            } else if (userData.level > 20 && userData.level <= 40) {
-                const cloud = document.createElement('div');
-                cloud.className = 'cloud-barrier';
-                cloud.innerHTML = `<div class="cloud-icon">☁️</div><div class="cloud-text">Щоб розблокувати 3 еру виконайте усі 40 рівнів</div>`;
-                chainContainer.appendChild(cloud);
-            }
-
             setTimeout(() => {
                 const currentNode = document.querySelector('.level-node.current') || document.querySelector('.level-node');
-                if (currentNode) {
-                    currentNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
+                if (currentNode) currentNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }, 250);
         }
 
         let selectedLevelNum = 1;
-
         function handleLevelClick(levelNum) {
-            if (levelNum > userData.level) {
+            // Блокування під час навчання, якщо клік не на 0 рівень
+            if (!userData.tutorialCompleted && levelNum !== 0) return;
+
+            if (levelNum > userData.level && levelNum !== 0) {
                 showToast(`Пройдіть попередні рівні!`);
                 return;
             }
@@ -1126,92 +1113,43 @@
 
         function openLevelSheet(levelNum) {
             document.getElementById('sheet-title').textContent = `Рівень ${levelNum}`;
-            document.getElementById('sheet-diff').textContent = getDifficultyText(levelNum);
-            document.getElementById('sheet-reward').textContent = `+${levelNum * 10} балів`;
-            
+            document.getElementById('sheet-diff').textContent = levelNum === 0 ? 'Навчання' : getDifficultyText(levelNum);
+            document.getElementById('sheet-reward').textContent = levelNum === 0 ? '+0 балів' : `+${levelNum * 10} балів`;
             document.getElementById('sheet-overlay').classList.add('active');
             document.getElementById('bottom-sheet').classList.add('active');
         }
+        function closeSheet() { document.getElementById('sheet-overlay').classList.remove('active'); document.getElementById('bottom-sheet').classList.remove('active'); }
 
-        function closeSheet() {
-            document.getElementById('sheet-overlay').classList.remove('active');
-            document.getElementById('bottom-sheet').classList.remove('active');
-        }
-
-        function openStats() {
-            document.getElementById('stat-points').textContent = userData.score;
-            document.getElementById('stat-levels').textContent = `${Math.min(50, userData.level - 1)} / 50`;
-            let currentEra = userData.level <= 20 ? "Ера 1" : (userData.level <= 40 ? "Ера 2" : "Ера 3");
-            document.getElementById('stat-era').textContent = currentEra;
-            
-            let completedTasksCount = userData.tasksClaimed.filter(Boolean).length;
-            document.getElementById('stat-tasks').textContent = completedTasksCount;
-            document.getElementById('stat-correct').textContent = userData.correctCount || 0;
-            document.getElementById('stat-incorrect').textContent = userData.incorrectCount || 0;
-
-            document.getElementById('stats-overlay').classList.add('active');
-            document.getElementById('stats-sheet').classList.add('active');
-        }
-
-        function closeStats() {
-            document.getElementById('stats-overlay').classList.remove('active');
-            document.getElementById('stats-sheet').classList.remove('active');
-        }
-
-        /* 
-           Завантаження файлів рівнів:
-           Шлях: img/footboler/${level}.txt та img/footboler/${level}.png
-        */
         async function startCurrentLevelQuiz() {
             closeSheet();
             const level = selectedLevelNum;
-
-            const candidateFolders = [
-                `img/footboler/${level}`,
-                `img/footballer/${level}`
-            ];
-
-            let rawText = null;
-            let foundImgPath = null;
+            const candidateFolders = [`img/footboler/${level}`, `img/footballer/${level}`];
+            let rawText = null, foundImgPath = null;
 
             for (const basePath of candidateFolders) {
                 try {
-                    const txtRes = await fetch(`${basePath}.txt`, { cache: 'no-store' });
-                    if (txtRes.ok) {
-                        rawText = await txtRes.text();
-                        foundImgPath = `${basePath}.png`;
-                        break;
-                    }
+                    const txtRes = await fetch(`${basePath}.txt`, { cache: 'force-cache' });
+                    if (txtRes.ok) { rawText = await txtRes.text(); foundImgPath = `${basePath}.png`; break; }
                 } catch (e) { }
             }
 
             if (!rawText) {
-                showLevelError(`Рівень ${level}: не створено! Перевірте наявність файлів img/footboler/${level}.txt та .png`);
+                showToast(`Рівень не створено, або у вас стався збій! (Файл: img/footboler/${level}.txt)`);
                 return;
             }
 
             try {
                 const parsed = parseQuestionFileText(rawText);
-
-                if (!parsed || !parsed.question || parsed.options.length < 2) {
-                    throw new Error('Невірний формат файлу TXT або замало відповідей.');
-                }
-
-                document.getElementById('quiz-level-title').textContent = `Рівень ${level}`;
+                if (!parsed || !parsed.question || parsed.options.length < 2) throw new Error('Невірний формат');
                 
+                document.getElementById('quiz-level-title').textContent = `Рівень ${level}`;
                 const quizImg = document.getElementById('quiz-img');
-                quizImg.onerror = function() {
-                    if (quizImg.src.endsWith('.png')) {
-                        quizImg.src = quizImg.src.replace('.png', '.jpg');
-                    }
-                };
+                quizImg.onerror = function() { if (quizImg.src.endsWith('.png')) quizImg.src = quizImg.src.replace('.png', '.jpg'); };
                 quizImg.src = foundImgPath;
                 
                 document.getElementById('quiz-question-text').textContent = parsed.question;
-
                 const optionsContainer = document.getElementById('quiz-options-container');
                 optionsContainer.innerHTML = '';
-
                 document.getElementById('quiz-gameplay-section').style.display = 'flex';
                 document.getElementById('quiz-feedback-box').style.display = 'none';
 
@@ -1219,338 +1157,331 @@
                     const btn = document.createElement('button');
                     btn.className = 'quiz-option-btn';
                     btn.textContent = opt;
-
-                    btn.onclick = () => checkQuizAnswer(
-                        idx + 1,
-                        parsed.correctIndex,
-                        parsed.points
-                    );
-
+                    btn.onclick = () => checkQuizAnswer(idx + 1, parsed.correctIndex, parsed.points);
                     optionsContainer.appendChild(btn);
                 });
-
                 document.getElementById('quiz-modal').classList.add('active');
+                
+                // Якщо це навчання
+                if(level === 0 && tutStep === 1) nextTutorialStep(); // перехід до наступного кроку туторіалу неявно
 
             } catch (err) {
-                console.error(`Помилка рівня ${level}:`, err);
-                showLevelError(`Помилка завантаження рівня ${level}: ${err.message}`);
+                showToast(`Рівень не створено, або у вас стався збій!`);
             }
         }
 
-        /* Гнучкий парсер для файлів .txt */
         function parseQuestionFileText(text) {
             const cleanText = String(text || '').replace(/^\uFEFF/, '').trim();
-
-            const quotes = [...cleanText.matchAll(/"([^"]*)"/g)]
-                .map(match => match[1].trim());
-
-            if (quotes.length < 3) {
-                throw new Error('TXT повинен містити питання та мінімум 2 варіанти в лапках');
-            }
-
+            const quotes = [...cleanText.matchAll(/"([^"]*)"/g)].map(match => match[1].trim());
+            if (quotes.length < 3) throw new Error('Format');
             const question = quotes[0];
             const options = quotes.slice(1);
-
             const lastQuoteIndex = cleanText.lastIndexOf('"');
             const numericPart = cleanText.slice(lastQuoteIndex + 1);
+            const numbers = [...numericPart.matchAll(/-?\d+(?:\.\d+)?/g)].map(match => Number(match[0]));
+            if (numbers.length < 3) return { question, options, correctIndex: 1, difficulty: 1, points: 10 };
+            return { question, options, correctIndex: Math.trunc(numbers[0]), difficulty: Math.trunc(numbers[1]), points: numbers[2] };
+        }
 
-            const numbers = [...numericPart.matchAll(/-?\d+(?:\.\d+)?/g)]
-                .map(match => Number(match[0]));
-
-            if (numbers.length < 3) {
-                return {
-                    question,
-                    options,
-                    correctIndex: 1,
-                    difficulty: 1,
-                    points: 10
-                };
+        function closeQuizModal() {
+            document.getElementById('quiz-modal').classList.remove('active');
+            if(selectedLevelNum === 0 && tutStep === 1) {
+                 tutStep++; nextTutorialStep();
             }
-
-            return {
-                question,
-                options,
-                correctIndex: Math.trunc(numbers[0]),
-                difficulty: Math.trunc(numbers[1]),
-                points: numbers[2]
-            };
         }
-
-        function showLevelError(message) {
-            showToast(message);
-        }
-
-        let lastQuizResult = false;
 
         function checkQuizAnswer(selectedOpt, correctOpt, pointsEarned) {
             const buttons = document.querySelectorAll('.quiz-option-btn');
             const isCorrect = Number(selectedOpt) === Number(correctOpt);
-            lastQuizResult = isCorrect;
 
             buttons.forEach((btn, idx) => {
                 const buttonNumber = idx + 1;
-                if (buttonNumber === Number(correctOpt)) {
-                    btn.classList.add('correct');
-                } else if (buttonNumber === Number(selectedOpt) && !isCorrect) {
-                    btn.classList.add('wrong');
-                }
+                if (buttonNumber === Number(correctOpt)) btn.classList.add('correct');
+                else if (buttonNumber === Number(selectedOpt) && !isCorrect) btn.classList.add('wrong');
                 btn.style.pointerEvents = 'none';
             });
 
             setTimeout(() => {
                 document.getElementById('quiz-gameplay-section').style.display = 'none';
                 const feedbackBox = document.getElementById('quiz-feedback-box');
-                feedbackBox.style.display = 'block';
+                feedbackBox.style.display = 'flex';
 
                 const titleEl = document.getElementById('quiz-feedback-title');
                 const descEl = document.getElementById('quiz-feedback-desc');
-                const btnEl = document.getElementById('quiz-feedback-btn');
+                const nextBtn = document.getElementById('quiz-feedback-next-btn');
+                const retryBtn = document.getElementById('quiz-feedback-retry-btn');
+
+                if (selectedLevelNum === 0) {
+                     titleEl.textContent = isCorrect ? "Вірно! ⚽" : "Нічого страшного!";
+                     descEl.textContent = "Це був тестовий рівень. Ви готові!";
+                     nextBtn.textContent = "Продовжити";
+                     retryBtn.style.display = 'none';
+                     return;
+                }
 
                 if (isCorrect) {
                     userData.correctCount = (userData.correctCount || 0) + 1;
                     titleEl.textContent = "Вірно! ⚽";
+                    retryBtn.style.display = 'none';
 
-                    const wasFailed = userData.failedLevels.includes(selectedLevelNum);
-
-                    if (!wasFailed) {
+                    // Перевірка чи був рівень провалений раніше
+                    const isPermanentlyFailed = userData.failedLevels.includes(selectedLevelNum);
+                    
+                    if (!isPermanentlyFailed) {
                         userData.score += pointsEarned;
                         descEl.textContent = `Чудово! Ви отримали +${pointsEarned} балів.`;
                     } else {
-                        descEl.textContent = `Правильно! (Перепроходження без балів).`;
-                        userData.failedLevels = userData.failedLevels.filter(l => l !== selectedLevelNum);
+                        descEl.textContent = `Правильно! Але бали не нараховано (рівень був провалений раніше).`;
                     }
 
                     if (selectedLevelNum === userData.level) {
                         userData.level++;
-                        if (selectedLevelNum === 20 || selectedLevelNum === 40) {
-                            triggerConfetti();
-                        }
+                        if (selectedLevelNum === 20 || selectedLevelNum === 40) triggerConfetti();
                     }
-
-                    saveData();
-                    setupProfileUI();
-                    generateLevels();
-                    btnEl.textContent = "Наступний рівень";
-
+                    nextBtn.textContent = "Наступний рівень";
                 } else {
                     userData.incorrectCount = (userData.incorrectCount || 0) + 1;
                     titleEl.textContent = "Помилка! ❌";
-                    descEl.textContent = "Невірна відповідь. Спробуйте ще раз!";
-                    btnEl.textContent = "Спробувати знову";
+                    descEl.textContent = "Невірна відповідь. Бали за цей рівень втрачено назавжди.";
+                    retryBtn.style.display = 'block';
+                    nextBtn.textContent = "Наступний рівень";
 
+                    // Додаємо в провалені назавжди, якщо ще не там
                     if (!userData.failedLevels.includes(selectedLevelNum)) {
                         userData.failedLevels.push(selectedLevelNum);
                     }
-
-                    saveData();
-                    generateLevels();
                 }
-            }, 700);
+                saveData(); setupProfileUI(); generateLevels();
+            }, 1000);
         }
 
         function handleQuizFeedbackNext() {
-            document.getElementById('quiz-modal').classList.remove('active');
-            if (!lastQuizResult) {
-                setTimeout(() => startCurrentLevelQuiz(), 300);
+            closeQuizModal();
+            if (selectedLevelNum === 0) return; // Туторіал хендлить це
+
+            // Просуваємо рівень гравця, навіть якщо він помилився на своєму макс рівні, щоб він міг йти далі
+            if (selectedLevelNum === userData.level) {
+                userData.level++;
+                saveData();
+                generateLevels();
+            }
+            
+            // Відкриваємо одразу наступний рівень
+            selectedLevelNum++;
+            setTimeout(() => { startCurrentLevelQuiz(); }, 300);
+        }
+        
+        function retryCurrentLevelQuiz() {
+            closeQuizModal();
+            setTimeout(() => { startCurrentLevelQuiz(); }, 300);
+        }
+
+        /* Tutorial System */
+        let tutStep = 0;
+        function initTutorial() {
+            if(userData.tutorialCompleted) return;
+            tutStep = 0;
+            document.getElementById('tutorial-mask').classList.add('active');
+            updateTutorialUI();
+        }
+
+        function nextTutorialStep() {
+            tutStep++;
+            document.querySelectorAll('.tutorial-highlight').forEach(el => el.classList.remove('tutorial-highlight'));
+            updateTutorialUI();
+        }
+
+        function updateTutorialUI() {
+            const title = document.getElementById('tutorial-title');
+            const desc = document.getElementById('tutorial-desc');
+            const mask = document.getElementById('tutorial-mask');
+
+            if (tutStep === 0) {
+                title.textContent = `Вітаємо, ${userData.name}!`;
+                desc.textContent = "Давайте пройдемо швидке навчання. Для початку запустіть тестовий 0 рівень.";
+                document.getElementById('level-node-0')?.classList.add('tutorial-highlight');
+            } 
+            else if (tutStep === 1) {
+                mask.classList.remove('active'); // Ховаємо маску щоб гравець пройшов рівень
+            }
+            else if (tutStep === 2) {
+                mask.classList.add('active');
+                title.textContent = "Супер!";
+                desc.textContent = "Після виконання завдання воно зникає з карти. Тепер перейдіть у вкладку 'Завдання' (кнопка внизу).";
+                document.getElementById('tut-nav-tasks').classList.add('tutorial-highlight');
+            }
+            else if (tutStep === 3) {
+                switchTab('tasks', document.getElementById('tut-nav-tasks'));
+                title.textContent = "Завдання";
+                desc.textContent = "Тут ви будете отримувати щотижневі винагороди. А тепер зазирніть у 'Магазин'.";
+                document.getElementById('tut-nav-shop').classList.add('tutorial-highlight');
+            }
+            else if (tutStep === 4) {
+                switchTab('shop', document.getElementById('tut-nav-shop'));
+                title.textContent = "Магазин";
+                desc.textContent = "Тут будуть нові нагороди та скіни. Тепер натисніть на свій профіль (аватар зверху).";
+                document.getElementById('tut-profile').classList.add('tutorial-highlight');
+            }
+            else if (tutStep === 5) {
+                switchTab('home', document.querySelector('.nav-item.active')); // Повертаємо на головну
+                openSettings();
+                document.getElementById('settings-modal').style.zIndex = '54000'; // Трохи нижче маски
+                title.textContent = "Налаштування";
+                desc.textContent = "Тут ви можете змінити фото, ім'я, клуб та тему. Закрийте налаштування і натисніть на Бали!";
+                document.getElementById('tut-score').classList.add('tutorial-highlight');
+            }
+            else if (tutStep === 6) {
+                closeSettings();
+                document.getElementById('settings-modal').style.zIndex = '100';
+                openStats();
+                document.getElementById('stats-overlay').style.zIndex = '54000';
+                document.getElementById('stats-sheet').style.zIndex = '54001';
+                title.textContent = "Статистика";
+                desc.textContent = "Тут вся ваша історія успіху. Навчання завершено!";
+            }
+            else if (tutStep === 7) {
+                closeStats();
+                document.getElementById('stats-overlay').style.zIndex = '100';
+                document.getElementById('stats-sheet').style.zIndex = '101';
+                mask.classList.remove('active');
+                
+                // Нарахування бонусу
+                userData.tutorialCompleted = true;
+                userData.score += 100;
+                saveData();
+                setupProfileUI();
+                generateLevels(); // Видалить 0 рівень
+                showToast("🎉 Вітаємо! Нараховано +100 бонусних балів!");
             }
         }
 
-        function closeQuizModal() {
-            document.getElementById('quiz-modal').classList.remove('active');
+
+        /* Tabs & Other Systems */
+        function switchTab(tabId, el) {
+            if(!userData.tutorialCompleted && el && !el.classList.contains('tutorial-highlight')) return; // Блок
+
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            if (el) el.classList.add('active');
+            
+            // Якщо туторіал активний і ми клікнули правильну табку
+            if(!userData.tutorialCompleted && tutStep > 1 && tutStep < 5) {
+                nextTutorialStep();
+            }
         }
 
-        /* Timers & Tasks */
-        const TOTAL_SESSION_SECONDS = 20 * 60;
+        function openSettings() { 
+            if(!userData.tutorialCompleted && tutStep !== 4) return;
+            document.getElementById('settings-modal').classList.add('active'); 
+            if(!userData.tutorialCompleted && tutStep === 4) nextTutorialStep();
+        }
+        function closeSettings() { document.getElementById('settings-modal').classList.remove('active'); }
+        function setTheme(theme) { userData.theme = theme; saveData(); applyThemeStyling(theme); }
+        function applyThemeStyling(theme) {
+            document.body.setAttribute('data-theme', theme);
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+            const btn = document.getElementById(`theme-btn-${theme}`);
+            if (btn) btn.classList.add('active');
+        }
+
+        function openStats() {
+            if(!userData.tutorialCompleted && tutStep !== 5) return;
+            document.getElementById('stat-points').textContent = userData.score;
+            document.getElementById('stat-levels').textContent = `${Math.min(50, userData.level - 1)} / 50`;
+            document.getElementById('stat-era').textContent = userData.level <= 20 ? "Ера 1" : (userData.level <= 40 ? "Ера 2" : "Ера 3");
+            document.getElementById('stat-tasks').textContent = userData.tasksClaimed.filter(Boolean).length;
+            document.getElementById('stat-correct').textContent = userData.correctCount || 0;
+            document.getElementById('stat-incorrect').textContent = userData.incorrectCount || 0;
+            document.getElementById('stats-overlay').classList.add('active');
+            document.getElementById('stats-sheet').classList.add('active');
+            if(!userData.tutorialCompleted && tutStep === 5) nextTutorialStep();
+        }
+        function closeStats() { document.getElementById('stats-overlay').classList.remove('active'); document.getElementById('stats-sheet').classList.remove('active'); }
+
+        /* Tasks Logic */
+        const TASKS_DATA = [
+            { id: 0, title: "Пройди 5 рівнів", targetLevel: 5, reward: 20 },
+            { id: 1, title: "Пройди 10 рівнів", targetLevel: 10, reward: 50 },
+            { id: 2, title: "Пройди 20 рівнів", targetLevel: 20, reward: 100 },
+            { id: 3, title: "Проведи 5 хвилин у грі", isSession: true, targetSeconds: 300, reward: 15 }
+        ];
+
+        function checkWeeklyTasksReset() {
+            const now = Date.now();
+            if (!userData.tasksTimestamp) { userData.tasksTimestamp = now; return; }
+            if (now - userData.tasksTimestamp > 7 * 24 * 60 * 60 * 1000) {
+                userData.tasksCompleted = [false, false, false, false];
+                userData.tasksClaimed = [false, false, false, false];
+                userData.tasksTimestamp = now;
+                saveData();
+            }
+        }
 
         function startSessionTimer() {
             setInterval(() => {
-                if (userData.sessionSeconds < TOTAL_SESSION_SECONDS) {
-                    userData.sessionSeconds++;
-                    if (userData.sessionSeconds % 10 === 0) saveData();
-                    updateSessionProgressUI();
+                userData.sessionSeconds++;
+                if (userData.sessionSeconds >= TASKS_DATA[3].targetSeconds && !userData.tasksCompleted[3]) {
+                    userData.tasksCompleted[3] = true;
+                    saveData(); renderTasks();
+                }
+                const pBar = document.getElementById('task-prog-3');
+                if (pBar && !userData.tasksCompleted[3]) {
+                    pBar.style.width = Math.min(100, (userData.sessionSeconds / TASKS_DATA[3].targetSeconds) * 100) + '%';
                 }
             }, 1000);
         }
 
-        function updateSessionProgressUI() {
-            const bar = document.getElementById('session-progress-bar');
-            const statusText = document.getElementById('session-status-text');
-            const btn = document.getElementById('task-btn-3');
-            if (!bar) return;
-
-            let percent = Math.min(100, (userData.sessionSeconds / TOTAL_SESSION_SECONDS) * 100);
-            bar.style.width = percent + '%';
-
-            let minsLeft = Math.ceil((TOTAL_SESSION_SECONDS - userData.sessionSeconds) / 60);
-            if (userData.sessionSeconds >= TOTAL_SESSION_SECONDS) {
-                statusText.textContent = 'Випробування завершено!';
-                if (!userData.tasksCompleted[3]) {
-                    userData.tasksCompleted[3] = true;
-                    if(btn) {
-                        btn.textContent = 'Отримати';
-                        btn.classList.add('claim');
-                    }
-                    saveData();
-                }
-            } else {
-                statusText.textContent = `Залишилось часу: ~${minsLeft} хв`;
-            }
-        }
-
-        function handleTaskAction(index) {
-            const btn = document.getElementById(`task-btn-${index}`);
-            const card = document.getElementById(`task-card-${index}`);
-
-            let passedLevels = userData.level - 1;
-            if (index === 0 && passedLevels < 10) { showToast("Пройдіть 10 рівнів!"); return; }
-            if (index === 1 && passedLevels < 15) { showToast("Пройдіть 15 рівнів!"); return; }
-            if (index === 2 && passedLevels < 20) { showToast("Пройдіть 20 рівнів!"); return; }
-            if (index === 3 && userData.sessionSeconds < TOTAL_SESSION_SECONDS) { showToast("Залишайтесь у грі 20 хвилин!"); return; }
-
-            if (!userData.tasksCompleted[index]) {
-                userData.tasksCompleted[index] = true;
-                btn.textContent = 'Отримати';
-                btn.classList.add('claim');
-                saveData();
-            } else if (!userData.tasksClaimed[index]) {
-                userData.tasksClaimed[index] = true;
-                let rewards = [20, 35, 50, 50];
-                userData.score += rewards[index];
-                saveData();
-                setupProfileUI();
-
-                if (card) {
-                    card.classList.add('slide-out');
-                    setTimeout(() => {
-                        card.style.display = 'none';
-                        checkAllTasksFinished();
-                    }, 400);
-                }
-            }
-        }
-
-        function checkAllTasksFinished() {
-            if (userData.tasksClaimed.every(val => val === true)) {
-                document.getElementById('tasks-finished-msg').style.display = 'block';
-                if (!userData.tasksTimestamp) {
-                    userData.tasksTimestamp = Date.now() + (3 * 60 * 60 * 1000);
-                    saveData();
-                }
-            }
-        }
-
-        function checkWeeklyTasksReset() {
-            if (userData.tasksTimestamp && Date.now() >= userData.tasksTimestamp) {
-                userData.tasksCompleted = [false, false, false, false];
-                userData.tasksClaimed = [false, false, false, false];
-                userData.tasksTimestamp = null;
-                saveData();
-            }
-        }
-
-        setInterval(() => {
-            if (userData.tasksTimestamp) {
-                let diff = userData.tasksTimestamp - Date.now();
-                if (diff <= 0) {
-                    checkWeeklyTasksReset();
-                    renderTasks();
-                } else {
-                    let hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-                    let minutes = Math.floor((diff / (1000 * 60)) % 60);
-                    let seconds = Math.floor((diff / 1000) % 60);
-                    const cdText = document.getElementById('tasks-countdown-text');
-                    if (cdText) {
-                        cdText.textContent = `Оновлення через: ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-                    }
-                }
-            }
-        }, 1000);
-
         function renderTasks() {
             const container = document.getElementById('tasks-container');
             container.innerHTML = '';
-
-            const tasksData = [
-                { title: "Виконай 10 завдань за один день", reward: "+20 балів", targetLevel: 10 },
-                { title: "Виконай 15 завдань за один день", reward: "+35 балів", targetLevel: 15 },
-                { title: "Виконай 20 завдань за один день", reward: "+50 балів", targetLevel: 20 },
-                { title: "Проведи 20 хвилин у додатку підряд", reward: "+50 балів", isSession: true }
-            ];
-
             let allClaimed = true;
             let passedLevels = userData.level - 1;
 
-            tasksData.forEach((task, index) => {
+            TASKS_DATA.forEach((task, index) => {
                 if (userData.tasksClaimed[index]) return;
                 allClaimed = false;
-
-                let isReady = task.isSession ? (userData.sessionSeconds >= TOTAL_SESSION_SECONDS) : (passedLevels >= task.targetLevel);
-                if (isReady) userData.tasksCompleted[index] = true;
+                
+                let isReady = task.isSession ? (userData.sessionSeconds >= task.targetSeconds) : (passedLevels >= task.targetLevel);
+                if (isReady && !userData.tasksCompleted[index]) { userData.tasksCompleted[index] = true; saveData(); }
+                
+                let progressPercent = 0;
+                if (task.isSession) progressPercent = Math.min(100, (userData.sessionSeconds / task.targetSeconds) * 100);
+                else progressPercent = Math.min(100, (passedLevels / task.targetLevel) * 100);
 
                 const card = document.createElement('div');
                 card.className = 'task-card';
                 card.id = `task-card-${index}`;
-
-                let btnText = userData.tasksCompleted[index] ? 'Отримати' : 'У процесі';
-                let btnClass = userData.tasksCompleted[index] ? 'task-btn claim' : 'task-btn';
-
-                if (task.isSession) {
-                    card.innerHTML = `
-                        <div class="task-title">${task.title}</div>
-                        <div style="font-size: 12px; color: var(--text-sec);" id="session-status-text">Підрахунок часу...</div>
-                        <div class="session-progress-container">
-                            <div class="session-progress-bar" id="session-progress-bar"></div>
-                        </div>
-                        <div class="task-footer">
-                            <div class="task-reward">${task.reward}</div>
-                            <button class="${btnClass}" id="task-btn-${index}" onclick="handleTaskAction(${index})">${btnText}</button>
-                        </div>
-                    `;
-                } else {
-                    card.innerHTML = `
-                        <div class="task-title">${task.title}</div>
-                        <div class="task-footer">
-                            <div class="task-reward">${task.reward}</div>
-                            <button class="${btnClass}" id="task-btn-${index}" onclick="handleTaskAction(${index})">${btnText}</button>
-                        </div>
-                    `;
-                }
+                card.innerHTML = `
+                    <div class="task-title">${task.title}</div>
+                    <div class="session-progress-container">
+                        <div class="session-progress-bar" id="task-prog-${index}" style="width: ${progressPercent}%;"></div>
+                    </div>
+                    <div class="task-footer">
+                        <div class="task-reward">+${task.reward} балів</div>
+                        <button class="task-btn ${isReady ? 'claim' : ''}" onclick="${isReady ? `claimTask(${index}, ${task.reward})` : ''}">${isReady ? 'Отримати' : 'У процесі'}</button>
+                    </div>
+                `;
                 container.appendChild(card);
             });
 
-            if (allClaimed && userData.tasksClaimed.some(v => v)) {
-                document.getElementById('tasks-finished-msg').style.display = 'block';
-            } else {
-                document.getElementById('tasks-finished-msg').style.display = 'none';
-            }
-
-            updateSessionProgressUI();
+            if (allClaimed) { document.getElementById('tasks-finished-msg').style.display = 'block'; updateCountdown(); }
         }
 
-        /* Navigation & Settings */
-        function switchTab(tabId, element) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-            document.getElementById('tab-' + tabId).classList.add('active');
-            element.classList.add('active');
+        function claimTask(index, reward) {
+            userData.tasksClaimed[index] = true; userData.score += reward; saveData(); setupProfileUI(); showToast(`+${reward} балів!`);
+            const card = document.getElementById(`task-card-${index}`);
+            if (card) { card.classList.add('slide-out'); setTimeout(() => { renderTasks(); }, 400); }
         }
 
-        function openSettings() { document.getElementById('settings-modal').classList.add('active'); }
-        function closeSettings() { document.getElementById('settings-modal').classList.remove('active'); }
-
-        function applyThemeStyling(theme) {
-            if (theme === 'light') { document.body.removeAttribute('data-theme'); } 
-            else { document.body.setAttribute('data-theme', theme); }
-            
-            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
-            const activeBtn = document.getElementById(`theme-btn-${theme}`);
-            if(activeBtn) activeBtn.classList.add('active');
-        }
-
-        function setTheme(theme) {
-            userData.theme = theme;
-            saveData();
-            applyThemeStyling(theme);
+        function updateCountdown() {
+            const cdEl = document.getElementById('tasks-countdown-text');
+            setInterval(() => {
+                let diff = (userData.tasksTimestamp + 7 * 24 * 60 * 60 * 1000) - Date.now();
+                if (diff < 0) { checkWeeklyTasksReset(); renderTasks(); document.getElementById('tasks-finished-msg').style.display = 'none'; return; }
+                let h = Math.floor(diff / (1000 * 60 * 60)); let m = Math.floor((diff / 1000 / 60) % 60); let s = Math.floor((diff / 1000) % 60);
+                cdEl.textContent = `Оновлення через: ${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }, 1000);
         }
     </script>
 </body>
