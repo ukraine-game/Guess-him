@@ -2,10 +2,13 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Football Career Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Вгадай Футболіста по фото</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        /* =========================================
+           ТЕМИ ТА ЗМІННІ
+           ========================================= */
         :root {
             --bg: #F4F6F8;
             --surface: #FFFFFF;
@@ -14,14 +17,17 @@
             --primary: #00D26A;
             --primary-dark: #00B35A;
             --border: #E5E7EB;
-            --shadow: rgba(0, 0, 0, 0.06);
-            --nav-bg: rgba(255, 255, 255, 0.9);
-            --modal-bg: rgba(0,0,0,0.4);
+            --shadow: rgba(0, 0, 0, 0.08);
+            --nav-bg: rgba(255, 255, 255, 0.85);
+            --modal-bg: rgba(0,0,0,0.5);
             --splash-bg: #FFFFFF;
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --transition-smooth: 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
         
         [data-theme="dark"] {
-            --bg: #111315;
+            --bg: #0F1113;
             --surface: #1A1D21;
             --text-main: #F8F9FA;
             --text-sec: #9AA0A6;
@@ -29,13 +35,13 @@
             --primary-dark: #00C853;
             --border: #2D3136;
             --shadow: rgba(0, 0, 0, 0.4);
-            --nav-bg: rgba(26, 29, 33, 0.9);
-            --modal-bg: rgba(0,0,0,0.6);
-            --splash-bg: #111315;
+            --nav-bg: rgba(26, 29, 33, 0.85);
+            --modal-bg: rgba(0,0,0,0.75);
+            --splash-bg: #0F1113;
         }
 
         [data-theme="blue"] {
-            --bg: #0A192F;
+            --bg: #061121;
             --surface: #112240;
             --text-main: #E6F1FF;
             --text-sec: #8892B0;
@@ -43,422 +49,385 @@
             --primary-dark: #1DE9B6;
             --border: #233554;
             --shadow: rgba(2, 12, 27, 0.7);
-            --nav-bg: rgba(17, 34, 64, 0.9);
-            --modal-bg: rgba(10,25,47,0.7);
-            --splash-bg: #0A192F;
+            --nav-bg: rgba(17, 34, 64, 0.85);
+            --modal-bg: rgba(6, 17, 33, 0.85);
+            --splash-bg: #061121;
         }
 
+        /* =========================================
+           БАЗОВІ СТИЛІ
+           ========================================= */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             -webkit-tap-highlight-color: transparent;
-            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+            -webkit-touch-callout: none;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s;
         }
 
-        body {
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
             background-color: var(--bg);
             color: var(--text-main);
-            display: flex;
-            justify-content: center;
-            overflow: hidden;
             overscroll-behavior-y: none;
+            display: flex; justify-content: center; align-items: center;
         }
 
+        /* Кастомний скроллбар для десктопних переглядів */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
         .app-container {
-            width: 100%;
-            max-width: 390px;
-            height: 100dvh;
-            position: relative;
-            overflow: hidden;
+            width: 100%; max-width: 430px;
+            height: 100vh; height: 100dvh;
+            position: relative; overflow: hidden;
             background: var(--bg);
+            box-shadow: 0 0 40px rgba(0,0,0,0.1);
         }
 
         .screen {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.4s ease, transform 0.4s ease;
-            transform: scale(0.98);
-            z-index: 1;
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column;
+            opacity: 0; pointer-events: none;
+            transition: opacity var(--transition-smooth), transform var(--transition-smooth);
+            transform: scale(0.97);
         }
         .screen.active {
-            opacity: 1;
-            pointer-events: all;
-            transform: scale(1);
+            opacity: 1; pointer-events: all; transform: scale(1);
         }
 
-        #splash-screen {
-            background: var(--splash-bg);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-        }
-        #splash-screen.fade-out {
-            opacity: 0;
-            transform: scale(1.05);
-            pointer-events: none;
-        }
-        .splash-content {
-            text-align: center;
-            opacity: 0;
-            transform: translateY(30px);
-            animation: splashIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 0.1s;
-        }
-        .splash-title {
-            font-size: 32px;
-            font-weight: 800;
-            letter-spacing: -1px;
-            margin-bottom: 8px;
-        }
-        .splash-subtitle {
-            color: var(--primary);
-            font-weight: 600;
-            font-size: 16px;
-        }
-
-        @keyframes splashIn {
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .auth-container {
-            padding: 40px 24px;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            justify-content: center;
-            overflow-y: auto;
-        }
-        .auth-header { text-align: center; margin-bottom: 30px; }
-        .auth-header h1 { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
-        
-        .avatar-upload {
-            align-self: center;
-            margin-bottom: 24px;
-            position: relative;
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: var(--surface);
-            border: 2px dashed var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            overflow: hidden;
-            box-shadow: 0 8px 20px var(--shadow);
-            flex-shrink: 0;
-        }
-        .avatar-upload img { width: 100%; height: 100%; object-fit: cover; display: none; }
-        .avatar-upload svg { color: var(--text-sec); width: 32px; height: 32px; }
-
-        .input-group { margin-bottom: 16px; }
-        .input-group input {
-            width: 100%; padding: 16px 20px; border-radius: 16px;
-            background: var(--surface); border: 1px solid var(--border);
-            color: var(--text-main); font-size: 16px; font-weight: 500;
-            outline: none; box-shadow: 0 4px 12px var(--shadow);
-        }
-        .input-group input:focus { border-color: var(--primary); }
-
-        .custom-select-trigger {
-            width: 100%; padding: 16px 20px; border-radius: 16px;
-            background: var(--surface); border: 1px solid var(--border);
-            color: var(--text-main); font-size: 16px; font-weight: 500;
-            display: flex; justify-content: space-between; align-items: center;
-            cursor: pointer; box-shadow: 0 4px 12px var(--shadow);
-        }
-        .custom-dropdown {
-            position: absolute; bottom: 0; left: 0; width: 100%; max-height: 60vh;
-            background: var(--surface); border-radius: 28px 28px 0 0; z-index: 30000;
-            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-            display: flex; flex-direction: column; border-top: 1px solid var(--border);
-            box-shadow: 0 -10px 30px var(--shadow);
-        }
-        .custom-dropdown.active { transform: translateY(0); }
-        .dropdown-list { overflow-y: auto; padding: 10px 24px calc(30px + env(safe-area-inset-bottom)); }
-        .dropdown-item {
-            padding: 14px 16px; border-radius: 12px; font-size: 16px; font-weight: 500;
-            cursor: pointer; transition: 0.15s; margin-bottom: 4px;
-        }
-        .dropdown-item:active, .dropdown-item:hover { background: rgba(0, 210, 106, 0.1); color: var(--primary); }
-
+        /* =========================================
+           КОМПОНЕНТИ (Кнопки, Інпути)
+           ========================================= */
         .btn-main {
             background: var(--primary); color: #fff; border: none;
-            padding: 18px; border-radius: 16px; font-size: 18px; font-weight: 700;
-            cursor: pointer; box-shadow: 0 10px 25px rgba(0, 210, 106, 0.3);
-            transition: 0.2s; text-align: center; width: 100%;
+            padding: 18px; border-radius: var(--radius-md); 
+            font-size: 17px; font-weight: 700;
+            cursor: pointer; width: 100%; text-align: center;
+            box-shadow: 0 8px 20px rgba(0, 210, 106, 0.25);
+            transform: scale(1); transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
         }
-        .btn-main:active { transform: scale(0.96); background: var(--primary-dark); }
+        .btn-main:active { transform: scale(0.96); box-shadow: 0 4px 10px rgba(0, 210, 106, 0.2); background: var(--primary-dark); }
         [data-theme="dark"] .btn-main, [data-theme="blue"] .btn-main { color: #000; }
+        
+        .btn-secondary {
+            background: var(--surface); color: var(--text-main); border: 2px solid var(--border);
+            padding: 18px; border-radius: var(--radius-md); font-size: 17px; font-weight: 700;
+            cursor: pointer; width: 100%; text-align: center; margin-top: 12px;
+            transition: transform 0.2s, background 0.2s;
+        }
+        .btn-secondary:active { transform: scale(0.96); background: var(--border); }
 
-        #crop-overlay {
-            position: absolute; inset: 0; background: var(--bg);
-            z-index: 35000; display: flex; flex-direction: column; align-items: center;
-            opacity: 0; pointer-events: none; transition: 0.3s;
+        .input-group { margin-bottom: 20px; }
+        .input-group input, .custom-select-trigger {
+            width: 100%; padding: 16px 20px; border-radius: var(--radius-md);
+            background: var(--surface); border: 2px solid var(--border);
+            color: var(--text-main); font-size: 16px; font-weight: 500;
+            outline: none; transition: border-color 0.2s, box-shadow 0.2s;
         }
-        #crop-overlay.active { opacity: 1; pointer-events: all; }
-        .crop-top-bar {
-            width: 100%; padding: calc(16px + env(safe-area-inset-top)) 20px 16px;
-            display: flex; justify-content: space-between; align-items: center; font-weight: 600;
+        .input-group input:focus { 
+            border-color: var(--primary); 
+            box-shadow: 0 0 0 4px rgba(0, 210, 106, 0.1); 
         }
-        .crop-close-btn {
-            background: var(--surface); border: 1px solid var(--border); width: 36px; height: 36px;
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            color: var(--text-main); font-size: 18px; cursor: pointer; box-shadow: 0 4px 10px var(--shadow);
-        }
-        .crop-area {
-            width: 280px; height: 280px; border-radius: 50%;
-            border: 4px solid var(--primary); position: relative; overflow: hidden;
-            margin: auto; box-shadow: 0 0 0 2000px var(--modal-bg); touch-action: none;
-        }
-        .crop-area img { position: absolute; transform-origin: center; cursor: grab; user-select: none; }
-        .crop-footer { width: 100%; padding: 20px 24px calc(24px + env(safe-area-inset-bottom)); }
-
-        .toast-notification {
-            position: fixed;
-            top: 24px;
-            left: 50%;
-            transform: translateX(-50%) translateY(-100px);
-            background: var(--surface);
-            color: var(--text-main);
-            border: 1px solid var(--border);
-            padding: 14px 24px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px var(--shadow);
-            font-weight: 600;
-            font-size: 15px;
-            z-index: 50000;
-            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-            text-align: center;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .toast-notification.active {
-            transform: translateX(-50%) translateY(0);
+        .custom-select-trigger {
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer;
         }
 
+        /* =========================================
+           ЕКРАН ЗАВАНТАЖЕННЯ ТА АВТОРИЗАЦІЇ
+           ========================================= */
+        #splash-screen {
+            background: var(--splash-bg); z-index: 9999;
+            justify-content: center; align-items: center;
+        }
+        #splash-screen.fade-out { opacity: 0; transform: scale(1.05); }
+        .splash-content { text-align: center; opacity: 0; transform: translateY(20px); animation: splashIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 0.1s; }
+        .splash-title { font-size: 32px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+        .splash-subtitle { color: var(--primary); font-weight: 600; font-size: 16px; letter-spacing: 0.5px; text-transform: uppercase; }
+        .splash-loading-info { margin-top: 15px; font-size: 13px; color: var(--text-sec); font-weight: 500; min-height: 20px; }
+        @keyframes splashIn { to { opacity: 1; transform: translateY(0); } }
+
+        .auth-container {
+            padding: max(20px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
+            display: flex; flex-direction: column; height: 100%; justify-content: center; overflow-y: auto;
+        }
+        .auth-header { text-align: center; margin-bottom: 32px; }
+        .auth-header h1 { font-size: 36px; font-weight: 800; letter-spacing: -1px; line-height: 1.1; color: var(--primary); }
+        
+        .avatar-upload {
+            align-self: center; margin-bottom: 32px; position: relative;
+            width: 110px; height: 110px; border-radius: 50%;
+            background: var(--surface); border: 2px dashed var(--text-sec);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; overflow: hidden; box-shadow: 0 10px 25px var(--shadow);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .avatar-upload:active { transform: scale(0.95); }
+        .avatar-upload:hover { border-color: var(--primary); }
+        .avatar-upload img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .avatar-upload svg { color: var(--text-sec); width: 36px; height: 36px; transition: color 0.3s; }
+        .avatar-upload:hover svg { color: var(--primary); }
+
+        /* =========================================
+           ГОЛОВНИЙ ЕКРАН ТА НАВІГАЦІЯ
+           ========================================= */
         .top-header {
-            padding: calc(16px + env(safe-area-inset-top)) 24px 16px;
+            flex-shrink: 0; padding: max(16px, env(safe-area-inset-top)) 24px 16px;
             background: var(--surface); display: flex; justify-content: space-between;
             align-items: center; border-bottom: 1px solid var(--border);
             box-shadow: 0 4px 20px var(--shadow); z-index: 10; position: relative;
         }
-        .profile-trigger { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .profile-trigger { display: flex; align-items: center; gap: 14px; cursor: pointer; min-width: 0; padding-right: 10px; }
         .mini-avatar {
-            width: 44px; height: 44px; border-radius: 50%; background-color: var(--primary);
+            width: 48px; height: 48px; border-radius: 50%; background-color: var(--primary);
             background-size: cover !important; background-position: center !important;
-            box-shadow: 0 4px 10px var(--shadow);
-            display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff;
-            flex-shrink: 0;
+            box-shadow: 0 4px 12px var(--shadow); display: flex; align-items: center; justify-content: center; 
+            font-weight: 800; font-size: 18px; color: #fff; flex-shrink: 0; border: 2px solid var(--surface);
         }
-        .profile-info .label { font-size: 12px; color: var(--text-sec); font-weight: 600; text-transform: uppercase; }
-        .profile-info .name { font-size: 16px; font-weight: 700; }
+        .profile-info { min-width: 0; }
+        .profile-info .label { font-size: 11px; color: var(--text-sec); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;}
+        .profile-info .name { font-size: 16px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
         
-        .score-box { text-align: right; cursor: pointer; }
-        .score-val { font-size: 20px; font-weight: 800; color: var(--primary); }
-        .score-label { font-size: 12px; color: var(--text-sec); font-weight: 500; }
+        .score-box { text-align: right; cursor: pointer; flex-shrink: 0; background: var(--bg); padding: 8px 14px; border-radius: 14px; border: 1px solid var(--border); transition: transform 0.2s; }
+        .score-box:active { transform: scale(0.95); }
+        .score-val { font-size: 20px; font-weight: 800; color: var(--primary); line-height: 1; margin-bottom: 2px;}
+        .score-label { font-size: 11px; color: var(--text-sec); font-weight: 600; text-transform: uppercase;}
 
         .tab-content {
-            display: none; height: calc(100% - 76px); overflow-y: auto; padding: 24px 24px 120px;
+            flex: 1; display: none; overflow-y: auto;
+            padding: 24px 24px calc(110px + env(safe-area-inset-bottom));
+            -webkit-overflow-scrolling: touch;
         }
-        .tab-content.active { display: block; }
-
-        .level-chain { display: flex; flex-direction: column; align-items: center; position: relative; gap: 50px; }
-        .chain-line { position: absolute; top: 20px; bottom: 20px; width: 2px; background: var(--border); z-index: 1; }
-        
-        .level-node {
-            width: 60px; height: 60px; border-radius: 50%; background: var(--surface);
-            border: 2px solid var(--border); z-index: 2; display: flex; align-items: center;
-            justify-content: center; font-size: 20px; font-weight: 700; color: var(--text-sec);
-            position: relative; box-shadow: 0 4px 15px var(--shadow); cursor: pointer;
-            opacity: 0; transform: scale(0) translateX(var(--offset));
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s, box-shadow 0.15s ease, border-color 0.15s ease;
-        }
-        .level-node:nth-child(odd) { --offset: -40px; }
-        .level-node:nth-child(even) { --offset: 40px; }
-        .level-node.completed { background: var(--primary); border-color: var(--primary); color: #fff; }
-        .level-node.failed { background: #ff3b30; border-color: #ff3b30; color: #fff; }
-        .level-node.show { opacity: 1; transform: scale(1) translateX(var(--offset)); }
-        .level-node.show.current {
-            background: var(--surface); border: 3px solid var(--primary); color: var(--text-main);
-            transform: scale(1.15) translateX(calc(var(--offset) * 0.8));
-        }
-
-        .cloud-barrier {
-            background: var(--surface);
-            border: 1px dashed var(--border);
-            border-radius: 20px;
-            padding: 24px;
-            text-align: center;
-            margin: 10px 0;
-            width: 100%;
-            box-shadow: 0 4px 15px var(--shadow);
-            z-index: 2;
-            position: relative;
-        }
-        .cloud-icon { font-size: 36px; margin-bottom: 8px; }
-        .cloud-text { font-size: 14px; font-weight: 600; color: var(--text-sec); line-height: 1.4; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .bottom-nav {
-            position: absolute; bottom: calc(20px + env(safe-area-inset-bottom));
+            position: absolute; bottom: max(20px, env(safe-area-inset-bottom));
             left: 50%; transform: translateX(-50%); width: calc(100% - 48px);
-            height: 68px; border-radius: 22px; background: var(--nav-bg);
-            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+            height: 68px; border-radius: 24px; background: var(--nav-bg);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             display: flex; justify-content: space-around; align-items: center;
-            box-shadow: 0 10px 30px var(--shadow); border: 1px solid var(--border); z-index: 10;
+            box-shadow: 0 15px 35px var(--shadow); border: 1px solid var(--border); z-index: 10;
         }
         .nav-item {
             color: var(--text-sec); display: flex; flex-direction: column; align-items: center;
-            justify-content: center; gap: 3px; flex: 1; height: 100%; border-radius: 16px;
-            cursor: pointer; transition: 0.2s;
+            justify-content: center; gap: 4px; flex: 1; height: 100%; border-radius: 20px;
+            cursor: pointer; transition: color 0.3s, transform 0.2s;
         }
+        .nav-item:active { transform: scale(0.9); }
         .nav-item.active { color: var(--primary); }
-        .nav-item svg { stroke: currentColor; transition: 0.3s; width: 22px; height: 22px; }
-        .nav-text { font-size: 11px; font-weight: 600; }
+        .nav-item svg { stroke: currentColor; transition: 0.3s; width: 24px; height: 24px; }
+        .nav-item.active svg { transform: translateY(-2px); }
+        .nav-text { font-size: 12px; font-weight: 700; }
 
+        /* =========================================
+           РІВНІ ТА ДЕРЕВО ПРОГРЕСУ
+           ========================================= */
+        .level-chain { display: flex; flex-direction: column; align-items: center; position: relative; gap: 45px; padding: 20px 0; }
+        .chain-line { position: absolute; top: 30px; bottom: 30px; width: 4px; background: var(--border); border-radius: 2px; z-index: 1; }
+        
+        .level-node {
+            width: 68px; height: 68px; border-radius: 50%; background: var(--surface);
+            border: 3px solid var(--border); z-index: 2; display: flex; align-items: center;
+            justify-content: center; font-size: 22px; font-weight: 800; color: var(--text-sec);
+            position: relative; box-shadow: 0 6px 15px var(--shadow); cursor: pointer;
+            opacity: 0; transform: scale(0) translateX(var(--offset));
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s, background-color 0.3s, border-color 0.3s, color 0.3s;
+        }
+        .level-node:nth-child(odd) { --offset: -40px; }
+        .level-node:nth-child(even) { --offset: 40px; }
+        .level-node.completed { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: 0 6px 20px rgba(0, 210, 106, 0.3); }
+        .level-node.failed { background: #ff3b30; border-color: #ff3b30; color: #fff; box-shadow: 0 6px 20px rgba(255, 59, 48, 0.3); }
+        .level-node.show { opacity: 1; transform: scale(1) translateX(var(--offset)); }
+        .level-node.show.current {
+            background: var(--surface); border: 4px solid var(--primary); color: var(--text-main);
+            transform: scale(1.15) translateX(calc(var(--offset) * 0.8));
+            box-shadow: 0 0 0 6px rgba(0, 210, 106, 0.15), 0 10px 25px var(--shadow);
+            animation: pulseCurrent 2s infinite;
+        }
+        @keyframes pulseCurrent { 0% { box-shadow: 0 0 0 0 rgba(0, 210, 106, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(0, 210, 106, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 210, 106, 0); } }
+
+        .cloud-barrier {
+            background: var(--surface); border: 2px dashed var(--border); border-radius: var(--radius-lg);
+            padding: 20px; text-align: center; margin: 15px 0; width: 100%; max-width: 280px;
+            box-shadow: 0 8px 20px var(--shadow); z-index: 2; position: relative;
+        }
+        .cloud-icon { font-size: 36px; margin-bottom: 8px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
+        .cloud-text { font-size: 14px; font-weight: 700; color: var(--text-sec); line-height: 1.5; }
+
+        /* =========================================
+           ЗАВДАННЯ
+           ========================================= */
         .task-card {
-            background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
-            padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 15px var(--shadow);
+            background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+            padding: 20px; margin-bottom: 16px; box-shadow: 0 6px 20px var(--shadow);
             display: flex; flex-direction: column; gap: 12px;
-            transition: transform 0.4s ease, opacity 0.4s ease, max-height 0.4s ease, margin 0.4s ease, padding 0.4s ease;
-            max-height: 250px; overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            max-height: 300px; overflow: hidden;
         }
-        .task-card.slide-out {
-            transform: translateX(120%);
-            opacity: 0;
-            max-height: 0;
-            margin-bottom: 0;
-            padding-top: 0;
-            padding-bottom: 0;
-            border: none;
-        }
-        .task-title { font-size: 16px; font-weight: 700; }
-        .task-footer { display: flex; justify-content: space-between; align-items: center; }
-        .task-reward { font-size: 14px; font-weight: 700; color: var(--primary); }
+        .task-card.slide-out { transform: translateX(120%) scale(0.9); opacity: 0; max-height: 0; margin-bottom: 0; padding: 0; border: none; }
+        .task-title { font-size: 16px; font-weight: 800; color: var(--text-main); }
+        .task-sub { font-size: 13px; color: var(--text-sec); font-weight: 600; }
+        .task-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
+        .task-reward { font-size: 15px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 4px; }
         .task-btn {
-            background: var(--bg); border: 1px solid var(--border); color: var(--text-main);
-            padding: 8px 16px; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer;
+            background: var(--bg); border: 2px solid var(--border); color: var(--text-main);
+            padding: 10px 18px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer;
             transition: 0.2s;
         }
-        .task-btn.claim { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .task-btn:active { transform: scale(0.95); }
+        .task-btn.claim { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 4px 12px rgba(0, 210, 106, 0.3); }
         
-        .session-progress-container {
-            width: 100%; height: 8px; background: var(--bg); border-radius: 4px;
-            overflow: hidden; border: 1px solid var(--border); margin-top: 4px;
-        }
-        .session-progress-bar {
-            height: 100%; background: var(--primary); width: 0%; transition: width 0.5s ease;
-            border-radius: 4px; box-shadow: 0 0 10px var(--primary);
-        }
+        .session-progress-container { width: 100%; height: 10px; background: var(--bg); border-radius: 5px; overflow: hidden; border: 1px solid var(--border); }
+        .session-progress-bar { height: 100%; background: var(--primary); width: 0%; transition: width 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); border-radius: 5px; box-shadow: 0 0 10px var(--primary); }
 
+        /* =========================================
+           ВІКНО ВІКТОРИНИ
+           ========================================= */
         .quiz-modal {
-            position: absolute; inset: 0; background: var(--bg);
-            z-index: 40000; display: flex; flex-direction: column;
-            opacity: 0; pointer-events: none; transition: 0.3s;
+            position: absolute; inset: 0; background: var(--bg); z-index: 40000;
+            display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity var(--transition-smooth);
         }
         .quiz-modal.active { opacity: 1; pointer-events: all; }
         .quiz-card {
-            background: var(--surface); width: 100%; height: 100%; border-radius: 0;
-            padding: calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));
-            display: flex; flex-direction: column; justify-content: space-between; gap: 16px;
-            box-sizing: border-box; overflow-y: auto;
+            background: var(--surface); width: 100%; height: 100%;
+            padding: max(20px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
+            display: flex; flex-direction: column; justify-content: space-between; gap: 16px; overflow-y: auto;
         }
-        .quiz-header-bar { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px; }
+        .quiz-header-bar { display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 18px; flex-shrink: 0; }
+        .close-btn { background: var(--bg); border: 2px solid var(--border); width: 36px; height: 36px; border-radius: 50%; color: var(--text-main); font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .close-btn:active { transform: scale(0.9); background: var(--border); }
+        
+        .quiz-progress-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; color: var(--text-sec); font-weight: 700; text-transform: uppercase; }
+        .quiz-progress-track { width: 100%; height: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+        .quiz-progress-fill { width: 0%; height: 100%; background: var(--primary); border-radius: 999px; transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 0 0 10px rgba(0,210,106,0.4); }
+        
         .quiz-img-box {
-            width: 100%; flex: 1; max-height: 240px; border-radius: 20px; background: var(--bg);
-            border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center;
+            width: 100%; height: 260px; border-radius: var(--radius-lg); background: #000;
+            border: 2px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; box-shadow: 0 10px 30px rgba(0,0,0,0.15); position: relative;
         }
-        .quiz-img-box img { width: 100%; height: 100%; object-fit: cover; }
-        .quiz-question { font-size: 20px; font-weight: 800; text-align: center; line-height: 1.4; margin: 10px 0; }
-        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+        .quiz-img-box img { width: 100%; height: 100%; object-fit: contain; display: block; user-select: none; -webkit-user-select: none; -webkit-user-drag: none; animation: imgFadeIn 0.5s ease; }
+        @keyframes imgFadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+        .quiz-question { font-size: 20px; font-weight: 800; text-align: center; line-height: 1.3; margin: 10px 0; flex-shrink: 0;}
+        .quiz-options { display: flex; flex-direction: column; gap: 12px; flex-shrink: 0;}
         .quiz-option-btn {
-            background: var(--bg); border: 1px solid var(--border); color: var(--text-main);
-            padding: 16px; border-radius: 16px; font-weight: 600; font-size: 16px; cursor: pointer;
-            text-align: center; transition: 0.2s; box-shadow: 0 4px 10px var(--shadow);
+            background: var(--surface); border: 2px solid var(--border); color: var(--text-main);
+            padding: 18px; border-radius: var(--radius-md); font-weight: 700; font-size: 16px; cursor: pointer;
+            text-align: center; transition: all 0.2s; box-shadow: 0 4px 15px var(--shadow);
         }
-        .quiz-option-btn:active { transform: scale(0.97); }
-        .quiz-option-btn.correct { background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important; }
-        .quiz-option-btn.wrong { background: #ff3b30 !important; color: #fff !important; border-color: #ff3b30 !important; }
+        .quiz-option-btn:active { transform: scale(0.96); border-color: var(--primary); }
+        .quiz-option-btn.correct { background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important; box-shadow: 0 8px 20px rgba(0, 210, 106, 0.3) !important; transform: scale(1.02); }
+        .quiz-option-btn.wrong { background: #ff3b30 !important; color: #fff !important; border-color: #ff3b30 !important; box-shadow: 0 8px 20px rgba(255, 59, 48, 0.3) !important; transform: scale(0.98); }
 
-        .quiz-feedback-box {
-            text-align: center; padding: 20px; display: none; animation: scaleIn 0.3s ease;
-        }
-        .quiz-feedback-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
-        .quiz-feedback-desc { font-size: 15px; color: var(--text-sec); margin-bottom: 24px; }
+        .quiz-feedback-box { text-align: center; padding: 20px 0; display: none; flex: 1; flex-direction: column; justify-content: center; animation: fadeIn 0.4s ease; }
+        .quiz-feedback-title { font-size: 32px; font-weight: 800; margin-bottom: 12px; }
+        .quiz-rating { display:flex; justify-content:center; gap:10px; margin:10px 0 20px; }
+        .quiz-star { width:32px; height:32px; display:block; transition: transform 0.3s; }
+        .quiz-star.filled { transform: scale(1.1); }
+        .quiz-star svg { width:100%; height:100%; display:block; }
+        .quiz-star.filled path { fill:var(--primary); stroke:var(--primary); }
+        .quiz-star.empty path { fill:var(--border); stroke:var(--text-sec); }
+        .quiz-reward-status { min-height:24px; margin-bottom:24px; font-size:16px; font-weight:800; color:var(--primary); background: rgba(0,210,106,0.1); padding: 8px 16px; border-radius: 99px; display: inline-block; align-self: center; }
 
-        @keyframes scaleIn {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        .sheet-overlay, .settings-modal {
+        /* =========================================
+           BOTTOM SHEETS & MODALS
+           ========================================= */
+        .sheet-overlay, .settings-modal, #crop-overlay {
             position: absolute; inset: 0; background: var(--modal-bg);
-            backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-            z-index: 100; opacity: 0; pointer-events: none; transition: 0.3s;
+            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+            z-index: 100; opacity: 0; pointer-events: none; transition: opacity var(--transition-smooth);
         }
-        .sheet-overlay.active, .settings-modal.active { opacity: 1; pointer-events: all; }
+        .sheet-overlay.active, .settings-modal.active, #crop-overlay.active { opacity: 1; pointer-events: all; }
         
-        .bottom-sheet, .settings-content {
+        .bottom-sheet, .settings-content, .custom-dropdown {
             position: absolute; bottom: 0; left: 0; width: 100%;
-            background: var(--surface); border-radius: 28px 28px 0 0;
-            padding: 24px 24px calc(30px + env(safe-area-inset-bottom));
-            z-index: 101; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-            box-shadow: 0 -10px 40px var(--shadow); border-top: 1px solid var(--border);
-            max-height: 85vh; overflow-y: auto;
+            background: var(--surface); border-radius: 32px 32px 0 0;
+            padding: 24px 24px max(32px, env(safe-area-inset-bottom));
+            z-index: 101; transform: translateY(100%); transition: transform var(--transition-smooth);
+            box-shadow: 0 -15px 40px var(--shadow); border-top: 1px solid var(--border);
+            max-height: 85vh; overflow-y: auto; pointer-events: none; opacity: 0;
         }
-        .bottom-sheet.active, .settings-modal.active .settings-content { transform: translateY(0); }
+        .bottom-sheet.active, .settings-modal.active .settings-content, .custom-dropdown.active { transform: translateY(0); pointer-events: all; opacity: 1; }
         
-        .sheet-handle { width: 40px; height: 5px; background: var(--border); border-radius: 3px; margin: 0 auto 20px; }
-        .sheet-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+        .custom-dropdown { z-index: 60000; display: flex; flex-direction: column; padding: 20px 0 0 0; visibility: hidden; }
+        .custom-dropdown.active { visibility: visible; }
+        .dropdown-list { overflow-y: auto; padding: 10px 24px max(30px, env(safe-area-inset-bottom)); }
+        .dropdown-item { padding: 16px; border-radius: 16px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; margin-bottom: 8px; border: 1px solid transparent; }
+        .dropdown-item:active, .dropdown-item:hover { background: rgba(0, 210, 106, 0.1); color: var(--primary); border-color: rgba(0, 210, 106, 0.3); transform: translateX(5px); }
+
+        .sheet-handle { width: 48px; height: 6px; background: var(--border); border-radius: 4px; margin: 0 auto 20px; }
+        .sheet-title { font-size: 24px; font-weight: 800; margin-bottom: 12px; }
         .sheet-desc { color: var(--text-sec); margin-bottom: 24px; font-size: 15px; line-height: 1.5; }
-        .sheet-stats { display: flex; gap: 12px; margin-bottom: 24px; }
-        .stat-box { flex: 1; background: var(--bg); padding: 16px; border-radius: 16px; text-align: center; border: 1px solid var(--border); }
-        .stat-label { font-size: 12px; color: var(--text-sec); margin-bottom: 4px; font-weight: 600; }
-        .stat-value { font-size: 16px; font-weight: 700; color: var(--primary); }
+        .sheet-stats { display: flex; gap: 16px; margin-bottom: 24px; }
+        .stat-box { flex: 1; background: var(--bg); padding: 16px; border-radius: 20px; text-align: center; border: 1px solid var(--border); }
+        .stat-label { font-size: 12px; color: var(--text-sec); margin-bottom: 6px; font-weight: 700; text-transform: uppercase; }
+        .stat-value { font-size: 16px; font-weight: 800; color: var(--primary); }
 
-        .settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 20px; font-weight: 700; }
-        .close-btn {
-            background: var(--bg); border: none; width: 32px; height: 32px;
-            border-radius: 50%; color: var(--text-main); font-size: 18px; cursor: pointer;
-            border: 1px solid var(--border);
-        }
-        .theme-options { display: flex; gap: 12px; margin-top: 10px; }
-        .theme-btn {
-            flex: 1; padding: 14px 0; border-radius: 12px; border: 2px solid var(--border);
-            background: transparent; font-weight: 600; cursor: pointer; color: var(--text-sec); transition: 0.2s;
-        }
-        .theme-btn.active { border-color: var(--primary); color: var(--text-main); background: rgba(0, 210, 106, 0.05); }
+        .settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; font-size: 20px; font-weight: 800; }
+        .theme-options { display: flex; gap: 12px; margin-top: 12px; }
+        .theme-btn { flex: 1; padding: 14px 0; border-radius: 16px; border: 2px solid var(--border); background: var(--surface); font-weight: 700; cursor: pointer; color: var(--text-sec); transition: 0.2s; }
+        .theme-btn.active { border-color: var(--primary); color: var(--text-main); background: rgba(0, 210, 106, 0.1); box-shadow: 0 4px 12px rgba(0, 210, 106, 0.15); }
 
-        /* СПЕЦІАЛЬНА МОДАЛКА ДЛЯ РУЧНОГО ЗАВАНТАЖЕННЯ (ДЛЯ CHROME НА ПК) */
-        #local-file-modal { z-index: 60000; justify-content: center; align-items: center; background: var(--modal-bg); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); padding: 20px; }
-        #local-file-modal .quiz-card { max-width: 350px; height: auto; border-radius: 28px; padding: 24px; border: 1px solid var(--border); box-shadow: 0 20px 40px var(--shadow); transform: scale(0.9); transition: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
-        #local-file-modal.active .quiz-card { transform: scale(1); }
-        #local-file-modal label { font-size: 13px; font-weight: 600; color: var(--text-sec); margin-bottom: 6px; display: block; }
-        #local-file-modal input[type="file"] { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text-main); margin-bottom: 16px; outline: none; }
+        /* =========================================
+           ОБРІЗКА ФОТО (CROP)
+           ========================================= */
+        #crop-overlay { z-index: 70000; display: flex; flex-direction: column; align-items: center; background: var(--bg); }
+        .crop-top-bar { width: 100%; padding: max(20px, env(safe-area-inset-top)) 24px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 18px; border-bottom: 1px solid var(--border); background: var(--surface); }
+        .crop-container { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; overflow: hidden; }
+        .crop-area { width: 300px; height: 300px; border-radius: 50%; border: 4px solid var(--primary); position: relative; overflow: hidden; box-shadow: 0 0 0 2000px var(--modal-bg); touch-action: none; }
+        .crop-area img { position: absolute; top: 50%; left: 50%; max-width: none; max-height: none; transform-origin: center center; cursor: grab; user-select: none; -webkit-user-select: none; }
+        .crop-footer { width: 100%; padding: 24px 24px max(32px, env(safe-area-inset-bottom)); background: var(--surface); border-top: 1px solid var(--border); }
+
+        /* =========================================
+           SПОПОВІЩЕННЯ ТА НАВЧАННЯ
+           ========================================= */
+        .toast-notification {
+            position: fixed; top: max(24px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%) translateY(-120px);
+            background: var(--surface); color: var(--text-main); border: 2px solid var(--border);
+            padding: 16px 24px; border-radius: 100px; box-shadow: 0 15px 40px var(--shadow);
+            font-weight: 700; font-size: 15px; z-index: 90000; transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex; align-items: center; gap: 12px; width: max-content; max-width: 90%;
+        }
+        .toast-notification.active { transform: translateX(-50%) translateY(0); }
+
+        .tutorial-mask { position: absolute; inset: 0; background: rgba(0,0,0,0.7); z-index: 55000; opacity: 0; pointer-events: none; transition: 0.4s; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 120px; backdrop-filter: blur(2px); }
+        .tutorial-mask.active { opacity: 1; pointer-events: all; }
+        .tutorial-dialog { background: var(--surface); padding: 28px 24px; border-radius: 28px; width: 90%; text-align: center; box-shadow: 0 15px 50px rgba(0,0,0,0.5); border: 3px solid var(--primary); animation: floatUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        @keyframes floatUp { from { transform: translateY(40px) scale(0.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+        .tutorial-highlight { position: relative; z-index: 56000 !important; pointer-events: all !important; border-radius: inherit; background: var(--surface); animation: pulseGlow 2s infinite; }
+        @keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(0, 210, 106, 0.6); } 70% { box-shadow: 0 0 0 15px rgba(0, 210, 106, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 210, 106, 0); } }
+        
+        .top-header:has(.tutorial-highlight), .bottom-nav:has(.tutorial-highlight), .bottom-sheet:has(.tutorial-highlight) { z-index: 56001 !important; }
+
+        @media (max-width:430px){ .quiz-img-box{height:min(35vh,260px);min-height:180px} .quiz-option-btn{padding: 14px; font-size:15px} }
     </style>
 </head>
 <body>
 
     <div class="app-container">
         
+        <!-- Toast Notification -->
         <div class="toast-notification" id="toast-notification">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <span id="toast-text">Рівень заблоковано!</span>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            <span id="toast-text">Сповіщення</span>
         </div>
 
+        <!-- Splash Screen -->
         <div id="splash-screen" class="screen">
             <div class="splash-content">
                 <div class="splash-title">Вітаємо, <span id="splash-name-display"></span>!</div>
                 <div class="splash-subtitle">Завантаження кар'єри...</div>
+                <div class="splash-loading-info" id="splash-loading-info">Оновлення бази даних...</div>
             </div>
         </div>
 
+        <!-- Auth Screen -->
         <div id="auth-screen" class="screen">
             <div class="auth-container">
                 <div class="auth-header">
@@ -467,54 +436,75 @@
                 
                 <label class="avatar-upload" id="avatar-preview-container" onclick="triggerFileInput()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-                    <img id="final-avatar-img">
+                    <img id="final-avatar-img" alt="Аватар">
                 </label>
                 <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
                 
                 <div class="input-group">
-                    <input type="text" id="first-name" placeholder="Ім'я гравця" autocomplete="off">
+                    <input type="text" id="first-name" placeholder="Наприклад: Роман" autocomplete="off">
                 </div>
                 <div class="input-group">
-                    <input type="text" id="last-name" placeholder="Прізвище" autocomplete="off">
+                    <input type="text" id="last-name" placeholder="Прізвище (необов'язково)" autocomplete="off">
                 </div>
 
-                <div class="input-group" style="position: relative;">
+                <div class="input-group">
                     <div class="custom-select-trigger" id="club-select-trigger" onclick="openClubDropdown()">
-                        <span id="selected-club-text">Наприклад: Епіцентр</span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                        <span id="selected-club-text">Оберіть ваш улюблений клуб</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
                     </div>
                 </div>
 
-                <button class="btn-main" style="margin-top: 10px;" onclick="registerUser()">ПОЧАТИ КАР'ЄРУ</button>
+                <button class="btn-main" style="margin-top: 16px;" onclick="registerUser()">ПОЧАТИ КАР'ЄРУ</button>
             </div>
         </div>
 
-        <div class="sheet-overlay" id="club-overlay" onclick="closeClubDropdown()"></div>
+        <!-- Dropdown Club -->
+        <div class="sheet-overlay" id="club-overlay" onclick="closeClubDropdown()" style="z-index: 59000;"></div>
         <div class="custom-dropdown" id="club-dropdown">
             <div class="sheet-handle"></div>
-            <div style="padding: 0 24px 16px; font-weight: 700; font-size: 18px;">Оберіть клуб</div>
+            <div style="padding: 0 24px 16px; font-weight: 800; font-size: 20px;">Оберіть клуб</div>
             <div class="dropdown-list" id="club-list-container"></div>
         </div>
 
+        <!-- Crop Overlay -->
         <div id="crop-overlay">
             <div class="crop-top-bar">
-                <span>Збільште та вирівняйте фото</span>
-                <div class="crop-close-btn" onclick="cancelCrop()">✕</div>
+                <span>Вирівняйте фото</span>
+                <div class="close-btn" onclick="cancelCrop()" style="border:none; width: 32px; height:32px;">✕</div>
             </div>
-            <div class="crop-area" id="crop-area">
-                <img id="crop-image" src="" alt="">
+            <div class="crop-container">
+                <div class="crop-area" id="crop-area">
+                    <img id="crop-image" src="" alt="">
+                </div>
             </div>
             <div class="crop-footer">
-                <button class="btn-main" onclick="applyCrop()">Готово</button>
+                <button class="btn-main" onclick="applyCrop()">Зберегти аватар</button>
             </div>
         </div>
 
-        <!-- МОДАЛКА ВІКТОРИНИ -->
+        <!-- Tutorial Mask -->
+        <div class="tutorial-mask" id="tutorial-mask">
+            <div class="tutorial-dialog" id="tutorial-dialog">
+                <h3 style="margin-bottom: 12px; font-size: 22px; font-weight: 800;" id="tutorial-title">Навчання</h3>
+                <p style="color: var(--text-sec); margin-bottom: 24px; font-size: 15px; line-height: 1.5;" id="tutorial-desc"></p>
+                <button class="btn-main" id="tutorial-btn" onclick="nextTutorialStep()">Зрозуміло</button>
+            </div>
+        </div>
+
+        <!-- Quiz Modal -->
         <div class="quiz-modal" id="quiz-modal">
             <div class="quiz-card">
                 <div class="quiz-header-bar">
                     <span id="quiz-level-title">Рівень 1</span>
                     <button class="close-btn" onclick="closeQuizModal()">✕</button>
+                </div>
+                <div class="quiz-progress-wrap" id="quiz-progress-wrap">
+                    <div class="quiz-progress-meta">
+                        <span id="quiz-progress-label">Питання 1 з 5</span>
+                    </div>
+                    <div class="quiz-progress-track">
+                        <div class="quiz-progress-fill" id="quiz-progress-fill"></div>
+                    </div>
                 </div>
                 
                 <div id="quiz-gameplay-section" style="display: flex; flex-direction: column; flex: 1; justify-content: space-between; gap: 16px;">
@@ -522,200 +512,218 @@
                         <img id="quiz-img" src="" alt="Фото футболіста">
                     </div>
                     <div>
-                        <div class="quiz-question" id="quiz-question-text">Завантаження питання...</div>
+                        <div class="quiz-question" id="quiz-question-text">Завантаження...</div>
                     </div>
                     <div class="quiz-options" id="quiz-options-container"></div>
                 </div>
 
                 <div class="quiz-feedback-box" id="quiz-feedback-box">
                     <div class="quiz-feedback-title" id="quiz-feedback-title">Супер!</div>
+                    <div class="quiz-rating" id="quiz-rating" aria-label="Рейтинг рівня"></div>
                     <div class="quiz-feedback-desc" id="quiz-feedback-desc">Рівень пройдено успішно.</div>
-                    <button class="btn-main" id="quiz-feedback-btn" onclick="handleQuizFeedbackNext()">Наступний рівень</button>
+                    <div class="quiz-reward-status" id="quiz-reward-status"></div>
+                    <button class="btn-main" id="quiz-feedback-next-btn" onclick="handleQuizFeedbackNext()" style="margin-bottom: 12px;">Наступний рівень</button>
+                    <button class="btn-secondary" id="quiz-feedback-retry-btn" onclick="retryCurrentLevelQuiz()" style="display:none; margin-top: 0;">Почати знову</button>
                 </div>
             </div>
         </div>
 
-        <!-- МОДАЛКА ЛОКАЛЬНИХ ФАЙЛІВ (ДЛЯ CHROME) -->
-        <div class="quiz-modal" id="local-file-modal">
-            <div class="quiz-card">
-                <h3 style="margin-bottom: 8px;">Локальне завантаження</h3>
-                <p style="font-size: 13px; color: var(--text-sec); margin-bottom: 16px;">
-                    Для <b id="local-level-num">Рівня 1</b>. Ваш браузер не дозволяє автоматичне зчитування локальних файлів. Будь ласка, оберіть їх вручну.
-                </p>
-                <div class="input-group">
-                    <label>Файл питання (.txt)</label>
-                    <input type="file" id="local-txt-input" accept=".txt">
-                </div>
-                <div class="input-group">
-                    <label>Фото гравця (.png, .jpg)</label>
-                    <input type="file" id="local-img-input" accept="image/*">
-                </div>
-                <button class="btn-main" onclick="processLocalFiles()">Продовжити</button>
-                <button class="btn-main" style="background: var(--bg); color: var(--text-main); margin-top: 8px; box-shadow: none;" onclick="closeLocalFileModal()">Скасувати</button>
-            </div>
-        </div>
-
-        <!-- ГОЛОВНИЙ ЕКРАН -->
+        <!-- Main Screen -->
         <div id="main-screen" class="screen">
-            <div class="top-header">
-                <div class="profile-trigger" onclick="openSettings()">
+            <div class="top-header" id="header-container">
+                <div class="profile-trigger" id="tut-profile" onclick="openSettings()">
                     <div class="mini-avatar" id="top-avatar"></div>
                     <div class="profile-info">
                         <div class="label" id="top-level-label">Рівень: 1</div>
                         <div class="name" id="display-name">Гравець</div>
                     </div>
                 </div>
-                <div class="score-box" onclick="openStats()">
+                <div class="score-box" id="tut-score" onclick="openStats()">
                     <div class="score-val" id="display-score">0</div>
-                    <div class="score-label">Балів 📊</div>
+                    <div class="score-label">Балів</div>
                 </div>
             </div>
 
-            <!-- ТАБ 1: ГОЛОВНА -->
+            <!-- TAB: HOME -->
             <div id="tab-home" class="tab-content active">
                 <div class="level-chain" id="level-chain">
                     <div class="chain-line"></div>
                 </div>
             </div>
 
-            <!-- ТАБ 2: ЗАВДАННЯ -->
+            <!-- TAB: TASKS -->
             <div id="tab-tasks" class="tab-content">
-                <h2 style="margin-bottom: 20px; font-weight: 800;">Щотижневі завдання</h2>
+                <h2 style="margin-bottom: 24px; font-weight: 800; font-size: 24px;">Щотижневі завдання</h2>
                 <div id="tasks-container"></div>
-                <div id="tasks-finished-msg" style="display: none; text-align: center; padding: 40px 20px; background: var(--surface); border-radius: 24px; border: 1px solid var(--border);">
-                    <div style="font-size: 20px; font-weight: 800; margin-bottom: 8px;">Завдання закінчилися :(</div>
-                    <div style="color: var(--text-sec); font-size: 15px;" id="tasks-countdown-text">Наступні завдання з'являться через: 03:00:00</div>
+                <div id="tasks-finished-msg" style="display: none; text-align: center; padding: 50px 20px; background: var(--surface); border-radius: var(--radius-lg); border: 2px dashed var(--border);">
+                    <div style="font-size: 20px; font-weight: 800; margin-bottom: 12px;">Завдання закінчилися 🚀</div>
+                    <div style="color: var(--text-sec); font-size: 15px; font-weight: 600;" id="tasks-countdown-text">Оновлення через: 03:00:00</div>
                 </div>
             </div>
 
-            <!-- ТАБ 3: МАГАЗИН -->
+            <!-- TAB: SHOP -->
             <div id="tab-shop" class="tab-content">
-                <h2 style="margin: 20px 0; text-align: center; font-weight: 800;">Магазин</h2>
-                <div style="background: var(--surface); padding: 40px 20px; border-radius: 24px; text-align: center; border: 1px solid var(--border);">
-                    <p style="color: var(--text-sec);">Скоро тут будуть нові нагороди та скіни.</p>
+                <h2 style="margin: 0 0 24px 0; font-weight: 800; font-size: 24px;">Магазин</h2>
+                <div style="background: var(--surface); padding: 50px 20px; border-radius: var(--radius-lg); text-align: center; border: 2px dashed var(--border);">
+                    <div style="font-size: 40px; margin-bottom: 16px;">🛍️</div>
+                    <p style="color: var(--text-sec); font-weight: 600; font-size: 15px;">Скоро тут будуть нові нагороди, бусти та кастомні скіни.</p>
                 </div>
             </div>
 
-            <!-- НИЖНЯ НАВІГАЦІЯ -->
+            <!-- BOTTOM NAVIGATION -->
             <nav class="bottom-nav">
-                <div class="nav-item active" onclick="switchTab('home', this)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                <div class="nav-item active" id="tut-nav-home" onclick="switchTab('home', this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
                     <span class="nav-text">Головна</span>
                 </div>
-                <div class="nav-item" onclick="switchTab('tasks', this)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                <div class="nav-item" id="tut-nav-tasks" onclick="switchTab('tasks', this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
                     <span class="nav-text">Завдання</span>
                 </div>
-                <div class="nav-item" onclick="switchTab('shop', this)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                <div class="nav-item" id="tut-nav-shop" onclick="switchTab('shop', this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
                     <span class="nav-text">Магазин</span>
                 </div>
             </nav>
         </div>
 
-        <!-- ІНФО ПРО РІВЕНЬ -->
+        <!-- Bottom Sheet: Level Detail -->
         <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
         <div class="bottom-sheet" id="bottom-sheet">
             <div class="sheet-handle"></div>
             <h3 class="sheet-title" id="sheet-title">Рівень 1</h3>
-            <p class="sheet-desc">Вгадайте футболіста за фото та перевірте свої знання про український та світовий футбол!</p>
+            <p class="sheet-desc">Вгадайте футболіста за фото та перевірте свої знання про футбольний світ!</p>
             <div class="sheet-stats">
                 <div class="stat-box">
                     <div class="stat-label">Складність</div>
-                    <div class="stat-value" id="sheet-diff" style="font-size: 14px;">Легко</div>
+                    <div class="stat-value" id="sheet-diff">Легко</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-label">Нагорода</div>
-                    <div class="stat-value" id="sheet-reward">+10 балів</div>
+                    <div class="stat-value" id="sheet-reward">+2 бали</div>
                 </div>
             </div>
-            <button class="btn-main" onclick="startCurrentLevelQuiz()">Почати рівень</button>
+            <button class="btn-main" id="start-lvl-btn" onclick="startCurrentLevelQuiz()">Почати рівень</button>
         </div>
 
-        <!-- СТАТИСТИКА -->
+        <!-- Bottom Sheet: Stats -->
         <div class="sheet-overlay" id="stats-overlay" onclick="closeStats()"></div>
         <div class="bottom-sheet" id="stats-sheet">
             <div class="sheet-handle"></div>
-            <h3 class="sheet-title">Ваша статистика</h3>
-            <p class="sheet-desc">Загальний прогрес кар'єри гравця.</p>
-            <div class="sheet-stats">
-                <div class="stat-box">
-                    <div class="stat-label">Поточний рівень</div>
-                    <div class="stat-value" id="stats-level-val">1</div>
+            <h3 class="sheet-title">Ваша Статистика</h3>
+            <div class="sheet-stats" style="flex-direction: column; gap: 12px; margin-bottom: 24px;">
+                <div class="stat-box" style="display: flex; justify-content: space-between; align-items: center; padding: 18px;">
+                    <span class="stat-label" style="margin:0;">Загальні бали:</span>
+                    <span class="stat-value" id="stat-points" style="font-size: 18px;">0</span>
                 </div>
-                <div class="stat-box">
-                    <div class="stat-label">Всього балів</div>
-                    <div class="stat-value" id="stats-score-val">0</div>
+                <div class="stat-box" style="display: flex; justify-content: space-between; align-items: center; padding: 18px;">
+                    <span class="stat-label" style="margin:0;">Пройдено рівнів:</span>
+                    <span class="stat-value" id="stat-levels">0 / 60</span>
+                </div>
+                <div class="stat-box" style="display: flex; justify-content: space-between; align-items: center; padding: 18px;">
+                    <span class="stat-label" style="margin:0;">Поточна ера:</span>
+                    <span class="stat-value" id="stat-era">Ера 1</span>
+                </div>
+                <div class="stat-box" style="display: flex; justify-content: space-between; align-items: center; padding: 18px;">
+                    <span class="stat-label" style="margin:0;">Виконано завдань:</span>
+                    <span class="stat-value" id="stat-tasks">0</span>
+                </div>
+                <div style="display: flex; gap: 12px; margin-top: 4px;">
+                    <div class="stat-box" style="flex:1; padding: 16px;">
+                        <span class="stat-label">Правильні</span>
+                        <span class="stat-value" id="stat-correct" style="color: var(--primary); display:block; margin-top: 6px; font-size:20px;">0</span>
+                    </div>
+                    <div class="stat-box" style="flex:1; padding: 16px;">
+                        <span class="stat-label">Помилки</span>
+                        <span class="stat-value" id="stat-incorrect" style="color: #ff3b30; display:block; margin-top: 6px; font-size:20px;">0</span>
+                    </div>
                 </div>
             </div>
             <button class="btn-main" onclick="closeStats()">Закрити</button>
         </div>
 
-        <!-- НАЛАШТУВАННЯ -->
+        <!-- Bottom Sheet: Era Unlock -->
+        <div class="sheet-overlay" id="era-overlay" onclick="closeEraModal()"></div>
+        <div class="bottom-sheet" id="era-sheet" style="text-align: center; z-index: 60000;">
+            <div class="sheet-handle"></div>
+            <div style="font-size: 60px; margin-bottom: 16px; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));">🏆</div>
+            <h2 class="sheet-title" id="era-title">Вітаємо!</h2>
+            <p class="sheet-desc" id="era-desc">Ви розблокували нову Еру!</p>
+            <button class="btn-main" onclick="closeEraModal()">Чудово!</button>
+        </div>
+
+        <!-- Bottom Sheet: Settings -->
         <div class="settings-modal" id="settings-modal">
             <div class="settings-content">
                 <div class="settings-header">
-                    <span>Профіль та налаштування</span>
+                    <span>Налаштування профілю</span>
                     <button class="close-btn" onclick="closeSettings()">✕</button>
                 </div>
                 
                 <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 24px; background: var(--bg); padding: 16px; border-radius: 20px; border: 1px solid var(--border);">
-                    <div class="mini-avatar" id="modal-avatar" style="width: 60px; height: 60px; font-size: 20px; cursor: pointer;" onclick="triggerFileInput()"></div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 700; font-size: 16px;" id="modal-display-name">Гравець</div>
-                        <div style="font-size: 13px; color: var(--text-sec);" id="modal-display-club">Клуб</div>
+                    <div class="mini-avatar" id="modal-avatar" style="width: 60px; height: 60px; font-size: 22px; cursor: pointer;" onclick="triggerFileInput()"></div>
+                    <div style="flex: 1; min-width:0;">
+                        <div style="font-weight: 800; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="modal-display-name">Гравець</div>
+                        <div style="font-size: 13px; font-weight: 600; color: var(--text-sec); margin-top: 2px;" id="modal-display-club">Клуб</div>
                     </div>
-                    <button class="task-btn" onclick="triggerFileInput()">Змінити фото</button>
+                    <button class="task-btn" onclick="triggerFileInput()" style="padding: 10px 14px; font-size: 13px;">Змінити</button>
                 </div>
 
                 <div class="input-group">
-                    <div style="font-size: 13px; color: var(--text-sec); margin-bottom: 6px; font-weight: 600;">Ім'я</div>
+                    <div style="font-size: 13px; color: var(--text-sec); margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Ім'я гравця</div>
                     <input type="text" id="edit-first-name" autocomplete="off" oninput="updateProfileField('name', this.value)">
                 </div>
                 <div class="input-group">
-                    <div style="font-size: 13px; color: var(--text-sec); margin-bottom: 6px; font-weight: 600;">Прізвище</div>
+                    <div style="font-size: 13px; color: var(--text-sec); margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Прізвище</div>
                     <input type="text" id="edit-last-name" autocomplete="off" oninput="updateProfileField('lastName', this.value)">
                 </div>
 
                 <div class="input-group">
-                    <div style="font-size: 13px; color: var(--text-sec); margin-bottom: 6px; font-weight: 600;">Улюблений клуб</div>
+                    <div style="font-size: 13px; color: var(--text-sec); margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Улюблений клуб</div>
                     <div class="custom-select-trigger" onclick="openClubDropdownFromSettings()">
-                        <span id="edit-club-text">Оберіть клуб</span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                        <span id="edit-club-text" style="font-weight: 600;">Оберіть клуб</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
                     </div>
                 </div>
 
-                <div style="margin: 20px 0;">
-                    <div style="font-size: 13px; color: var(--text-sec); margin-bottom: 8px; font-weight: 600;">Тема оформлення</div>
+                <div style="margin: 24px 0 32px 0;">
+                    <div style="font-size: 13px; color: var(--text-sec); margin-bottom: 12px; font-weight: 700; text-transform: uppercase;">Тема оформлення</div>
                     <div class="theme-options">
-                        <button class="theme-btn" id="theme-btn-light" onclick="setTheme('light')">Біла</button>
-                        <button class="theme-btn" id="theme-btn-dark" onclick="setTheme('dark')">Чорна</button>
-                        <button class="theme-btn" id="theme-btn-blue" onclick="setTheme('blue')">Синя</button>
+                        <button class="theme-btn" id="theme-btn-light" onclick="setTheme('light')">Світла</button>
+                        <button class="theme-btn" id="theme-btn-dark" onclick="setTheme('dark')">Темна</button>
+                        <button class="theme-btn" id="theme-btn-blue" onclick="setTheme('blue')">Неон</button>
                     </div>
                 </div>
 
-                <div class="input-group" style="margin-top: 24px;">
-                    <button class="btn-main" style="background: #ff3b30; box-shadow: none;" onclick="logout()">Скинути прогрес</button>
-                </div>
+                <button class="btn-secondary" style="color: #ff3b30; border-color: rgba(255,59,48,0.3); background: rgba(255,59,48,0.05);" onclick="logout()">Скинути прогрес (Вихід)</button>
             </div>
         </div>
 
     </div>
 
+    <!-- =========================================
+         JAVASCRIPT ЛОГІКА
+         ========================================= -->
     <script>
+        // --- ДАНІ ТА СТЕЙТ ---
         const CLUBS = [
             "Буковина", "Верес", "Динамо", "Епіцентр", "Зоря", "Карпати", 
             "Колос", "Кривбас", "Кудрівка", "ЛНЗ", "Лівий Берег", 
             "Металіст 1925", "Оболонь", "Полісся", "Чорноморець", "Шахтар"
         ];
 
-        const STORAGE_KEY = 'football_career_save_v4';
+        const STORAGE_KEY = 'football_career_save_v12';
         
         function getDeviceId() {
-            let id = localStorage.getItem('device_fingerprint');
-            if (!id) {
-                id = 'dev_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
-                localStorage.setItem('device_fingerprint', id);
+            let id;
+            try {
+                id = localStorage.getItem('device_fingerprint_v2');
+                if (!id) {
+                    id = 'dev_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+                    localStorage.setItem('device_fingerprint_v2', id);
+                }
+            } catch (e) {
+                id = 'dev_fallback_id';
             }
             return id;
         }
@@ -726,79 +734,134 @@
             tasksCompleted: [false, false, false, false],
             tasksClaimed: [false, false, false, false],
             sessionSeconds: 0,
-            tasksTimestamp: null
+            tasksTimestamp: null,
+            completedLevels: [],
+            failedLevels: [],
+            correctCount: 0,
+            incorrectCount: 0,
+            tutorialCompleted: false
         };
 
         function saveData() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(userData)); } catch(e) { console.error("Помилка збереження", e); }
         }
 
         function loadData() {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                if(parsed.deviceId === getDeviceId()) {
-                    userData = Object.assign(userData, parsed);
-                    return true;
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if(parsed.deviceId === getDeviceId()) {
+                        userData = Object.assign(userData, parsed);
+                        if(!Array.isArray(userData.completedLevels)) userData.completedLevels = [];
+                        if(!Array.isArray(userData.failedLevels)) userData.failedLevels = [];
+                        return true;
+                    }
                 }
-            }
+            } catch(e) {}
             return false;
         }
 
         function logout() {
-            localStorage.removeItem(STORAGE_KEY);
-            location.reload();
+            if(confirm("Ви впевнені, що хочете скинути весь прогрес?")) {
+                try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+                location.reload();
+            }
         }
 
+        // --- УТИЛІТИ ---
         let toastTimeout = null;
         function showToast(text) {
             const toast = document.getElementById('toast-notification');
             document.getElementById('toast-text').textContent = text;
             toast.classList.add('active');
             if(toastTimeout) clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => {
-                toast.classList.remove('active');
-            }, 3000);
+            toastTimeout = setTimeout(() => { toast.classList.remove('active'); }, 3500);
         }
 
+        function triggerConfetti() {
+            const colors = ['#00D26A', '#FF3B30', '#FFCC00', '#007AFF', '#AF52DE', '#64FFDA'];
+            for (let i = 0; i < 70; i++) {
+                const particle = document.createElement('div');
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.top = '-20px';
+                particle.style.width = (Math.random() * 10 + 6) + 'px';
+                particle.style.height = (Math.random() * 10 + 6) + 'px';
+                particle.style.borderRadius = Math.random() > 0.5 ? '50%' : '3px';
+                particle.style.position = 'fixed';
+                particle.style.zIndex = '99999';
+                particle.style.pointerEvents = 'none';
+                particle.style.transition = `transform ${Math.random() * 1.5 + 1.2}s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity ${Math.random() * 1.5 + 1}s ease-in`;
+                document.body.appendChild(particle);
+                setTimeout(() => {
+                    particle.style.transform = `translate(${Math.random() * 300 - 150}px, ${window.innerHeight + 100}px) rotate(${Math.random() * 1080}deg)`;
+                    particle.style.opacity = '0';
+                }, 50);
+                setTimeout(() => { particle.remove(); }, 3000);
+            }
+        }
+
+        // --- ІНІЦІАЛІЗАЦІЯ ТА ПРОФІЛЬ ---
         function initClubDropdown() {
             const container = document.getElementById('club-list-container');
             container.innerHTML = '';
             CLUBS.forEach(club => {
                 const div = document.createElement('div');
                 div.className = 'dropdown-item';
-                div.textContent = club;
+                // Виділяємо Епіцентр або інші клуби за потребою
+                if(club === "Епіцентр") div.innerHTML = `<strong>${club} 🚀</strong>`;
+                else div.textContent = club;
+                
                 div.onclick = () => selectClub(club);
                 container.appendChild(div);
             });
         }
 
         let selectingForSettings = false;
-        function openClubDropdown() {
-            selectingForSettings = false;
-            document.getElementById('club-dropdown').classList.add('active');
-            document.getElementById('club-overlay').classList.add('active');
-        }
-        function openClubDropdownFromSettings() {
-            selectingForSettings = true;
-            document.getElementById('club-dropdown').classList.add('active');
-            document.getElementById('club-overlay').classList.add('active');
-        }
-        function closeClubDropdown() {
-            document.getElementById('club-dropdown').classList.remove('active');
-            document.getElementById('club-overlay').classList.remove('active');
-        }
+        function openClubDropdown() { selectingForSettings = false; document.getElementById('club-dropdown').classList.add('active'); document.getElementById('club-overlay').classList.add('active'); }
+        function openClubDropdownFromSettings() { selectingForSettings = true; document.getElementById('club-dropdown').classList.add('active'); document.getElementById('club-overlay').classList.add('active'); }
+        function closeClubDropdown() { document.getElementById('club-dropdown').classList.remove('active'); document.getElementById('club-overlay').classList.remove('active'); }
+        
         function selectClub(clubName) {
             if (selectingForSettings) {
                 userData.club = clubName;
                 document.getElementById('edit-club-text').textContent = clubName;
                 document.getElementById('modal-display-club').textContent = clubName;
                 saveData();
+                showToast(`Клуб змінено на ${clubName}`);
             } else {
                 document.getElementById('selected-club-text').textContent = clubName;
+                document.getElementById('selected-club-text').style.color = "var(--text-main)";
                 window.tempSelectedClub = clubName;
             }
             closeClubDropdown();
+        }
+
+        async function preloadAssets() {
+            const infoEl = document.getElementById('splash-loading-info');
+            if (infoEl) infoEl.textContent = 'Кешування матеріалів...';
+            const urls = [];
+            for (let i = 0; i <= 150; i++) { // Оптимізовано кількість для швидшого старту, решта підвантажиться в процесі
+                urls.push(`img/footboler/${i}.txt`, `img/footboler/${i}.png`, `img/footboler/${i}.jpg`, `img/footboler/${i}.jpeg`, `img/footboler/${i}.webp`);
+            }
+            try {
+                if ('caches' in window) {
+                    const cache = await caches.open('fc-assets-v6');
+                    let done = 0;
+                    await Promise.allSettled(urls.map(async url => {
+                        try {
+                            if (!await cache.match(url)) {
+                                const r = await fetch(url, {cache:'force-cache'});
+                                if (r.ok) await cache.put(url, r.clone());
+                            }
+                        } catch(e) {}
+                        done++;
+                        if (infoEl && done % 30 === 0) infoEl.textContent = `Завантаження ресурсів: ${Math.floor((done/urls.length)*100)}%`;
+                    }));
+                }
+            } catch(e) {}
+            if (infoEl) infoEl.textContent = 'Готово!';
         }
 
         window.onload = () => {
@@ -806,22 +869,30 @@
             checkWeeklyTasksReset();
             const hasData = loadData();
             
+            if (!['light','dark','blue'].includes(userData.theme)) userData.theme = 'light';
+            applyThemeStyling(userData.theme);
+
             if (hasData) {
-                applyThemeStyling(userData.theme);
                 setupProfileUI();
+                generateLevels(); 
                 
                 const splash = document.getElementById('splash-screen');
-                document.getElementById('splash-name-display').textContent = userData.name;
+                document.getElementById('splash-name-display').textContent = userData.name || "Гравець";
                 splash.classList.add('active');
+                
+                preloadAssets();
                 
                 setTimeout(() => {
                     splash.classList.add('fade-out');
                     document.getElementById('main-screen').classList.add('active');
                     setTimeout(() => { splash.classList.remove('active'); }, 400);
-                    generateLevels();
                     renderTasks();
                     startSessionTimer();
-                }, 2000);
+                    
+                    if (!userData.tutorialCompleted) {
+                        setTimeout(initTutorial, 800);
+                    }
+                }, 2200);
 
             } else {
                 document.getElementById('auth-screen').classList.add('active');
@@ -829,14 +900,14 @@
         };
 
         function setupProfileUI() {
-            document.getElementById('display-name').textContent = userData.name;
+            document.getElementById('display-name').textContent = userData.name || "Гравець";
             document.getElementById('display-score').textContent = userData.score;
             document.getElementById('top-level-label').textContent = `Рівень: ${userData.level}`;
             document.getElementById('edit-first-name').value = userData.name;
             document.getElementById('edit-last-name').value = userData.lastName || '';
             document.getElementById('edit-club-text').textContent = userData.club || 'Оберіть клуб';
-            document.getElementById('modal-display-name').textContent = `${userData.name} ${userData.lastName || ''}`;
-            document.getElementById('modal-display-club').textContent = userData.club || 'Футболіст';
+            document.getElementById('modal-display-name').textContent = `${userData.name} ${userData.lastName || ''}`.trim() || 'Гравець';
+            document.getElementById('modal-display-club').textContent = userData.club || 'Вільний агент';
             
             const avatars = [document.getElementById('top-avatar'), document.getElementById('modal-avatar')];
             avatars.forEach(av => {
@@ -846,16 +917,10 @@
                         av.textContent = '';
                     } else {
                         av.style.backgroundImage = 'none';
-                        av.textContent = userData.name.charAt(0).toUpperCase();
+                        av.textContent = userData.name ? userData.name.charAt(0).toUpperCase() : '⚽';
                     }
                 }
             });
-            
-            const previewImg = document.getElementById('final-avatar-img');
-            if (userData.avatar) {
-                previewImg.src = userData.avatar;
-                previewImg.style.display = 'block';
-            }
         }
 
         function updateProfileField(field, val) {
@@ -864,136 +929,117 @@
             setupProfileUI();
         }
 
-        let cropUrl = '';
-        let currentX = 0, currentY = 0, cropScale = 1;
+        // --- CROP ЛОГІКА ---
+        let cropRawUrl = ''; let currentX = 0, currentY = 0, cropScale = 1;
         const cropImage = document.getElementById('crop-image');
         const cropArea = document.getElementById('crop-area');
-
-        function triggerFileInput() {
-            document.getElementById('file-input').click();
-        }
-
+        
+        function triggerFileInput() { document.getElementById('file-input').click(); }
         function handleFileSelect(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    cropUrl = event.target.result;
-                    cropImage.src = cropUrl;
-                    currentX = 0; currentY = 0; cropScale = 1;
-                    updateTransform();
+                    cropRawUrl = event.target.result;
+                    cropImage.onload = () => { currentX = 0; currentY = 0; cropScale = 1; updateTransform(); };
+                    cropImage.src = cropRawUrl;
                     document.getElementById('crop-overlay').classList.add('active');
-                }
+                };
                 reader.readAsDataURL(file);
             }
         }
-
-        function cancelCrop() {
-            document.getElementById('crop-overlay').classList.remove('active');
-        }
-
-        function updateTransform() {
-            cropImage.style.transform = `translate(${currentX}px, ${currentY}px) scale(${cropScale})`;
-        }
-
-        let initialDist = null;
-        let startScale = 1;
-        let startX = 0, startY = 0, isDragging = false;
-        let lastTouchX = 0, lastTouchY = 0;
-
+        function cancelCrop() { document.getElementById('crop-overlay').classList.remove('active'); document.getElementById('file-input').value = ''; }
+        function updateTransform() { cropImage.style.transform = `translate(-50%, -50%) translate(${currentX}px, ${currentY}px) scale(${cropScale})`; }
+        
+        let initialDist = null, startScale = 1, isDragging = false, lastTouchX = 0, lastTouchY = 0;
+        
         cropArea.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 2) {
-                initialDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-                startScale = cropScale;
-            } else if (e.touches.length === 1) {
-                isDragging = true;
-                lastTouchX = e.touches[0].clientX;
-                lastTouchY = e.touches[0].clientY;
-            }
-        });
-
+            if (e.touches.length === 2) { initialDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); startScale = cropScale; }
+            else if (e.touches.length === 1) { isDragging = true; lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; }
+        }, { passive: false });
         cropArea.addEventListener('touchmove', (e) => {
-            e.preventDefault();
+            e.preventDefault(); 
             if (e.touches.length === 2 && initialDist) {
                 let dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-                cropScale = Math.min(Math.max(0.5, startScale * (dist / initialDist)), 4);
-                updateTransform();
+                cropScale = Math.min(Math.max(0.01, startScale * (dist / initialDist)), 100); updateTransform();
             } else if (e.touches.length === 1 && isDragging) {
-                let dx = e.touches[0].clientX - lastTouchX;
-                let dy = e.touches[0].clientY - lastTouchY;
-                currentX += dx;
-                currentY += dy;
-                lastTouchX = e.touches[0].clientX;
-                lastTouchY = e.touches[0].clientY;
-                updateTransform();
+                let dx = e.touches[0].clientX - lastTouchX, dy = e.touches[0].clientY - lastTouchY;
+                currentX += dx; currentY += dy; lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; updateTransform();
             }
         }, { passive: false });
-
-        cropArea.addEventListener('touchend', (e) => {
-            if (e.touches.length < 2) initialDist = null;
-            if (e.touches.length === 0) isDragging = false;
-        });
-
-        let isMouseDown = false;
-        cropArea.addEventListener('mousedown', (e) => {
-            isMouseDown = true;
-            startX = e.clientX - currentX;
-            startY = e.clientY - currentY;
-        });
-        window.addEventListener('mousemove', (e) => {
-            if (!isMouseDown) return;
-            currentX = e.clientX - startX;
-            currentY = e.clientY - startY;
-            updateTransform();
-        });
-        window.addEventListener('mouseup', () => { isMouseDown = false; });
-        cropArea.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            cropScale = Math.min(Math.max(0.5, cropScale + (e.deltaY < 0 ? 0.1 : -0.1)), 4);
-            updateTransform();
-        });
+        cropArea.addEventListener('touchend', (e) => { if (e.touches.length < 2) initialDist = null; if (e.touches.length === 0) isDragging = false; });
+        cropArea.addEventListener('wheel', (e) => { e.preventDefault(); cropScale += e.deltaY * -0.01; cropScale = Math.min(Math.max(0.01, cropScale), 100); updateTransform(); }, { passive: false });
 
         function applyCrop() {
-            userData.avatar = cropUrl;
-            saveData();
-            setupProfileUI();
-            cancelCrop();
+            if (!cropImage || !cropImage.naturalWidth) { cancelCrop(); return; }
+            const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d');
+            canvas.width = 400; canvas.height = 400;
+            const ratio = 400 / (cropArea.clientWidth || 300);
+            ctx.save(); ctx.translate(200, 200); ctx.translate(currentX * ratio, currentY * ratio); ctx.scale(cropScale * ratio, cropScale * ratio);
+            ctx.drawImage(cropImage, -cropImage.naturalWidth / 2, -cropImage.naturalHeight / 2); ctx.restore();
+            userData.avatar = canvas.toDataURL('image/jpeg', 0.9);
+            saveData(); setupProfileUI(); cancelCrop();
+            const previewImg = document.getElementById('final-avatar-img');
+            if (previewImg) { previewImg.src = userData.avatar; previewImg.style.display = 'block'; }
         }
 
+        // --- РЕЄСТРАЦІЯ ТА РЕНДЕР РІВНІВ ---
         function registerUser() {
             const name = document.getElementById('first-name').value.trim();
             const club = window.tempSelectedClub;
+            if(!name) { showToast("Введіть ваше ім'я!"); return; }
+            if(!club) { showToast("Оберіть улюблений клуб!"); return; }
             
-            if(!name) { alert("Введіть ім'я гравця!"); return; }
-            if(!club) { alert("Оберіть улюблений клуб!"); return; }
-            
-            userData.name = name;
-            userData.lastName = document.getElementById('last-name').value.trim();
-            userData.club = club;
-            
-            saveData();
-            setupProfileUI();
+            userData.name = name; userData.lastName = document.getElementById('last-name').value.trim();
+            userData.club = club; userData.tutorialCompleted = false;
+            saveData(); setupProfileUI();
 
             document.getElementById('auth-screen').classList.remove('active');
+            preloadAssets();
             document.getElementById('main-screen').classList.add('active');
-            setTimeout(generateLevels, 200);
-            renderTasks();
-            startSessionTimer();
+            generateLevels(); renderTasks(); startSessionTimer();
+            setTimeout(initTutorial, 800);
+        }
+
+        function getDifficultyText(lvl) {
+            if (lvl <= 10) return "Легко 🟢";
+            if (lvl <= 25) return "Середньо 🟡";
+            if (lvl <= 40) return "Складно 🟠";
+            return "Експерт 🔴";
         }
 
         function generateLevels() {
             const chainContainer = document.getElementById('level-chain');
             chainContainer.innerHTML = '<div class="chain-line"></div>';
-            const totalLevels = 15; 
 
-            for (let i = 1; i <= totalLevels; i++) {
+            if (!userData.tutorialCompleted) {
+                const node0 = document.createElement('div');
+                node0.className = 'level-node current';
+                node0.id = 'level-node-0';
+                node0.textContent = '0';
+                node0.onclick = () => handleLevelClick(0);
+                chainContainer.appendChild(node0);
+                setTimeout(() => node0.classList.add('show'), 50);
+            }
+
+            let maxRenderLevel = 20;
+            if (userData.level > 20 && userData.level <= 40) maxRenderLevel = 40;
+            else if (userData.level > 40) maxRenderLevel = 60;
+
+            for (let i = 1; i <= maxRenderLevel; i++) {
                 const levelNode = document.createElement('div');
                 levelNode.className = 'level-node';
-                
-                if (i < userData.level) {
+                levelNode.id = `level-node-${i}`;
+
+                if (userData.failedLevels && userData.failedLevels.includes(i)) {
+                    levelNode.classList.add('failed');
+                    levelNode.innerHTML = `✕`;
+                } 
+                else if (userData.completedLevels && userData.completedLevels.includes(i)) {
                     levelNode.classList.add('completed');
                     levelNode.innerHTML = `✓`;
-                } else if (i === userData.level) {
+                } 
+                else if (i === userData.level) {
                     levelNode.classList.add('current');
                     levelNode.textContent = i;
                 } else {
@@ -1002,404 +1048,534 @@
 
                 levelNode.onclick = () => handleLevelClick(i);
                 chainContainer.appendChild(levelNode);
+                setTimeout(() => levelNode.classList.add('show'), i * 20);
 
-                setTimeout(() => {
-                    levelNode.classList.add('show');
-                }, i * 50); 
+                if (i % 20 === 0) {
+                    const eraNum = Math.floor(i / 20) + 1;
+                    const cloud = document.createElement('div');
+                    cloud.className = 'cloud-barrier';
+                    if (userData.level > i) {
+                        cloud.innerHTML = `<div class="cloud-icon">⛅</div><div class="cloud-text" style="color:var(--primary);">Ера ${eraNum} розблокована</div>`;
+                    } else {
+                        cloud.innerHTML = `<div class="cloud-icon">☁️</div><div class="cloud-text">Пройдіть ${i} рівнів, щоб відкрити Еру ${eraNum}</div>`;
+                    }
+                    chainContainer.appendChild(cloud);
+                }
             }
+
+            setTimeout(() => {
+                const currentNode = document.querySelector('.level-node.current') || document.querySelector('.level-node.failed') || document.querySelector('.level-node');
+                if (currentNode) {
+                    const container = document.getElementById('tab-home');
+                    if (container) {
+                        const nodeRect = currentNode.getBoundingClientRect();
+                        const containerRect = container.getBoundingClientRect();
+                        const targetY = container.scrollTop + (nodeRect.top - containerRect.top) - (container.clientHeight / 2) + (nodeRect.height / 2);
+                        container.scrollTo({ top: targetY, behavior: 'smooth' });
+                    }
+                }
+            }, 300);
         }
 
-        let selectedLevelNum = 1;
+        // --- ВІКТОРИНА ---
+        let selectedLevelNum = 1, quizQuestionIndex = 0, quizCorrectAnswers = 0, quizWrongAnswers = 0;
+        let quizAnswerLocked = false, quizQuestionTimer = null, currentLevelHadError = false;
+
+        function getLevelQuestionCount(level) { return level === 0 ? 1 : 5; }
+        function getQuestionNumberForLevel(level, index) { return level === 0 ? 0 : ((level - 1) * 5 + 1 + index); }
+
+        function closeAllQuizSheets() { closeSheet(); closeStats(); closeSettings(); closeEraModal(); closeClubDropdown(); }
 
         function handleLevelClick(levelNum) {
-            if (levelNum > userData.level) {
-                showToast(`${userData.level} рівень ще не пройдено!`);
-                return;
-            }
+            if (!userData.tutorialCompleted && levelNum !== 0) { showToast('Пройдіть спочатку навчальний рівень 0!'); return; }
+            if (levelNum > userData.level && levelNum !== 0) { showToast('Пройдіть попередні рівні!'); return; }
             selectedLevelNum = levelNum;
+            quizQuestionIndex = 0; quizCorrectAnswers = 0; quizWrongAnswers = 0; currentLevelHadError = false;
+            
+            if (levelNum === 0 && !userData.tutorialCompleted) {
+                if (tutStep === 0) { tutStep = 1; document.querySelectorAll('.tutorial-highlight').forEach(el => el.classList.remove('tutorial-highlight')); }
+                startCurrentLevelQuiz(); return;
+            }
             openLevelSheet(levelNum);
         }
 
         function openLevelSheet(levelNum) {
             document.getElementById('sheet-title').textContent = `Рівень ${levelNum}`;
-            let diff = levelNum > 10 ? '⭐⭐⭐⭐' : (levelNum > 7 ? '⭐⭐⭐' : (levelNum > 3 ? '⭐⭐' : '⭐'));
-            document.getElementById('sheet-diff').textContent = diff;
-            document.getElementById('sheet-reward').textContent = `+${levelNum * 10} балів`;
+            document.getElementById('sheet-diff').textContent = levelNum === 0 ? 'Навчання' : getDifficultyText(levelNum);
             
+            const isCompleted = Array.isArray(userData.completedLevels) && userData.completedLevels.includes(levelNum);
+            const isFailed = Array.isArray(userData.failedLevels) && userData.failedLevels.includes(levelNum);
+            
+            let btnText = 'Почати рівень';
+            if(isCompleted) btnText = 'Пройти ще раз (без балів)';
+            else if(isFailed) btnText = 'Спробувати знову';
+
+            document.getElementById('sheet-reward').textContent = levelNum === 0 ? '+0 балів' : (isCompleted ? '0 балів' : '+2 бали / прав.');
+            document.getElementById('start-lvl-btn').textContent = btnText;
             document.getElementById('sheet-overlay').classList.add('active');
             document.getElementById('bottom-sheet').classList.add('active');
         }
+        function closeSheet() { document.getElementById('sheet-overlay').classList.remove('active'); document.getElementById('bottom-sheet').classList.remove('active'); }
 
-        function closeSheet() {
-            document.getElementById('sheet-overlay').classList.remove('active');
-            document.getElementById('bottom-sheet').classList.remove('active');
+        async function loadQuizQuestion(questionNumber) {
+            const base = `img/footboler/${questionNumber}`;
+            let rawText = null;
+            try { const r = await fetch(`${base}.txt`, {cache:'force-cache'}); if (r.ok) rawText = await r.text(); } catch(e) {}
+            if (!rawText) throw new Error('missing');
+            const parsed = parseQuestionFileText(rawText);
+            if (!parsed || !parsed.question || parsed.options.length < 2) throw new Error('format');
+            return {parsed, images:[`${base}.png`,`${base}.jpg`,`${base}.jpeg`,`${base}.webp`]};
         }
 
-        /* ----------------------------------------------------
-           СИСТЕМА ЗАВАНТАЖЕННЯ ФАЙЛІВ (АВТО FETCH + FALLBACK ДЛЯ CHROME)
-           ---------------------------------------------------- */
         async function startCurrentLevelQuiz() {
-            closeSheet();
-            const level = selectedLevelNum;
-            const txtPath = `img/footboler/${level}.txt`;
-            const imgPath = `img/footboler/${level}.png`;
-
-            // Перевіряємо, чи запущені ми локально (file://). 
-            // Якщо так, fetch згенерує помилку CORS в Chrome/ПК.
-            const isLocalHTML = window.location.protocol === 'file:';
-            // iOS оболонки іноді теж працюють на file, але часто дозволяють fetch.
-            const isIOSApp = (window.webkit && window.webkit.messageHandlers) || /iPad|iPhone|iPod/.test(navigator.userAgent);
-
+            closeAllQuizSheets();
+            if (quizQuestionTimer) { clearTimeout(quizQuestionTimer); quizQuestionTimer=null; }
+            quizAnswerLocked = false;
+            const level = selectedLevelNum, total = getLevelQuestionCount(level);
+            
             try {
-                if (isLocalHTML && !isIOSApp) {
-                    // Якщо це звичайний локальний Chrome на ПК, зразу викликаємо форму ручного вибору
-                    throw new Error("Local Desktop Chrome File Protocol");
+                // Pre-check if level resources exist to prevent breaking mid-level
+                for (let i = 0; i < total; i++) {
+                    const qn = getQuestionNumberForLevel(level, i);
+                    const res = await fetch(`img/footboler/${qn}.txt`, { cache: 'force-cache' });
+                    if (!res.ok) throw new Error('File not found');
                 }
-                
-                const resTxt = await fetch(txtPath);
-                if (!resTxt.ok) throw new Error("txt not found");
-                
-                const rawText = await resTxt.text();
-                // Якщо текст завантажився, зображення теж має підтягнутись
-                renderQuiz(rawText, imgPath);
-            } catch (err) {
-                console.log("Автозавантаження не вдалося. Увімкнення ручного вибору:", err.message);
-                showLocalFileUploadPrompt(level);
-            }
-        }
-
-        function showLocalFileUploadPrompt(level) {
-            document.getElementById('local-level-num').textContent = `Рівень ${level}`;
-            document.getElementById('local-txt-input').value = '';
-            document.getElementById('local-img-input').value = '';
-            document.getElementById('local-file-modal').classList.add('active');
-        }
-
-        function closeLocalFileModal() {
-            document.getElementById('local-file-modal').classList.remove('active');
-        }
-
-        function processLocalFiles() {
-            const txtFile = document.getElementById('local-txt-input').files[0];
-            const imgFile = document.getElementById('local-img-input').files[0];
-
-            if (!txtFile || !imgFile) {
-                showToast("Будь ласка, оберіть обидва файли!");
+            } catch (e) {
+                showToast("Питання у розробці. Спробуйте пізніше!");
                 return;
             }
 
-            closeLocalFileModal();
-
-            const txtReader = new FileReader();
-            txtReader.onload = function(e) {
-                const rawText = e.target.result;
-                const imgReader = new FileReader();
-                imgReader.onload = function(e2) {
-                    const imgUrl = e2.target.result;
-                    renderQuiz(rawText, imgUrl);
-                };
-                imgReader.readAsDataURL(imgFile);
-            };
-            txtReader.readAsText(txtFile);
+            loadAndPlayQuestion();
         }
 
-        function renderQuiz(rawText, imgUrl) {
+        async function loadAndPlayQuestion() {
+            const level = selectedLevelNum, total = getLevelQuestionCount(level);
+            const qn = getQuestionNumberForLevel(level, quizQuestionIndex);
+            
             try {
-                const parsed = parseQuestionFileText(rawText);
+                const {parsed,images} = await loadQuizQuestion(qn);
+                document.getElementById('quiz-level-title').textContent = `Рівень ${level}`;
+                document.getElementById('quiz-progress-label').textContent = total === 1 ? 'Питання 1 з 1' : `Питання ${quizQuestionIndex+1} з ${total}`;
+                document.getElementById('quiz-progress-fill').style.width = `${(quizQuestionIndex/total)*100}%`;
                 
-                document.getElementById('quiz-img').src = imgUrl;
+                const img = document.getElementById('quiz-img'); 
+                let ii = 0;
+                img.onerror = () => { ii++; if(ii < images.length) img.src = images[ii]; }; 
+                img.src = images[0]; 
+                img.draggable = false;
+                
                 document.getElementById('quiz-question-text').textContent = parsed.question;
-                
-                const titleEl = document.getElementById('quiz-level-title');
-                if(titleEl) titleEl.textContent = `Рівень ${selectedLevelNum}`;
-
-                const optionsContainer = document.getElementById('quiz-options-container');
-                optionsContainer.innerHTML = '';
-
-                parsed.options.forEach((opt, idx) => {
-                    const btn = document.createElement('button');
-                    btn.className = 'quiz-option-btn';
-                    btn.textContent = opt;
-                    btn.onclick = () => checkQuizAnswer(idx + 1, parsed.correctIndex, parsed.points);
-                    optionsContainer.appendChild(btn);
-                });
-
-                document.getElementById('quiz-gameplay-section').style.display = 'flex';
+                const box = document.getElementById('quiz-options-container'); 
+                box.innerHTML = '';
+                document.getElementById('quiz-gameplay-section').style.display = 'flex'; 
                 document.getElementById('quiz-feedback-box').style.display = 'none';
-
+                
+                parsed.options.forEach((opt,idx) => { 
+                    const b = document.createElement('button'); 
+                    b.className = 'quiz-option-btn'; 
+                    b.type = 'button'; 
+                    b.textContent = opt; 
+                    b.id = `quiz-opt-btn-${idx+1}`; 
+                    b.onclick = () => checkQuizAnswer(idx+1, parsed.correctIndex); 
+                    box.appendChild(b); 
+                });
+                
                 document.getElementById('quiz-modal').classList.add('active');
-
-            } catch (err) {
-                showToast("Помилка обробки файлу .txt");
+                if(!userData.tutorialCompleted && tutStep === 1){ 
+                    document.getElementById('tutorial-title').textContent='Оберіть відповідь'; 
+                    document.getElementById('tutorial-desc').textContent='Натисніть на правильний варіант нижче.'; 
+                    document.getElementById('tutorial-mask').classList.remove('active'); 
+                }
+            } catch(e) { 
+                showToast("Питання не знайдено!");
+                closeQuizModal();
             }
         }
 
         function parseQuestionFileText(text) {
-            const quotes = [...text.matchAll(/"([^"]*)"/g)].map(m => m[1]);
-            const question = quotes[0] || "Хто це?";
-            const options = quotes.slice(1);
-            
-            const unquoted = text.replace(/"([^"]*)"/g, '');
-            const numbers = unquoted.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
-            
-            const correctIndex = numbers[0] || 1;
-            const difficulty = numbers[1] || 1;
-            const points = numbers[2] || 10;
-            
-            return { question, options, correctIndex, difficulty, points };
+            const clean = String(text||'').replace(/^\uFEFF/,'').trim();
+            const quotes = [...clean.matchAll(/"([^"]*)"/g)].map(m=>m[1].trim());
+            if(quotes.length < 3) throw new Error('format');
+            const last = clean.lastIndexOf('"'); 
+            const nums = [...clean.slice(last+1).matchAll(/-?\d+(?:\.\d+)?/g)].map(m=>Number(m[0]));
+            return {question: quotes[0], options: quotes.slice(1), correctIndex: nums.length ? Math.trunc(nums[0]) : 1};
+        }
+        function closeQuizModal(){ if(quizQuestionTimer){clearTimeout(quizQuestionTimer);quizQuestionTimer=null;} document.getElementById('quiz-modal').classList.remove('active'); }
+
+        function renderQuizStars(correct, total) {
+            const wrap = document.getElementById('quiz-rating');
+            if (!wrap) return;
+            wrap.innerHTML = '';
+            for (let i = 1; i <= total; i++) {
+                const star = document.createElement('span');
+                star.className = `quiz-star ${i <= correct ? 'filled' : 'empty'}`;
+                star.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.7l2.84 5.76 6.36.92-4.6 4.48 1.09 6.33L12 17.2l-5.69 2.99 1.09-6.33-4.6-4.48 6.36-.92L12 2.7z" stroke-width="2" stroke-linejoin="round"/></svg>`;
+                wrap.appendChild(star);
+            }
         }
 
-        function checkQuizAnswer(selectedOpt, correctOpt, pointsEarned) {
-            const buttons = document.querySelectorAll('.quiz-option-btn');
-            let isCorrect = (selectedOpt === correctOpt);
+        function finishLevelQuiz(){
+            const level = selectedLevelNum, total = getLevelQuestionCount(level), correct = quizCorrectAnswers;
+            const rating = Math.max(0, Math.min(total, correct));
+            const wasAlreadyCompleted = Array.isArray(userData.completedLevels) && userData.completedLevels.includes(level);
             
-            buttons.forEach((btn, idx) => {
-                if ((idx + 1) === correctOpt) {
-                    btn.classList.add('correct');
-                } else if ((idx + 1) === selectedOpt) {
-                    btn.classList.add('wrong');
-                }
-                btn.style.pointerEvents = 'none';
+            document.getElementById('quiz-progress-fill').style.width = '100%';
+            document.getElementById('quiz-gameplay-section').style.display = 'none';
+            document.getElementById('quiz-feedback-box').style.display = 'flex';
+            
+            const title = document.getElementById('quiz-feedback-title'), 
+                  desc = document.getElementById('quiz-feedback-desc'), 
+                  next = document.getElementById('quiz-feedback-next-btn'), 
+                  retry = document.getElementById('quiz-feedback-retry-btn'), 
+                  reward = document.getElementById('quiz-reward-status');
+                  
+            renderQuizStars(rating, total);
+            reward.textContent = '';
+
+            if(level === 0){
+                title.textContent = 'Готово!';
+                desc.textContent = correct ? 'Ви відповіли правильно!' : 'Тестове питання завершено.';
+                next.textContent = 'Продовжити навчання';
+                retry.style.display = 'none';
+                return;
+            }
+
+            // Нараховуємо бали лише якщо рівень проходиться вперше
+            const earnedPoints = wasAlreadyCompleted ? 0 : (correct * 2);
+            if(!wasAlreadyCompleted) userData.score += earnedPoints;
+
+            const hasError = (quizWrongAnswers > 0) || currentLevelHadError;
+
+            if (!Array.isArray(userData.completedLevels)) userData.completedLevels = [];
+            if (!Array.isArray(userData.failedLevels)) userData.failedLevels = [];
+
+            if (!hasError) {
+                if(!userData.completedLevels.includes(level)) userData.completedLevels.push(level);
+                userData.failedLevels = userData.failedLevels.filter(x => x !== level);
+                if(level === userData.level) userData.level++;
+                title.textContent = 'Чудово!';
+                title.style.color = 'var(--text-main)';
+                triggerConfetti();
+            } else {
+                if(!userData.failedLevels.includes(level)) userData.failedLevels.push(level);
+                userData.completedLevels = userData.completedLevels.filter(x => x !== level);
+                if(level === userData.level) userData.level++; // Рухаємось далі навіть з помилкою
+                title.textContent = 'Є помилки!';
+                title.style.color = '#ff3b30';
+            }
+
+            userData.correctCount = (userData.correctCount||0) + correct;
+            userData.incorrectCount = (userData.incorrectCount||0) + quizWrongAnswers;
+
+            saveData(); setupProfileUI(); generateLevels(); renderTasks();
+
+            desc.textContent = `Правильних відповідей: ${correct} з ${total}`;
+            reward.textContent = earnedPoints > 0 ? `Отримано: +${earnedPoints} балів` : (wasAlreadyCompleted ? 'Рівень вже пройдено (0 балів)' : 'Отримано: 0 балів');
+            
+            next.style.display = 'inline-block';
+            next.textContent = 'Далі';
+            retry.style.display = 'inline-block';
+            retry.textContent = 'Спробувати знову';
+        }
+
+        function checkQuizAnswer(selectedOpt, correctOpt){
+            if(quizAnswerLocked) return;
+            quizAnswerLocked = true;
+            const isCorrect = Number(selectedOpt) === Number(correctOpt);
+            
+            if(isCorrect) quizCorrectAnswers++;
+            else { quizWrongAnswers++; currentLevelHadError = true; }
+
+            const buttons = document.querySelectorAll('.quiz-option-btn');
+            buttons.forEach((b,idx) => {
+                const n = idx + 1;
+                if(n === Number(correctOpt)) b.classList.add('correct');
+                if(n === Number(selectedOpt) && !isCorrect) b.classList.add('wrong');
+                b.style.pointerEvents = 'none';
             });
 
-            setTimeout(() => {
-                document.getElementById('quiz-gameplay-section').style.display = 'none';
-                const feedbackBox = document.getElementById('quiz-feedback-box');
-                feedbackBox.style.display = 'block';
-                
-                if(isCorrect) {
-                    document.getElementById('quiz-feedback-title').textContent = "Супер!";
-                    document.getElementById('quiz-feedback-title').style.color = "var(--primary)";
-                    document.getElementById('quiz-feedback-desc').textContent = `Рівень пройдено успішно. +${pointsEarned} балів.`;
-                    
-                    if (selectedLevelNum === userData.level) {
-                        userData.score += pointsEarned;
-                        userData.level++;
-                        saveData();
-                        setupProfileUI();
-                        generateLevels();
-                    }
-                } else {
-                    document.getElementById('quiz-feedback-title').textContent = "Помилка!";
-                    document.getElementById('quiz-feedback-title').style.color = "#ff3b30";
-                    document.getElementById('quiz-feedback-desc').textContent = `Спробуйте ще раз пізніше.`;
-                }
-            }, 800);
+            quizQuestionTimer = setTimeout(() => {
+                quizQuestionTimer = null;
+                const total = getLevelQuestionCount(selectedLevelNum);
+                quizQuestionIndex++;
+                if(quizQuestionIndex >= total) finishLevelQuiz();
+                else { quizAnswerLocked = false; loadAndPlayQuestion(); }
+            }, 1200); 
         }
 
-        function closeQuizModal() {
-            document.getElementById('quiz-modal').classList.remove('active');
+        function handleQuizFeedbackNext(){
+            closeQuizModal(); closeAllQuizSheets();
+            if(selectedLevelNum === 0){ tutStep=2; nextTutorialStep(); return; }
+            
+            // Якщо був відкритий новий етап
+            if (selectedLevelNum === 20 && !userData.failedLevels.includes(20) && userData.level === 21) {
+                showEraModal(2);
+                return;
+            }
+            if (selectedLevelNum === 40 && !userData.failedLevels.includes(40) && userData.level === 41) {
+                showEraModal(3);
+                return;
+            }
+
+            document.getElementById('quiz-feedback-title').style.color = 'inherit';
+            
+            selectedLevelNum++; 
+            quizQuestionIndex = 0; quizCorrectAnswers = 0; quizWrongAnswers = 0; currentLevelHadError = false; quizAnswerLocked = false;
+            startCurrentLevelQuiz();
         }
 
-        function handleQuizFeedbackNext() {
-            closeQuizModal();
-            // Якщо хочеш авто-перехід на наступний рівень
-            // if (selectedLevelNum < 15) { handleLevelClick(selectedLevelNum + 1); }
+        function retryCurrentLevelQuiz(){
+            closeQuizModal(); closeAllQuizSheets();
+            document.getElementById('quiz-feedback-title').style.color = 'inherit';
+            quizQuestionIndex = 0; quizCorrectAnswers = 0; quizWrongAnswers = 0; quizAnswerLocked = false;
+            loadAndPlayQuestion();
         }
 
-        function openStats() {
-            document.getElementById('stats-score-val').textContent = userData.score;
-            document.getElementById('stats-level-val').textContent = userData.level;
+        function showEraModal(eraNum) {
+            document.getElementById('era-title').textContent = `Еру ${eraNum} Відкрито!`;
+            document.getElementById('era-desc').textContent = `Вітаємо! Ви подолали етап та перейшли до Ери ${eraNum}.`;
+            document.getElementById('era-overlay').classList.add('active');
+            document.getElementById('era-sheet').classList.add('active');
+            triggerConfetti();
+        }
+
+        function closeEraModal() {
+            document.getElementById('era-overlay').classList.remove('active');
+            document.getElementById('era-sheet').classList.remove('active');
+        }
+
+        // --- НАВЧАННЯ (TUTORIAL) ---
+        let tutStep = 0;
+        function initTutorial() {
+            if(userData.tutorialCompleted) return;
+            tutStep = 0;
+            document.getElementById('tutorial-mask').classList.add('active');
+            updateTutorialUI();
+        }
+
+        function nextTutorialStep() {
+            document.querySelectorAll('.tutorial-highlight').forEach(el => el.classList.remove('tutorial-highlight'));
+            updateTutorialUI();
+        }
+
+        function updateTutorialUI() {
+            const title = document.getElementById('tutorial-title');
+            const desc = document.getElementById('tutorial-desc');
+            const btn = document.getElementById('tutorial-btn');
+            const mask = document.getElementById('tutorial-mask');
+
+            mask.classList.add('active');
+
+            if (tutStep === 0) {
+                title.textContent = `Вітаємо, ${userData.name || 'гравець'}!`;
+                desc.textContent = "Пройдемо швидке навчання. Натисніть на підсвічений Рівень 0 (Навчання), щоб розпочати!";
+                btn.style.display = 'none';
+                document.getElementById('level-node-0')?.classList.add('tutorial-highlight');
+            } 
+            else if (tutStep === 2) {
+                title.textContent = "Чудова робота!";
+                desc.textContent = "Тепер відкрийте вкладку 'Завдання' знизу екрану.";
+                btn.style.display = 'none';
+                document.getElementById('tut-nav-tasks')?.classList.add('tutorial-highlight');
+            }
+            else if (tutStep === 3) {
+                title.textContent = "Вкладка 'Завдання'";
+                desc.textContent = "Тут будуть з'являтися ваші щотижневі квести. Тепер відкрийте 'Магазин'.";
+                btn.style.display = 'none';
+                document.getElementById('tut-nav-shop')?.classList.add('tutorial-highlight');
+            }
+            else if (tutStep === 4) {
+                title.textContent = "Вкладка 'Магазин'";
+                desc.textContent = "Тут купуються нові бонуси. А зараз натисніть на ваш Профіль (аватарку) вгорі зліва!";
+                btn.style.display = 'none';
+                document.getElementById('tut-profile')?.classList.add('tutorial-highlight');
+            }
+            else if (tutStep === 5) {
+                closeSettings();
+                title.textContent = "Налаштування";
+                desc.textContent = "Тут можна змінювати клуб, тему та ім'я. Тепер натисніть на лічильник Балів справа!";
+                btn.style.display = 'none';
+                document.getElementById('tut-score')?.classList.add('tutorial-highlight');
+            }
+            else if (tutStep === 6) {
+                closeStats();
+                title.textContent = "Вітаємо! 🎉";
+                desc.textContent = "Ви завершили навчання і отримуєте +100 балів! Готові до реальних випробувань?";
+                btn.style.display = 'block';
+                btn.textContent = "Завершити навчання";
+                tutStep = 7;
+            }
+            else if (tutStep === 7) {
+                mask.classList.remove('active');
+                userData.tutorialCompleted = true;
+                userData.score += 100;
+                saveData();
+                setupProfileUI();
+                generateLevels();
+                triggerConfetti();
+                showToast("🎉 Нараховано +100 бонусних балів!");
+            }
+        }
+
+        // --- НАВІГАЦІЯ ТА ТАБИ ---
+        function switchTab(tabId, el) {
+            if (!userData.tutorialCompleted && el && !el.classList.contains('tutorial-highlight')) {
+                showToast("Слідуйте підказкам навчання!");
+                return;
+            }
+
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            if (el) el.classList.add('active');
+            
+            if(!userData.tutorialCompleted) {
+                if(tabId === 'tasks' && tutStep === 2) { tutStep = 3; nextTutorialStep(); }
+                else if(tabId === 'shop' && tutStep === 3) { tutStep = 4; nextTutorialStep(); }
+            }
+        }
+
+        let tutorialPanelTimer=null;
+        function openSettings(){
+            if(!userData.tutorialCompleted && tutStep!==4){showToast("Слідуйте підказкам навчання!");return;}
+            document.getElementById('settings-modal').classList.add('active');
+            if(!userData.tutorialCompleted&&tutStep===4){
+                document.querySelectorAll('.tutorial-highlight').forEach(el=>el.classList.remove('tutorial-highlight'));
+                tutStep=5;
+                tutorialPanelTimer=setTimeout(()=>{closeSettings();nextTutorialStep();},2500);
+            }
+        }
+        function closeSettings(){document.getElementById('settings-modal').classList.remove('active');if(tutorialPanelTimer)clearTimeout(tutorialPanelTimer);}
+        
+        function setTheme(theme) { 
+            userData.theme = theme; 
+            saveData(); 
+            applyThemeStyling(theme); 
+        }
+
+        function applyThemeStyling(theme) {
+            theme = ['light','dark','blue'].includes(theme) ? theme : 'light';
+            userData.theme = theme;
+            document.body.setAttribute('data-theme', theme);
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+            const btn = document.getElementById(`theme-btn-${theme}`);
+            if (btn) btn.classList.add('active');
+        }
+
+        function openStats(){
+            if(!userData.tutorialCompleted&&tutStep!==5){showToast("Слідуйте підказкам навчання!");return;}
+            document.getElementById('stat-points').textContent=userData.score;
+            document.getElementById('stat-levels').textContent=`${Math.max(0,userData.level-1)} / 60`;
+            document.getElementById('stat-era').textContent=userData.level<=20?'Ера 1':(userData.level<=40?'Ера 2':'Ера 3');
+            document.getElementById('stat-tasks').textContent=userData.tasksClaimed.filter(Boolean).length;
+            document.getElementById('stat-correct').textContent=userData.correctCount||0;
+            document.getElementById('stat-incorrect').textContent=userData.incorrectCount||0;
             document.getElementById('stats-overlay').classList.add('active');
             document.getElementById('stats-sheet').classList.add('active');
+            if(!userData.tutorialCompleted&&tutStep===5){
+                document.querySelectorAll('.tutorial-highlight').forEach(el=>el.classList.remove('tutorial-highlight'));
+                tutStep=6;
+                tutorialPanelTimer=setTimeout(()=>{closeStats();nextTutorialStep();},2500);
+            }
         }
-        function closeStats() {
-            document.getElementById('stats-overlay').classList.remove('active');
-            document.getElementById('stats-sheet').classList.remove('active');
-        }
+        function closeStats(){document.getElementById('stats-overlay').classList.remove('active');document.getElementById('stats-sheet').classList.remove('active');if(tutorialPanelTimer)clearTimeout(tutorialPanelTimer);}
 
-        const TOTAL_SESSION_SECONDS = 20 * 60;
+        // --- СИСТЕМА ЗАВДАНЬ ---
+        const TASKS_DATA = [
+            { id: 0, title: "Пройди 5 рівнів", targetLevel: 5, reward: 20 },
+            { id: 1, title: "Пройди 10 рівнів", targetLevel: 10, reward: 50 },
+            { id: 2, title: "Пройди 20 рівнів", targetLevel: 20, reward: 100 },
+            { id: 3, title: "Проведи 5 хвилин у грі", isSession: true, targetSeconds: 300, reward: 15 }
+        ];
+
+        function checkWeeklyTasksReset() {
+            const now = Date.now();
+            if (!userData.tasksTimestamp) { userData.tasksTimestamp = now; return; }
+            if (now - userData.tasksTimestamp > 7 * 24 * 60 * 60 * 1000) {
+                userData.tasksCompleted = [false, false, false, false];
+                userData.tasksClaimed = [false, false, false, false];
+                userData.tasksTimestamp = now;
+                saveData();
+            }
+        }
 
         function startSessionTimer() {
             setInterval(() => {
-                if (userData.sessionSeconds < TOTAL_SESSION_SECONDS) {
-                    userData.sessionSeconds++;
-                    if (userData.sessionSeconds % 5 === 0) saveData();
-                    updateSessionProgressUI();
+                userData.sessionSeconds++;
+                if (userData.sessionSeconds >= TASKS_DATA[3].targetSeconds && !userData.tasksCompleted[3]) {
+                    userData.tasksCompleted[3] = true;
+                    saveData(); renderTasks();
+                    showToast("Виконано завдання: Проведи 5 хвилин у грі!");
                 }
+                const pBar = document.getElementById('task-prog-3');
+                if (pBar && !userData.tasksCompleted[3]) {
+                    pBar.style.width = Math.min(100, (userData.sessionSeconds / TASKS_DATA[3].targetSeconds) * 100) + '%';
+                }
+                if (userData.sessionSeconds % 60 === 0) renderTasks(); // Оновлення тексту раз на хвилину
             }, 1000);
         }
-
-        function updateSessionProgressUI() {
-            const bar = document.getElementById('session-progress-bar');
-            const statusText = document.getElementById('session-status-text');
-            const btn = document.getElementById('task-btn-3');
-            if (!bar) return;
-
-            let percent = Math.min(100, (userData.sessionSeconds / TOTAL_SESSION_SECONDS) * 100);
-            bar.style.width = percent + '%';
-
-            let minsLeft = Math.ceil((TOTAL_SESSION_SECONDS - userData.sessionSeconds) / 60);
-            if (userData.sessionSeconds >= TOTAL_SESSION_SECONDS) {
-                statusText.textContent = 'Випробування завершено!';
-                if (!userData.tasksCompleted[3]) {
-                    userData.tasksCompleted[3] = true;
-                    if(btn) {
-                        btn.textContent = 'Отримати';
-                        btn.classList.add('claim');
-                    }
-                    saveData();
-                }
-            } else {
-                statusText.textContent = `Залишилось часу: ~${minsLeft} хв`;
-            }
-        }
-
-        function handleTaskAction(index) {
-            const btn = document.getElementById(`task-btn-${index}`);
-            const card = document.getElementById(`task-card-${index}`);
-
-            if (index === 3) {
-                if (userData.sessionSeconds < TOTAL_SESSION_SECONDS) {
-                    showToast('Ви ще не відсиділи 20 хвилин!');
-                    return;
-                }
-            }
-
-            if (!userData.tasksCompleted[index]) {
-                userData.tasksCompleted[index] = true;
-                btn.textContent = 'Отримати';
-                btn.classList.add('claim');
-                saveData();
-            } else if (!userData.tasksClaimed[index]) {
-                userData.tasksClaimed[index] = true;
-                let rewards = [20, 35, 50, 50];
-                userData.score += rewards[index];
-                saveData();
-                setupProfileUI();
-
-                if (card) {
-                    card.classList.add('slide-out');
-                    setTimeout(() => {
-                        card.style.display = 'none';
-                        checkAllTasksFinished();
-                    }, 400);
-                }
-            }
-        }
-
-        function checkAllTasksFinished() {
-            if (userData.tasksClaimed.every(val => val === true)) {
-                document.getElementById('tasks-finished-msg').style.display = 'block';
-                if (!userData.tasksTimestamp) {
-                    userData.tasksTimestamp = Date.now() + (3 * 60 * 60 * 1000);
-                    saveData();
-                }
-            }
-        }
-
-        function checkWeeklyTasksReset() {
-            if (userData.tasksTimestamp && Date.now() >= userData.tasksTimestamp) {
-                userData.tasksCompleted = [false, false, false, false];
-                userData.tasksClaimed = [false, false, false, false];
-                userData.tasksTimestamp = null;
-                saveData();
-            }
-        }
-
-        setInterval(() => {
-            if (userData.tasksTimestamp) {
-                let diff = userData.tasksTimestamp - Date.now();
-                if (diff <= 0) {
-                    checkWeeklyTasksReset();
-                    renderTasks();
-                } else {
-                    let hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-                    let minutes = Math.floor((diff / (1000 * 60)) % 60);
-                    let seconds = Math.floor((diff / 1000) % 60);
-                    const cdText = document.getElementById('tasks-countdown-text');
-                    if (cdText) {
-                        cdText.textContent = `Наступні завдання з'являться через: ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-                    }
-                }
-            }
-        }, 1000);
 
         function renderTasks() {
             const container = document.getElementById('tasks-container');
             container.innerHTML = '';
-
-            const tasksData = [
-                { title: "Виконай 10 завдань за один день", reward: "+20 балів" },
-                { title: "Виконай 15 завдань за один день", reward: "+35 балів" },
-                { title: "Виконай 20 завдань за один день", reward: "+50 балів" },
-                { title: "Проведи 20 хвилин у додатку підряд", reward: "+50 балів", isSession: true }
-            ];
-
             let allClaimed = true;
+            let passedLevels = userData.level - 1;
 
-            tasksData.forEach((task, index) => {
+            TASKS_DATA.forEach((task, index) => {
                 if (userData.tasksClaimed[index]) return;
                 allClaimed = false;
+                
+                let isReady = task.isSession ? (userData.sessionSeconds >= task.targetSeconds) : (passedLevels >= task.targetLevel);
+                if (isReady && !userData.tasksCompleted[index]) { userData.tasksCompleted[index] = true; saveData(); }
+                
+                let progressPercent = 0;
+                let subtitleText = '';
+
+                if (task.isSession) {
+                    progressPercent = Math.min(100, (userData.sessionSeconds / task.targetSeconds) * 100);
+                    let remainingSec = Math.max(0, task.targetSeconds - userData.sessionSeconds);
+                    let remMin = Math.ceil(remainingSec / 60);
+                    subtitleText = isReady ? "Завдання виконано!" : `Залишилося хвилин: ~${remMin}`;
+                } else {
+                    progressPercent = Math.min(100, (passedLevels / task.targetLevel) * 100);
+                    let levelsLeft = Math.max(0, task.targetLevel - passedLevels);
+                    subtitleText = isReady ? "Завдання виконано!" : `Залишилося рівнів: ${levelsLeft}`;
+                }
 
                 const card = document.createElement('div');
                 card.className = 'task-card';
                 card.id = `task-card-${index}`;
-
-                let btnText = 'Виконати';
-                let btnClass = 'task-btn';
-
-                if (userData.tasksCompleted[index]) {
-                    btnText = 'Отримати';
-                    btnClass = 'task-btn claim';
-                }
-
-                if (task.isSession) {
-                    card.innerHTML = `
-                        <div class="task-title">${task.title}</div>
-                        <div style="font-size: 13px; color: var(--text-sec);" id="session-status-text">Підрахунок часу...</div>
-                        <div class="session-progress-container">
-                            <div class="session-progress-bar" id="session-progress-bar"></div>
-                        </div>
-                        <div class="task-footer">
-                            <div class="task-reward">${task.reward}</div>
-                            <button class="${btnClass}" id="task-btn-${index}" onclick="handleTaskAction(${index})">${userData.tasksCompleted[index] ? 'Отримати' : 'У процесі'}</button>
-                        </div>
-                    `;
-                } else {
-                    card.innerHTML = `
-                        <div class="task-title">${task.title}</div>
-                        <div class="task-footer">
-                            <div class="task-reward">${task.reward}</div>
-                            <button class="${btnClass}" id="task-btn-${index}" onclick="handleTaskAction(${index})">${btnText}</button>
-                        </div>
-                    `;
-                }
+                card.innerHTML = `
+                    <div class="task-title">${task.title}</div>
+                    <div class="task-sub">${subtitleText}</div>
+                    <div class="session-progress-container">
+                        <div class="session-progress-bar" id="task-prog-${index}" style="width: ${progressPercent}%;"></div>
+                    </div>
+                    <div class="task-footer">
+                        <div class="task-reward"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg> +${task.reward}</div>
+                        <button class="task-btn ${isReady ? 'claim' : ''}" onclick="${isReady ? `claimTask(${index}, ${task.reward})` : ''}">${isReady ? 'Отримати' : 'У процесі'}</button>
+                    </div>
+                `;
                 container.appendChild(card);
             });
 
-            if (allClaimed && userData.tasksClaimed.some(v => v)) {
-                document.getElementById('tasks-finished-msg').style.display = 'block';
-            } else {
-                document.getElementById('tasks-finished-msg').style.display = 'none';
-            }
-
-            updateSessionProgressUI();
+            if (allClaimed) { document.getElementById('tasks-finished-msg').style.display = 'block'; updateCountdown(); }
         }
 
-        function switchTab(tabId, element) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-            document.getElementById('tab-' + tabId).classList.add('active');
-            element.classList.add('active');
+        function claimTask(index, reward) {
+            userData.tasksClaimed[index] = true; userData.score += reward; saveData(); setupProfileUI(); showToast(`Отримано +${reward} балів!`);
+            const card = document.getElementById(`task-card-${index}`);
+            if (card) { card.classList.add('slide-out'); setTimeout(() => { renderTasks(); }, 400); }
         }
 
-        function openSettings() { document.getElementById('settings-modal').classList.add('active'); }
-        function closeSettings() { document.getElementById('settings-modal').classList.remove('active'); }
-
-        function applyThemeStyling(theme) {
-            if (theme === 'light') { document.body.removeAttribute('data-theme'); } 
-            else { document.body.setAttribute('data-theme', theme); }
-            
-            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
-            const activeBtn = document.getElementById(`theme-btn-${theme}`);
-            if(activeBtn) activeBtn.classList.add('active');
-        }
-
-        function setTheme(theme) {
-            userData.theme = theme;
-            saveData();
-            applyThemeStyling(theme);
+        function updateCountdown() {
+            const cdEl = document.getElementById('tasks-countdown-text');
+            setInterval(() => {
+                let diff = (userData.tasksTimestamp + 7 * 24 * 60 * 60 * 1000) - Date.now();
+                if (diff < 0) { checkWeeklyTasksReset(); renderTasks(); document.getElementById('tasks-finished-msg').style.display = 'none'; return; }
+                let h = Math.floor(diff / (1000 * 60 * 60)); let m = Math.floor((diff / 1000 / 60) % 60); let s = Math.floor((diff / 1000) % 60);
+                cdEl.textContent = `Оновлення через: ${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }, 1000);
         }
     </script>
 </body>
