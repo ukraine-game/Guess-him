@@ -391,10 +391,10 @@
             border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
         }
-        .quiz-img-box { position: relative; cursor: zoom-in; touch-action: none; }
+        .quiz-img-box { position: relative; cursor: default; touch-action: auto; }
         .quiz-img-box img {
             width: 100%; height: 100%; max-width: none; max-height: none; object-fit: contain; display: block;
-            transform-origin: center center; will-change: transform; user-select: none; -webkit-user-drag: none;
+            transform-origin: center center; user-select: none; -webkit-user-drag: none;
         }
 
         .quiz-question { font-size: 18px; font-weight: 800; text-align: center; line-height: 1.35; margin: 8px 0; flex-shrink: 0;}
@@ -477,8 +477,9 @@
             opacity: 0; pointer-events: none; transition: 0.3s; display: flex; justify-content: center; align-items: flex-end;
             padding-bottom: 100px;
         }
-        .tutorial-mask.active { opacity: 1; pointer-events: all; }
+        .tutorial-mask.active { opacity: 1; pointer-events: none; }
         .tutorial-dialog {
+            pointer-events: auto;
             background: var(--surface); padding: 22px; border-radius: 24px; width: 90%;
             text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.4); border: 2px solid var(--primary);
             animation: floatUp 0.3s ease;
@@ -495,6 +496,18 @@
             0% { box-shadow: 0 0 0 4px var(--primary), 0 0 10px var(--primary); }
             50% { box-shadow: 0 0 0 6px var(--primary), 0 0 25px var(--primary); }
             100% { box-shadow: 0 0 0 4px var(--primary), 0 0 10px var(--primary); }
+        }
+
+        /* Mobile Safari / Android Chrome stability */
+        html, body { width: 100%; min-height: 100%; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
+        body { min-height: 100svh; min-height: 100dvh; padding-bottom: env(safe-area-inset-bottom); }
+        .app-container { min-height: 100svh; min-height: 100dvh; height: 100svh; height: 100dvh; }
+        @supports not (height: 100dvh) { .app-container { height: 100vh; } }
+        button, input, select, textarea { font: inherit; }
+        @media (max-width: 600px) {
+            .quiz-img-box { height: min(240px, 34vh); min-height: 170px; }
+            .quiz-option-btn { min-height: 48px; }
+            .tutorial-dialog { width: calc(100% - 28px); margin-bottom: env(safe-area-inset-bottom); }
         }
     </style>
 </head>
@@ -1301,46 +1314,14 @@
             return { number: questionNumber, rawText, imageUrl };
         }
 
-        /* Безлімітний практично масштаб фото: від 5% до 1000%, плюс перетягування. */
-        let quizImageScale = 1;
-        let quizImageX = 0;
-        let quizImageY = 0;
-        let quizImageDragging = false;
-        let quizImageLastX = 0;
-        let quizImageLastY = 0;
-        let quizPinchStartDistance = null;
-        let quizPinchStartScale = 1;
-
-        function applyQuizImageTransform() {
+        /* Фото без zoom/обертання — стабільно для iOS Safari та Android Chrome. */
+        function resetQuizImageZoom() {
             const img = document.getElementById('quiz-img');
-            if (img) img.style.transform = `translate(${quizImageX}px, ${quizImageY}px) scale(${quizImageScale})`;
+            if (img) {
+                img.style.transform = 'none';
+                img.style.cursor = 'default';
+            }
         }
-        function resetQuizImageZoom() { const img=document.getElementById("quiz-img"); if(img){ img.style.transform="none"; img.style.cursor="default"; } });
-            box.addEventListener('pointermove', e => {
-                if (!quizImageDragging) return;
-                quizImageX += e.clientX - quizImageLastX; quizImageY += e.clientY - quizImageLastY;
-                quizImageLastX = e.clientX; quizImageLastY = e.clientY; applyQuizImageTransform();
-            });
-            box.addEventListener('pointerup', () => quizImageDragging = false);
-            box.addEventListener('pointercancel', () => quizImageDragging = false);
-            box.addEventListener('dblclick', resetQuizImageZoom);
-            box.addEventListener('touchstart', e => {
-                if (e.touches.length === 2) {
-                    quizPinchStartDistance = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-                    quizPinchStartScale = quizImageScale;
-                }
-            }, {passive:true});
-            box.addEventListener('touchmove', e => {
-                if (e.touches.length === 2 && quizPinchStartDistance) {
-                    e.preventDefault();
-                    const d = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-                    quizImageScale = Math.min(1000, Math.max(0.05, quizPinchStartScale * d / quizPinchStartDistance));
-                    applyQuizImageTransform();
-                }
-            }, {passive:false});
-            box.addEventListener('touchend', () => { quizPinchStartDistance = null; });
-        }
-        initQuizImageZoom();
 
         async function startCurrentLevelQuiz() {
             closeAllQuizRelatedSheets();
@@ -1624,14 +1605,12 @@
                 document.getElementById('tut-profile')?.classList.add('tutorial-highlight');
             }
             else if (tutStep === 5) {
-                closeSettings();
                 title.textContent = "Налаштування гри";
                 desc.textContent = "В Налаштуваннях можна змінювати клуб та тему. Тепер натисніть на лічильник Балів справа!";
                 btn.style.display = 'none';
                 document.getElementById('tut-score')?.classList.add('tutorial-highlight');
             }
             else if (tutStep === 6) {
-                closeStats();
                 title.textContent = "Вітаємо! 🎉";
                 desc.textContent = "Ви пройшли навчання та отримуєте +100 бонусних балів. Грайте та піднімайтеся в топі!";
                 btn.style.display = 'block';
@@ -1668,10 +1647,21 @@
             }
         }
 
-        function openSettings() { 
+        let tutorialSettingsTimer = null;
+        function openSettings() {
             if(!userData.tutorialCompleted && tutStep !== 4) { showToast("Виконуйте вказівки навчання!"); return; }
-            document.getElementById('settings-modal').classList.add('active'); 
-            if(!userData.tutorialCompleted && tutStep === 4) { tutStep = 5; nextTutorialStep(); }
+            const modal = document.getElementById('settings-modal');
+            if (modal) modal.classList.add('active');
+
+            if (tutorialSettingsTimer) clearTimeout(tutorialSettingsTimer);
+            tutorialSettingsTimer = setTimeout(() => {
+                closeSettings();
+            }, 2000);
+
+            if(!userData.tutorialCompleted && tutStep === 4) {
+                tutStep = 5;
+                nextTutorialStep();
+            }
         }
         function closeSettings() { document.getElementById('settings-modal').classList.remove('active'); }
         function setTheme(theme) { userData.theme = theme; saveData(); applyThemeStyling(theme); }
@@ -1682,6 +1672,7 @@
             if (btn) btn.classList.add('active');
         }
 
+        let tutorialStatsTimer = null;
         function openStats() {
             if(!userData.tutorialCompleted && tutStep !== 5) { showToast("Виконуйте вказівки навчання!"); return; }
             document.getElementById('stat-points').textContent = userData.score;
@@ -1692,7 +1683,16 @@
             document.getElementById('stat-incorrect').textContent = userData.incorrectCount || 0;
             document.getElementById('stats-overlay').classList.add('active');
             document.getElementById('stats-sheet').classList.add('active');
-            if(!userData.tutorialCompleted && tutStep === 5) { tutStep = 6; nextTutorialStep(); }
+
+            if (tutorialStatsTimer) clearTimeout(tutorialStatsTimer);
+            tutorialStatsTimer = setTimeout(() => {
+                closeStats();
+            }, 2000);
+
+            if(!userData.tutorialCompleted && tutStep === 5) {
+                tutStep = 6;
+                nextTutorialStep();
+            }
         }
         function closeStats() { document.getElementById('stats-overlay').classList.remove('active'); document.getElementById('stats-sheet').classList.remove('active'); }
 
