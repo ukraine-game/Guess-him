@@ -153,8 +153,8 @@
             box-shadow: 0 8px 20px var(--shadow);
             flex-shrink: 0;
         }
-        .avatar-upload img { width: 100%; height: 100%; object-fit: cover; display: none; }
-        .avatar-upload svg { color: var(--text-sec); width: 32px; height: 32px; }
+        .avatar-upload img { width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; inset: 0; z-index: 2; }
+        .avatar-upload svg { color: var(--text-sec); width: 32px; height: 32px; z-index: 1; }
 
         .input-group { margin-bottom: 16px; }
         .input-group input {
@@ -357,7 +357,6 @@
             border-radius: 4px; box-shadow: 0 0 10px var(--primary);
         }
 
-        /* ПОВНОЕРАННИЙ КВІЗ */
         .quiz-modal {
             position: absolute; inset: 0; background: var(--bg);
             z-index: 40000; display: flex; flex-direction: column;
@@ -463,7 +462,7 @@
                 </div>
                 
                 <label class="avatar-upload" id="avatar-preview-container" onclick="triggerFileInput()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                    <svg id="avatar-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
                     <img id="final-avatar-img">
                 </label>
                 <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
@@ -832,7 +831,7 @@
             if (hasData) {
                 applyThemeStyling(userData.theme);
                 setupProfileUI();
-                generateLevels(); // Рендеримо одразу при старті без затримок
+                generateLevels();
                 
                 const splash = document.getElementById('splash-screen');
                 document.getElementById('splash-name-display').textContent = userData.name;
@@ -869,15 +868,20 @@
                         av.textContent = '';
                     } else {
                         av.style.backgroundImage = 'none';
-                        av.textContent = userData.name.charAt(0).toUpperCase();
+                        av.textContent = userData.name ? userData.name.charAt(0).toUpperCase() : '';
                     }
                 }
             });
             
             const previewImg = document.getElementById('final-avatar-img');
+            const svgIcon = document.getElementById('avatar-upload-icon');
             if (userData.avatar) {
                 previewImg.src = userData.avatar;
                 previewImg.style.display = 'block';
+                if (svgIcon) svgIcon.style.display = 'none';
+            } else {
+                previewImg.style.display = 'none';
+                if (svgIcon) svgIcon.style.display = 'block';
             }
         }
 
@@ -978,6 +982,15 @@
 
         function applyCrop() {
             userData.avatar = cropUrl;
+            const previewImg = document.getElementById('final-avatar-img');
+            const svgIcon = document.getElementById('avatar-upload-icon');
+            if (previewImg) {
+                previewImg.src = cropUrl;
+                previewImg.style.display = 'block';
+            }
+            if (svgIcon) {
+                svgIcon.style.display = 'none';
+            }
             saveData();
             setupProfileUI();
             cancelCrop();
@@ -987,8 +1000,14 @@
             const name = document.getElementById('first-name').value.trim();
             const club = window.tempSelectedClub;
             
-            if(!name) { alert("Введіть ім'я гравця!"); return; }
-            if(!club) { alert("Оберіть улюблений клуб!"); return; }
+            if(!name) { 
+                showToast("Введіть ім'я гравця!"); 
+                return; 
+            }
+            if(!club) { 
+                showToast("Оберіть улюблений клуб!"); 
+                return; 
+            }
             
             userData.name = name;
             userData.lastName = document.getElementById('last-name').value.trim();
@@ -1015,7 +1034,6 @@
             const chainContainer = document.getElementById('level-chain');
             chainContainer.innerHTML = '<div class="chain-line"></div>';
             
-            // Визначаємо максимальний рівень для відображення залежно від поточної ери
             let maxRenderLevel = 20;
             if (userData.level > 20 && userData.level <= 40) {
                 maxRenderLevel = 40;
@@ -1048,7 +1066,6 @@
                 }, i * 20); 
             }
 
-            // Додаємо хмару-бар'єр для наступної ери, якщо вона ще заблокована
             if (userData.level <= 20) {
                 const cloud = document.createElement('div');
                 cloud.className = 'cloud-barrier';
@@ -1061,7 +1078,6 @@
                 chainContainer.appendChild(cloud);
             }
 
-            // Автопрогортання до поточного активного рівня
             setTimeout(() => {
                 const currentNode = document.querySelector('.level-node.current') || document.querySelector('.level-node');
                 if (currentNode) {
@@ -1095,7 +1111,6 @@
             document.getElementById('bottom-sheet').classList.remove('active');
         }
 
-        // СТАТИСТИКА
         function openStats() {
             document.getElementById('stat-points').textContent = userData.score;
             document.getElementById('stat-levels').textContent = `${Math.min(50, userData.level - 1)} / 50`;
@@ -1116,7 +1131,6 @@
             document.getElementById('stats-sheet').classList.remove('active');
         }
 
-        // ЧИТАННЯ ФАЙЛІВ (.png та .txt)
         async function startCurrentLevelQuiz() {
             closeSheet();
             const level = selectedLevelNum;
@@ -1208,20 +1222,17 @@
                     userData.correctCount = (userData.correctCount || 0) + 1;
                     titleEl.textContent = "Супер! ⚽";
                     
-                    // Перевіряємо, чи рівень колись був провалений. Якщо так — бали НЕ даються
                     const wasFailed = userData.failedLevels.includes(selectedLevelNum);
                     if (!wasFailed) {
                         userData.score += pointsEarned;
                         descEl.textContent = `Правильно! Ви заробили +${pointsEarned} балів.`;
                     } else {
                         descEl.textContent = `Правильно! (Бали не нараховані через попередню помилку).`;
-                        // Видаляємо з невдалих, щоб рівень став успішно пройденим (зеленим)
                         userData.failedLevels = userData.failedLevels.filter(l => l !== selectedLevelNum);
                     }
 
                     if (selectedLevelNum === userData.level) {
                         userData.level++;
-                        // Якщо щойно пройшли 20 або 40 рівень — запускаємо салют та розблокування нової ери
                         if (selectedLevelNum === 20 || selectedLevelNum === 40) {
                             triggerConfetti();
                         }
@@ -1248,7 +1259,6 @@
         function handleQuizFeedbackNext() {
             document.getElementById('quiz-modal').classList.remove('active');
             if (!lastQuizResult) {
-                // Одразу перезапускаємо квіз для поточного рівня
                 setTimeout(() => startCurrentLevelQuiz(), 300);
             }
         }
