@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Вгадай Футболіста</title>
+    <title>Вгадай Футболіста по фото</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -353,7 +353,8 @@
             margin-bottom: 0; padding-top: 0; padding-bottom: 0; border: none;
         }
         .task-title { font-size: 15px; font-weight: 700; }
-        .task-footer { display: flex; justify-content: space-between; align-items: center; }
+        .task-sub { font-size: 13px; color: var(--text-sec); font-weight: 500; }
+        .task-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
         .task-reward { font-size: 14px; font-weight: 700; color: var(--primary); }
         .task-btn {
             background: var(--bg); border: 1px solid var(--border); color: var(--text-main);
@@ -362,7 +363,6 @@
         .task-btn.claim { background: var(--primary); color: #fff; border-color: var(--primary); }
         
         .session-progress-container {
-            display:none !important;
             width: 100%; height: 8px; background: var(--bg); border-radius: 4px;
             overflow: hidden; border: 1px solid var(--border); margin-top: 2px;
         }
@@ -789,7 +789,7 @@
             "Металіст 1925", "Оболонь", "Полісся", "Чорноморець", "Шахтар"
         ];
 
-        const STORAGE_KEY = 'football_career_save_v10';
+        const STORAGE_KEY = 'football_career_save_v11';
         
         function getDeviceId() {
             let id;
@@ -925,7 +925,7 @@
             }
             try {
                 if ('caches' in window) {
-                    const cache = await caches.open('fc-assets-v4');
+                    const cache = await caches.open('fc-assets-v5');
                     let done = 0;
                     await Promise.all(urls.map(async url => {
                         try {
@@ -949,9 +949,10 @@
             checkWeeklyTasksReset();
             const hasData = loadData();
             
+            if (!['light','dark','blue'].includes(userData.theme)) userData.theme = 'light';
+            applyThemeStyling(userData.theme);
+
             if (hasData) {
-                if (!['light','dark','blue'].includes(userData.theme)) userData.theme = 'light';
-                applyThemeStyling(userData.theme);
                 setupProfileUI();
                 generateLevels(); 
                 
@@ -1172,7 +1173,7 @@
         let quizWrongAnswers = 0;
         let quizAnswerLocked = false;
         let quizQuestionTimer = null;
-        let currentLevelHadError = false; // Трекінг чи була хоча б 1 помилка у поточному рівні
+        let currentLevelHadError = false;
 
         function getLevelQuestionCount(level) { return level === 0 ? 1 : 5; }
         function getQuestionNumberForLevel(level, index) { return level === 0 ? 0 : ((level - 1) * 5 + 1 + index); }
@@ -1334,7 +1335,6 @@
             const earnedPoints = correct * 2;
             userData.score += earnedPoints;
 
-            // Якщо була хоча б 1 помилка у цьому рівні (навіть якщо після рестарту зроблено все правильно)
             const hasError = (quizWrongAnswers > 0) || currentLevelHadError;
 
             if (!Array.isArray(userData.completedLevels)) userData.completedLevels = [];
@@ -1368,7 +1368,6 @@
             desc.textContent = `Результат: ${correct} з ${total} правильних відповідей.`;
             reward.textContent = earnedPoints > 0 ? `Винагорода: +${earnedPoints} балів` : 'Винагорода: 0 балів';
             
-            // Завжди показуємо обидві кнопки: і «Наступний рівень», і «Почати знову»
             next.style.display = 'inline-block';
             next.textContent = 'Наступний рівень';
             retry.style.display = 'inline-block';
@@ -1384,7 +1383,7 @@
                 quizCorrectAnswers++;
             } else {
                 quizWrongAnswers++;
-                currentLevelHadError = true; // Фіксуємо помилку для поточного рівня
+                currentLevelHadError = true;
             }
 
             const buttons = document.querySelectorAll('.quiz-option-btn');
@@ -1421,7 +1420,6 @@
             document.getElementById('quiz-feedback-next-btn').style.display = 'inline-block';
             
             quizQuestionIndex = 0; quizCorrectAnswers = 0; quizWrongAnswers = 0; quizAnswerLocked = false;
-            // Примітка: currentLevelHadError залишається true, щоб на мапі рівнів відображався червоний хрестик через попередню помилку
             loadAndPlayQuestion();
         }
 
@@ -1533,9 +1531,16 @@
             if(!userData.tutorialCompleted&&tutStep===4){document.querySelectorAll('.tutorial-highlight').forEach(el=>el.classList.remove('tutorial-highlight'));tutStep=5;clearTimeout(tutorialPanelTimer);tutorialPanelTimer=setTimeout(()=>{closeSettings();nextTutorialStep();},2000);}
         }
         function closeSettings(){document.getElementById('settings-modal').classList.remove('active');if(tutorialPanelTimer)clearTimeout(tutorialPanelTimer);}
-        function setTheme(theme) { userData.theme = theme; saveData(); applyThemeStyling(theme); }
+        
+        function setTheme(theme) { 
+            userData.theme = theme; 
+            saveData(); 
+            applyThemeStyling(theme); 
+        }
+
         function applyThemeStyling(theme) {
             theme = ['light','dark','blue'].includes(theme) ? theme : 'light';
+            userData.theme = theme;
             document.body.setAttribute('data-theme', theme);
             document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
             const btn = document.getElementById(`theme-btn-${theme}`);
@@ -1584,6 +1589,10 @@
                 if (pBar && !userData.tasksCompleted[3]) {
                     pBar.style.width = Math.min(100, (userData.sessionSeconds / TASKS_DATA[3].targetSeconds) * 100) + '%';
                 }
+                // Оновлюємо текст часу кожну хвилину
+                if (userData.sessionSeconds % 60 === 0) {
+                    renderTasks();
+                }
             }, 1000);
         }
 
@@ -1601,14 +1610,25 @@
                 if (isReady && !userData.tasksCompleted[index]) { userData.tasksCompleted[index] = true; saveData(); }
                 
                 let progressPercent = 0;
-                if (task.isSession) progressPercent = Math.min(100, (userData.sessionSeconds / task.targetSeconds) * 100);
-                else progressPercent = Math.min(100, (passedLevels / task.targetLevel) * 100);
+                let subtitleText = '';
+
+                if (task.isSession) {
+                    progressPercent = Math.min(100, (userData.sessionSeconds / task.targetSeconds) * 100);
+                    let remainingSec = Math.max(0, task.targetSeconds - userData.sessionSeconds);
+                    let remMin = Math.ceil(remainingSec / 60);
+                    subtitleText = isReady ? "Завдання виконано!" : `Залишилося ~ ${remMin} хв`;
+                } else {
+                    progressPercent = Math.min(100, (passedLevels / task.targetLevel) * 100);
+                    let levelsLeft = Math.max(0, task.targetLevel - passedLevels);
+                    subtitleText = isReady ? "Завдання виконано!" : `Залишилося рівнів: ${levelsLeft}`;
+                }
 
                 const card = document.createElement('div');
                 card.className = 'task-card';
                 card.id = `task-card-${index}`;
                 card.innerHTML = `
                     <div class="task-title">${task.title}</div>
+                    <div class="task-sub">${subtitleText}</div>
                     <div class="session-progress-container">
                         <div class="session-progress-bar" id="task-prog-${index}" style="width: ${progressPercent}%;"></div>
                     </div>
