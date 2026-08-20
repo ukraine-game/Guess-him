@@ -396,14 +396,6 @@
             width: 100%; height: 100%; max-width: none; max-height: none; object-fit: contain; display: block;
             transform-origin: center center; will-change: transform; user-select: none; -webkit-user-drag: none;
         }
-        .quiz-zoom-hint {
-            position: absolute; right: 10px; bottom: 10px; z-index: 2;
-            background: rgba(0,0,0,.58); color:#fff; padding:6px 9px; border-radius:10px;
-            font-size:11px; font-weight:700; pointer-events:none;
-        }
-        .quiz-zoom-controls { display:flex; gap:7px; justify-content:center; margin-top:6px; }
-        .quiz-zoom-btn { border:1px solid var(--border); background:var(--bg); color:var(--text-main);
-            width:38px;height:32px;border-radius:10px;font-size:18px;font-weight:800;cursor:pointer; }
 
         .quiz-question { font-size: 18px; font-weight: 800; text-align: center; line-height: 1.35; margin: 8px 0; flex-shrink: 0;}
         .quiz-options { display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;}
@@ -547,7 +539,7 @@
 
                 <div class="input-group" style="position: relative;">
                     <div class="custom-select-trigger" id="club-select-trigger" onclick="openClubDropdown()">
-                        <span id="selected-club-text">Наприклад: Епіцентр</span>
+                        <span id="selected-club-text">Оберіть ваш улюблений клуб УПЛ</span>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
                     </div>
                 </div>
@@ -609,14 +601,7 @@
                 <div id="quiz-gameplay-section" style="display: flex; flex-direction: column; flex: 1; justify-content: space-between; gap: 12px;">
                     <div class="quiz-img-box" id="quiz-img-box">
                         <img id="quiz-img" src="" alt="Фото футболіста" draggable="false">
-                        <div class="quiz-zoom-hint">Колесо / pinch — масштаб</div>
-                    </div>
-                    <div class="quiz-zoom-controls">
-                        <button class="quiz-zoom-btn" type="button" onclick="zoomQuizImage(-1)">−</button>
-                        <button class="quiz-zoom-btn" type="button" onclick="resetQuizImageZoom()">↺</button>
-                        <button class="quiz-zoom-btn" type="button" onclick="zoomQuizImage(1)">+</button>
-                    </div>
-                    <div>
+                    </div><div>
                         <div class="quiz-question" id="quiz-question-text">Завантаження...</div>
                     </div>
                     <div class="quiz-options" id="quiz-options-container"></div>
@@ -1330,21 +1315,7 @@
             const img = document.getElementById('quiz-img');
             if (img) img.style.transform = `translate(${quizImageX}px, ${quizImageY}px) scale(${quizImageScale})`;
         }
-        function resetQuizImageZoom() { quizImageScale = 1; quizImageX = 0; quizImageY = 0; applyQuizImageTransform(); }
-        function zoomQuizImage(direction) {
-            quizImageScale *= direction > 0 ? 1.35 : 0.74;
-            quizImageScale = Math.min(1000, Math.max(0.05, quizImageScale));
-            applyQuizImageTransform();
-        }
-        function initQuizImageZoom() {
-            const box = document.getElementById('quiz-img-box');
-            if (!box || box.dataset.zoomReady) return;
-            box.dataset.zoomReady = '1';
-            box.addEventListener('wheel', e => { e.preventDefault(); zoomQuizImage(e.deltaY < 0 ? 1 : -1); }, { passive:false });
-            box.addEventListener('pointerdown', e => {
-                quizImageDragging = true; quizImageLastX = e.clientX; quizImageLastY = e.clientY;
-                box.setPointerCapture?.(e.pointerId);
-            });
+        function resetQuizImageZoom() { const img=document.getElementById("quiz-img"); if(img){ img.style.transform="none"; img.style.cursor="default"; } });
             box.addEventListener('pointermove', e => {
                 if (!quizImageDragging) return;
                 quizImageX += e.clientX - quizImageLastX; quizImageY += e.clientY - quizImageLastY;
@@ -1404,6 +1375,8 @@
                 optionsContainer.innerHTML = '';
                 document.getElementById('quiz-gameplay-section').style.display = 'flex';
                 document.getElementById('quiz-feedback-box').style.display = 'none';
+                document.getElementById('quiz-feedback-next-btn').style.display = 'none';
+                document.getElementById('quiz-feedback-retry-btn').style.display = 'none';
 
                 parsed.options.forEach((opt, idx) => {
                     const btn = document.createElement('button');
@@ -1482,71 +1455,108 @@
         function checkQuizAnswer(selectedOpt, correctOpt, pointsEarned) {
             if (quizAnswerLocked) return;
             quizAnswerLocked = true;
+
             const buttons = document.querySelectorAll('.quiz-option-btn');
             const isCorrect = Number(selectedOpt) === Number(correctOpt);
             const isLastQuestion = currentQuestionIndex >= currentLevelQuestions.length - 1;
 
+            // Відповідь лише підсвічується. Ніяких написів "Вірно!" та балів за окреме питання.
             buttons.forEach((btn, idx) => {
                 const buttonNumber = idx + 1;
-                if (buttonNumber === Number(correctOpt)) btn.classList.add('correct');
-                else if (buttonNumber === Number(selectedOpt) && !isCorrect) btn.classList.add('wrong');
+                if (buttonNumber === Number(correctOpt)) {
+                    btn.classList.add('correct');
+                } else if (buttonNumber === Number(selectedOpt) && !isCorrect) {
+                    btn.classList.add('wrong');
+                }
                 btn.style.pointerEvents = 'none';
             });
 
-            if (isCorrect) {
-                userData.correctCount = (userData.correctCount || 0) + 1;
-                const isPermanentlyFailed = selectedLevelNum > 0 && userData.failedLevels.includes(selectedLevelNum);
-                if (!isPermanentlyFailed) userData.score += Number(pointsEarned) || 0;
-            } else {
+            if (!isCorrect) {
                 userData.incorrectCount = (userData.incorrectCount || 0) + 1;
                 currentLevelHadWrongAnswer = true;
+
                 if (selectedLevelNum > 0 && !userData.failedLevels.includes(selectedLevelNum)) {
                     userData.failedLevels.push(selectedLevelNum);
                 }
+            } else {
+                userData.correctCount = (userData.correctCount || 0) + 1;
             }
 
-            // Кожна відповідь = +1 питання прогресу.
             updateQuizProgress(currentQuestionIndex + 1, currentLevelQuestions.length);
             saveData();
-            setupProfileUI();
 
-            setTimeout(() => showQuizFeedback(isCorrect, Number(pointsEarned) || 0, isLastQuestion), 650);
+            // Рівно через 1 секунду показуємо наступне питання.
+            setTimeout(() => {
+                if (!isLastQuestion) {
+                    currentQuestionIndex++;
+                    startCurrentLevelQuiz();
+                    return;
+                }
+
+                finishCurrentLevelQuiz();
+            }, 1000);
         }
 
-        function handleQuizFeedbackNext() {
-            const isLastQuestion = currentQuestionIndex >= currentLevelQuestions.length - 1;
+        function finishCurrentLevelQuiz() {
+            const completedLevel = selectedLevelNum;
+            const passed = !currentLevelHadWrongAnswer;
 
-            if (selectedLevelNum === 0) {
+            if (completedLevel === 0) {
                 closeQuizModal();
                 tutStep = 2;
                 nextTutorialStep();
                 return;
             }
 
-            if (!isLastQuestion) {
-                currentQuestionIndex++;
+            // За весь рівень (усі 5 питань) — лише +10 балів.
+            // За окремі питання бали не нараховуються.
+            if (passed) {
+                userData.score += 10;
+
+                if (completedLevel === userData.level) {
+                    userData.level++;
+                }
+
+                // Якщо рівень раніше був у списку невдалих — прибираємо його.
+                userData.failedLevels = userData.failedLevels.filter(lvl => lvl !== completedLevel);
+
+                saveData();
+                setupProfileUI();
+                generateLevels();
+                closeQuizModal();
+
+                if (completedLevel % 20 === 0) {
+                    triggerConfetti();
+                    setTimeout(() => showEraModal(Math.floor(completedLevel / 20) + 1), 250);
+                    return;
+                }
+
+                selectedLevelNum = completedLevel + 1;
+                resetQuizProgress(selectedLevelNum);
+                setTimeout(() => startCurrentLevelQuiz(), 250);
+            } else {
+                // Якщо хоча б одна відповідь була неправильною — рівень не зараховується.
+                saveData();
+                setupProfileUI();
+                generateLevels();
+
+                document.getElementById('quiz-gameplay-section').style.display = 'none';
+                const feedbackBox = document.getElementById('quiz-feedback-box');
+                feedbackBox.style.display = 'flex';
+
+                document.getElementById('quiz-feedback-title').textContent = "Рівень не пройдено";
+                document.getElementById('quiz-feedback-desc').textContent = "Одна або декілька відповідей були неправильними. Спробуйте пройти всі 5 питань ще раз.";
+                document.getElementById('quiz-feedback-next-btn').style.display = 'none';
+                document.getElementById('quiz-feedback-retry-btn').style.display = 'block';
+                document.getElementById('quiz-feedback-retry-btn').textContent = "Пройти рівень знову";
                 quizAnswerLocked = false;
-                setTimeout(() => startCurrentLevelQuiz(), 180);
-                return;
             }
+        }
 
-            // Всі 5 питань рівня завершені.
-            const completedLevel = selectedLevelNum;
-            if (completedLevel === userData.level) userData.level++;
-            saveData();
-            setupProfileUI();
-            generateLevels();
+        function handleQuizFeedbackNext() {
+            // Ця кнопка більше не використовується після окремих питань.
+            // Перехід між питаннями відбувається автоматично через 1 секунду.
             closeQuizModal();
-
-            if (completedLevel % 20 === 0) {
-                triggerConfetti();
-                setTimeout(() => showEraModal(Math.floor(completedLevel / 20) + 1), 250);
-                return;
-            }
-
-            selectedLevelNum = completedLevel + 1;
-            resetQuizProgress(selectedLevelNum);
-            setTimeout(() => startCurrentLevelQuiz(), 250);
         }
 
         function retryCurrentLevelQuiz() {
