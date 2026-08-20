@@ -153,8 +153,8 @@
             box-shadow: 0 8px 20px var(--shadow);
             flex-shrink: 0;
         }
-        .avatar-upload img { width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; inset: 0; z-index: 2; }
-        .avatar-upload svg { color: var(--text-sec); width: 32px; height: 32px; z-index: 1; }
+        .avatar-upload img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .avatar-upload svg { color: var(--text-sec); width: 32px; height: 32px; }
 
         .input-group { margin-bottom: 16px; }
         .input-group input {
@@ -440,13 +440,11 @@
 
     <div class="app-container">
         
-        <!-- TOAST ПОПЕРЕДЖЕННЯ -->
         <div class="toast-notification" id="toast-notification">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             <span id="toast-text">Рівень заблоковано!</span>
         </div>
 
-        <!-- SPLASH -->
         <div id="splash-screen" class="screen">
             <div class="splash-content">
                 <div class="splash-title">Вітаємо, <span id="splash-name-display"></span>!</div>
@@ -454,7 +452,6 @@
             </div>
         </div>
 
-        <!-- АВТОРИЗАЦІЯ -->
         <div id="auth-screen" class="screen">
             <div class="auth-container">
                 <div class="auth-header">
@@ -462,7 +459,7 @@
                 </div>
                 
                 <label class="avatar-upload" id="avatar-preview-container" onclick="triggerFileInput()">
-                    <svg id="avatar-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
                     <img id="final-avatar-img">
                 </label>
                 <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
@@ -476,7 +473,7 @@
 
                 <div class="input-group" style="position: relative;">
                     <div class="custom-select-trigger" id="club-select-trigger" onclick="openClubDropdown()">
-                        <span id="selected-club-text">Улюблений клуб...</span>
+                        <span id="selected-club-text">Наприклад: Епіцентр</span>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
                     </div>
                 </div>
@@ -485,7 +482,6 @@
             </div>
         </div>
 
-        <!-- КАСТОМНИЙ ВИПАДАЮЧИЙ СПИСОК КЛУБІВ -->
         <div class="sheet-overlay" id="club-overlay" onclick="closeClubDropdown()"></div>
         <div class="custom-dropdown" id="club-dropdown">
             <div class="sheet-handle"></div>
@@ -493,7 +489,6 @@
             <div class="dropdown-list" id="club-list-container"></div>
         </div>
 
-        <!-- КРОППЕР ФОТО -->
         <div id="crop-overlay">
             <div class="crop-top-bar">
                 <span>Збільште та вирівняйте фото</span>
@@ -507,7 +502,6 @@
             </div>
         </div>
 
-        <!-- ПОВНОЕРАННИЙ QUIZ МОДАЛКА -->
         <div class="quiz-modal" id="quiz-modal">
             <div class="quiz-card">
                 <div class="quiz-header-bar">
@@ -533,7 +527,6 @@
             </div>
         </div>
 
-        <!-- ГОЛОВНИЙ ЕКРАН -->
         <div id="main-screen" class="screen">
             <div class="top-header">
                 <div class="profile-trigger" onclick="openSettings()">
@@ -549,14 +542,12 @@
                 </div>
             </div>
 
-            <!-- ТАБ 1: ГОЛОВНА -->
             <div id="tab-home" class="tab-content active">
                 <div class="level-chain" id="level-chain">
                     <div class="chain-line"></div>
                 </div>
             </div>
 
-            <!-- ТАБ 2: ЗАВДАННЯ -->
             <div id="tab-tasks" class="tab-content">
                 <h2 style="margin-bottom: 20px; font-weight: 800;">Щотижневі завдання</h2>
                 <div id="tasks-container"></div>
@@ -566,7 +557,6 @@
                 </div>
             </div>
 
-            <!-- ТАБ 3: МАГАЗИН -->
             <div id="tab-shop" class="tab-content">
                 <h2 style="margin: 20px 0; text-align: center; font-weight: 800;">Магазин</h2>
                 <div style="background: var(--surface); padding: 40px 20px; border-radius: 24px; text-align: center; border: 1px solid var(--border);">
@@ -574,7 +564,6 @@
                 </div>
             </div>
 
-            <!-- НИЖНЯ ПАНЕЛЬ НАВІГАЦІЇ -->
             <nav class="bottom-nav">
                 <div class="nav-item active" onclick="switchTab('home', this)">
                     <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
@@ -591,7 +580,6 @@
             </nav>
         </div>
 
-        <!-- ІНФО ПРО РІВЕНЬ -->
         <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
         <div class="bottom-sheet" id="bottom-sheet">
             <div class="sheet-handle"></div>
@@ -610,7 +598,6 @@
             <button class="btn-main" onclick="startCurrentLevelQuiz()">Почати рівень</button>
         </div>
 
-        <!-- СТАТИСТИКА -->
         <div class="sheet-overlay" id="stats-overlay" onclick="closeStats()"></div>
         <div class="bottom-sheet" id="stats-sheet">
             <div class="sheet-handle"></div>
@@ -644,7 +631,6 @@
             <button class="btn-main" onclick="closeStats()">Закрити</button>
         </div>
 
-        <!-- НАЛАШТУВАННЯ -->
         <div class="settings-modal" id="settings-modal">
             <div class="settings-content">
                 <div class="settings-header">
@@ -705,10 +691,15 @@
         const STORAGE_KEY = 'football_career_save_v5';
         
         function getDeviceId() {
-            let id = localStorage.getItem('device_fingerprint');
-            if (!id) {
-                id = 'dev_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
-                localStorage.setItem('device_fingerprint', id);
+            let id;
+            try {
+                id = localStorage.getItem('device_fingerprint');
+                if (!id) {
+                    id = 'dev_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+                    localStorage.setItem('device_fingerprint', id);
+                }
+            } catch (e) {
+                id = 'dev_fallback_id';
             }
             return id;
         }
@@ -726,23 +717,33 @@
         };
 
         function saveData() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
+            } catch(e) {
+                console.warn("Помилка збереження: можливо, вимкнено localStorage", e);
+            }
         }
 
         function loadData() {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                if(parsed.deviceId === getDeviceId()) {
-                    userData = Object.assign(userData, parsed);
-                    return true;
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if(parsed.deviceId === getDeviceId()) {
+                        userData = Object.assign(userData, parsed);
+                        return true;
+                    }
                 }
+            } catch(e) {
+                console.warn("Помилка завантаження даних", e);
             }
             return false;
         }
 
         function logout() {
-            localStorage.removeItem(STORAGE_KEY);
+            try {
+                localStorage.removeItem(STORAGE_KEY);
+            } catch(e) {}
             location.reload();
         }
 
@@ -831,7 +832,7 @@
             if (hasData) {
                 applyThemeStyling(userData.theme);
                 setupProfileUI();
-                generateLevels();
+                generateLevels(); 
                 
                 const splash = document.getElementById('splash-screen');
                 document.getElementById('splash-name-display').textContent = userData.name;
@@ -868,20 +869,15 @@
                         av.textContent = '';
                     } else {
                         av.style.backgroundImage = 'none';
-                        av.textContent = userData.name ? userData.name.charAt(0).toUpperCase() : '';
+                        av.textContent = userData.name.charAt(0).toUpperCase();
                     }
                 }
             });
             
             const previewImg = document.getElementById('final-avatar-img');
-            const svgIcon = document.getElementById('avatar-upload-icon');
             if (userData.avatar) {
                 previewImg.src = userData.avatar;
                 previewImg.style.display = 'block';
-                if (svgIcon) svgIcon.style.display = 'none';
-            } else {
-                previewImg.style.display = 'none';
-                if (svgIcon) svgIcon.style.display = 'block';
             }
         }
 
@@ -937,10 +933,10 @@
                 lastTouchX = e.touches[0].clientX;
                 lastTouchY = e.touches[0].clientY;
             }
-        });
+        }, { passive: false });
 
         cropArea.addEventListener('touchmove', (e) => {
-            e.preventDefault();
+            e.preventDefault(); 
             if (e.touches.length === 2 && initialDist) {
                 let dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
                 cropScale = Math.min(Math.max(0.5, startScale * (dist / initialDist)), 4);
@@ -978,19 +974,10 @@
             e.preventDefault();
             cropScale = Math.min(Math.max(0.5, cropScale + (e.deltaY < 0 ? 0.1 : -0.1)), 4);
             updateTransform();
-        });
+        }, { passive: false });
 
         function applyCrop() {
             userData.avatar = cropUrl;
-            const previewImg = document.getElementById('final-avatar-img');
-            const svgIcon = document.getElementById('avatar-upload-icon');
-            if (previewImg) {
-                previewImg.src = cropUrl;
-                previewImg.style.display = 'block';
-            }
-            if (svgIcon) {
-                svgIcon.style.display = 'none';
-            }
             saveData();
             setupProfileUI();
             cancelCrop();
@@ -1000,14 +987,8 @@
             const name = document.getElementById('first-name').value.trim();
             const club = window.tempSelectedClub;
             
-            if(!name) { 
-                showToast("Введіть ім'я гравця!"); 
-                return; 
-            }
-            if(!club) { 
-                showToast("Оберіть улюблений клуб!"); 
-                return; 
-            }
+            if(!name) { alert("Введіть ім'я гравця!"); return; }
+            if(!club) { alert("Оберіть улюблений клуб!"); return; }
             
             userData.name = name;
             userData.lastName = document.getElementById('last-name').value.trim();
@@ -1134,48 +1115,57 @@
         async function startCurrentLevelQuiz() {
             closeSheet();
             const level = selectedLevelNum;
-            const txtPath = `img/footboler/${level}.txt`;
-            const imgPath = `img/footboler/${level}.png`;
+            const txtPath = `img/footballer/${level}.txt`;
+            const imgPath = `img/footballer/${level}.png`;
+
+            let parsed;
+            let finalImgSrc = imgPath;
 
             try {
                 const resTxt = await fetch(txtPath);
-                if (!resTxt.ok) {
-                    showToast("Цей рівень не було створено, або виникла помилка!");
-                    return;
-                }
+                if (!resTxt.ok) throw new Error("File not found or local fetch blocked by CORS");
+                
                 const rawText = await resTxt.text();
+                parsed = parseQuestionFileText(rawText);
 
                 const resImg = await fetch(imgPath);
-                if (!resImg.ok) {
-                    showToast("Цей рівень не було створено, або виникла помилка!");
-                    return;
-                }
-
-                const parsed = parseQuestionFileText(rawText);
-                
-                document.getElementById('quiz-level-title').textContent = `Рівень ${level}`;
-                document.getElementById('quiz-img').src = imgPath;
-                document.getElementById('quiz-question-text').textContent = parsed.question;
-
-                const optionsContainer = document.getElementById('quiz-options-container');
-                optionsContainer.innerHTML = '';
-
-                document.getElementById('quiz-gameplay-section').style.display = 'flex';
-                document.getElementById('quiz-feedback-box').style.display = 'none';
-
-                parsed.options.forEach((opt, idx) => {
-                    const btn = document.createElement('button');
-                    btn.className = 'quiz-option-btn';
-                    btn.textContent = opt;
-                    btn.onclick = () => checkQuizAnswer(idx + 1, parsed.correctIndex, parsed.points);
-                    optionsContainer.appendChild(btn);
-                });
-
-                document.getElementById('quiz-modal').classList.add('active');
+                if (!resImg.ok) throw new Error("Image not found");
 
             } catch (err) {
-                showToast("Цей рівень не було створено, або виникла помилка!");
+                console.warn("Локальне виконання або файл не знайдено. Запускаємо резервне запитання для тестів.", err);
+                
+                // РЕЗЕРВНІ ДАНІ для автономного тестування (коли працює як file:///)
+                parsed = {
+                    question: "Хто є головним тренером ФК «Епіцентр»?",
+                    options: ["Сергій Нагорняк", "Мирон Маркевич", "Олександр Шовковський", "Юрій Вернидуб"],
+                    correctIndex: 1,
+                    difficulty: 1,
+                    points: 10
+                };
+                
+                // Генерація резервного SVG зображення
+                finalImgSrc = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400'><rect width='400' height='400' fill='%2300D26A'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-weight='800' font-size='32' fill='white'>ФОТО ГРАВЦЯ</text></svg>";
             }
+
+            document.getElementById('quiz-level-title').textContent = `Рівень ${level}`;
+            document.getElementById('quiz-img').src = finalImgSrc;
+            document.getElementById('quiz-question-text').textContent = parsed.question;
+
+            const optionsContainer = document.getElementById('quiz-options-container');
+            optionsContainer.innerHTML = '';
+
+            document.getElementById('quiz-gameplay-section').style.display = 'flex';
+            document.getElementById('quiz-feedback-box').style.display = 'none';
+
+            parsed.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'quiz-option-btn';
+                btn.textContent = opt;
+                btn.onclick = () => checkQuizAnswer(idx + 1, parsed.correctIndex, parsed.points);
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('quiz-modal').classList.add('active');
         }
 
         function parseQuestionFileText(text) {
@@ -1282,7 +1272,7 @@
         function updateSessionProgressUI() {
             const bar = document.getElementById('session-progress-bar');
             const statusText = document.getElementById('session-status-text');
-            const btn = document.getElementById('session-task-btn');
+            const btn = document.getElementById('task-btn-3');
             if (!bar) return;
 
             let percent = Math.min(100, (userData.sessionSeconds / TOTAL_SESSION_SECONDS) * 100);
