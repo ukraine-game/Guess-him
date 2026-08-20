@@ -508,7 +508,42 @@
         }
     @media (max-width:430px){.quiz-card{padding-left:14px;padding-right:14px}.quiz-img-box{height:min(42vh,300px);min-height:170px}.quiz-option-btn{min-height:50px;font-size:15px}}
         @supports (-webkit-touch-callout:none){.app-container{min-height:-webkit-fill-available}.quiz-modal,.screen{height:100%}}
-    </style>
+    
+        /* Final mobile/header/footer stability fixes */
+        html, body { width:100%; min-height:100%; margin:0; padding:0; overflow:hidden; }
+        body { min-height:100dvh; }
+        .app-container { width:100%; max-width:430px; height:100dvh; min-height:100dvh; margin:0 auto; overflow:hidden; position:relative; }
+        #main-screen { height:100%; min-height:100%; overflow:hidden; }
+        .top-header { flex:0 0 auto; min-height:70px; box-sizing:border-box; padding-top:max(12px, env(safe-area-inset-top)); padding-bottom:12px; }
+        .tab-content { height:auto; flex:1 1 auto; min-height:0; box-sizing:border-box; overflow-y:auto; padding-top:18px; padding-bottom:calc(96px + env(safe-area-inset-bottom)); }
+        .bottom-nav { position:absolute; left:20px; right:20px; bottom:calc(12px + env(safe-area-inset-bottom)); width:auto; box-sizing:border-box; height:64px; }
+        .top-header, .bottom-nav { flex-shrink:0; }
+        .quiz-modal, .quiz-card { min-height:0; height:100dvh; box-sizing:border-box; }
+        .quiz-card { padding-top:max(16px, env(safe-area-inset-top)); padding-bottom:max(20px, env(safe-area-inset-bottom)); }
+        .quiz-option-btn.correct { border-color:#22c55e !important; background:rgba(34,197,94,.12) !important; color:#15803d !important; box-shadow:0 0 0 2px rgba(34,197,94,.16) inset; }
+        .quiz-option-btn.wrong { border-color:#ef4444 !important; background:rgba(239,68,68,.12) !important; color:#dc2626 !important; box-shadow:0 0 0 2px rgba(239,68,68,.14) inset; }
+        .quiz-result-mark { width:76px; height:76px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:4px auto 10px; font-size:38px; font-weight:900; }
+        .quiz-result-mark.success { background:#dcfce7; color:#16a34a; }
+        .quiz-result-mark.failed { background:#fee2e2; color:#dc2626; }
+        .quiz-rating { display:flex; justify-content:center; gap:6px; margin:8px 0 12px; }
+        .quiz-star { width:32px; height:32px; display:inline-flex; }
+        .quiz-star svg { width:100%; height:100%; }
+        .quiz-star.filled svg { fill:#f5b301; stroke:#d89500; }
+        .quiz-star.empty svg { fill:#d1d5db; stroke:#9ca3af; }
+        .avatar-upload { touch-action:manipulation; }
+        #crop-area { touch-action:none; }
+        @media (max-width:430px){
+            .top-header { padding-left:14px; padding-right:14px; min-height:72px; }
+            .mini-avatar { width:48px; height:48px; }
+            .profile-info .name { max-width:150px; }
+            .score-val { font-size:21px; }
+            .tab-content { padding-left:14px; padding-right:14px; }
+            .bottom-nav { left:12px; right:12px; bottom:calc(10px + env(safe-area-inset-bottom)); }
+        }
+        @supports (-webkit-touch-callout:none){
+            .app-container, .screen, .quiz-modal, .quiz-card { min-height:-webkit-fill-available; }
+        }
+</style>
 </head>
 <body>
 
@@ -835,7 +870,8 @@
             failedLevels: [],
             correctCount: 0,
             incorrectCount: 0,
-            tutorialCompleted: false
+            tutorialCompleted: false,
+            levelBestScores: {}
         };
 
         function saveData() {
@@ -851,6 +887,8 @@
                         userData = Object.assign(userData, parsed);
                         if(!Array.isArray(userData.completedLevels)) userData.completedLevels=[];
                         if(!Array.isArray(userData.failedLevels)) userData.failedLevels=[];
+                        if(!userData.levelBestScores || typeof userData.levelBestScores !== 'object') userData.levelBestScores={};
+                        if(!['light','dark','blue'].includes(userData.theme)) userData.theme='light';
                         return true;
                     }
                 }
@@ -1061,13 +1099,15 @@
             e.preventDefault(); 
             if (e.touches.length === 2 && initialDist) {
                 let dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-                cropScale = Math.min(Math.max(0.3, startScale * (dist / initialDist)), 5); updateTransform();
+                cropScale = Math.max(0.01, Math.min(startScale * (dist / initialDist), 100)); updateTransform();
             } else if (e.touches.length === 1 && isDragging) {
                 let dx = e.touches[0].clientX - lastTouchX, dy = e.touches[0].clientY - lastTouchY;
                 currentX += dx; currentY += dy; lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; updateTransform();
             }
         }, { passive: false });
-        cropArea.addEventListener('touchend', (e) => { if (e.touches.length < 2) initialDist = null; if (e.touches.length === 0) isDragging = false; });
+        cropArea.addEventListener('touchend', (e) => { if (e.touches.length < 2) initialDist = null; if (e.touches.length === 0) isDragging = false; });cropArea.addEventListener('wheel', (e) => { e.preventDefault(); const factor = e.deltaY < 0 ? 1.12 : 0.89; cropScale = Math.max(0.01, Math.min(cropScale * factor, 100)); updateTransform(); }, { passive:false });
+        cropArea.addEventListener('dblclick', () => { cropScale = 1; currentX = 0; currentY = 0; updateTransform(); });
+        
         function applyCrop() {
             if (!cropImage || !cropImage.naturalWidth) { cancelCrop(); return; }
             const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d');
@@ -1145,10 +1185,10 @@
                 levelNode.className = 'level-node';
                 levelNode.id = `level-node-${i}`;
 
-                if (userData.failedLevels && userData.failedLevels.includes(i) && !(userData.completedLevels || []).includes(i)) {
+                if ((userData.failedLevels || []).includes(i)) {
                     levelNode.classList.add('failed');
                     levelNode.innerHTML = `✕`;
-                } else if (i < userData.level) {
+                } else if ((userData.completedLevels || []).includes(i) || i < userData.level) {
                     levelNode.classList.add('completed');
                     levelNode.innerHTML = `✓`;
                 } else if (i === userData.level) {
@@ -1228,11 +1268,53 @@
             return {parsed, images:[`${base}.png`,`${base}.jpg`,`${base}.jpeg`,`${base}.webp`]};
         }
 
+        async function checkQuestionFiles(questionNumbers) {
+            const unique = [...new Set(questionNumbers.map(Number))];
+            const checks = unique.map(async (qn) => {
+                const base = `img/footboler/${qn}`;
+                let textOk = false, imageOk = false;
+                try {
+                    const r = await fetch(`${base}.txt`, { cache:'no-store' });
+                    textOk = r.ok && (await r.text()).trim().length > 0;
+                } catch(e) {}
+                try {
+                    imageOk = await new Promise(resolve => {
+                        const im = new Image();
+                        let done = false;
+                        const finish = v => { if (!done) { done=true; resolve(v); } };
+                        im.onload = () => finish(true);
+                        im.onerror = () => finish(false);
+                        im.src = `${base}.png?check=${Date.now()}_${Math.random()}`;
+                        setTimeout(() => finish(false), 8000);
+                    });
+                } catch(e) {}
+                return textOk && imageOk;
+            });
+            const result = await Promise.all(checks);
+            return result.every(Boolean);
+        }
+
+        async function validateLevelResources(level) {
+            const numbers = getQuestionFileNumbers(level);
+            return await checkQuestionFiles(numbers);
+        }
+
         async function startCurrentLevelQuiz() {
             closeAllQuizSheets();
             if (quizQuestionTimer) { clearTimeout(quizQuestionTimer); quizQuestionTimer=null; }
             quizAnswerLocked=false;
             const level=selectedLevelNum, total=getLevelQuestionCount(level);
+
+            // Перевіряємо ВЕСЬ рівень до першого питання, щоб збій не з'явився після 4-го питання.
+            if (!quizQuestionIndex) {
+                const valid = await validateLevelResources(level);
+                if (!valid) {
+                    showToast('Питання не було знайдено, або у вас стався збій!');
+                    closeQuizModal();
+                    return;
+                }
+            }
+
             const qn=getQuestionNumberForLevel(level,quizQuestionIndex);
             try {
                 const {parsed,images}=await loadQuizQuestion(qn);
@@ -1240,14 +1322,14 @@
                 document.getElementById('quiz-progress-label').textContent = total === 1 ? 'Питання 1 з 1' : `Питання ${quizQuestionIndex+1} з 5`;
                 document.getElementById('quiz-progress-fill').style.width=`${(quizQuestionIndex/total)*100}%`;
                 const img=document.getElementById('quiz-img'); let ii=0;
-                img.onerror=()=>{ ii++; if(ii<images.length) img.src=images[ii]; }; img.src=images[0]; img.draggable=false;
+                img.onerror=()=>{ ii++; if(ii<images.length) img.src=images[ii]; else showToast('Питання не було знайдено, або у вас стався збій!'); }; img.src=images[0]; img.draggable=false;
                 document.getElementById('quiz-question-text').textContent=parsed.question;
                 const box=document.getElementById('quiz-options-container'); box.innerHTML='';
                 document.getElementById('quiz-gameplay-section').style.display='flex'; document.getElementById('quiz-feedback-box').style.display='none';
                 parsed.options.forEach((opt,idx)=>{ const b=document.createElement('button'); b.className='quiz-option-btn'; b.type='button'; b.textContent=opt; b.id=`quiz-opt-btn-${idx+1}`; b.onclick=()=>checkQuizAnswer(idx+1,parsed.correctIndex); box.appendChild(b); });
                 document.getElementById('quiz-modal').classList.add('active');
                 if(!userData.tutorialCompleted && tutStep===1){ document.getElementById('tutorial-title').textContent='Оберіть відповідь'; document.getElementById('tutorial-desc').textContent='Натисніть на правильний варіант.'; document.getElementById('tutorial-mask').classList.remove('active'); }
-            } catch(e) { showToast(`Не вдалося знайти img/footboler/${qn}.png або ${qn}.txt`); }
+            } catch(e) { showToast('Питання не було знайдено, або у вас стався збій!'); closeQuizModal(); }
         }
 
         function parseQuestionFileText(text) {
@@ -1266,19 +1348,35 @@
             for (let i = 1; i <= total; i++) {
                 const star = document.createElement('span');
                 star.className = `quiz-star ${i <= correct ? 'filled' : 'empty'}`;
-                star.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.7l2.84 5.76 6.36.92-4.6 4.48 1.09 6.33L12 17.2l-5.69 2.99 1.09-6.33-4.6-4.48 6.36-.92L12 2.7z" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
+                star.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.7l2.84 5.76 6.36.92-4.6 4.48 1.09 6.33L12 17.2l-5.69 2.99 1.09-6.33-4.6-.92 6.36-.92L12 2.7z" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
+                // Correct the star geometry without using emoji.
+                star.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.93 5.94 6.57.96-4.75 4.63 1.12 6.55L12 17.49l-5.87 3.09 1.12-6.55L2.5 9.4l6.57-.96L12 2.5z" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
                 wrap.appendChild(star);
             }
+        }
+
+        function showQuizResultMark(success) {
+            let mark=document.getElementById('quiz-result-mark');
+            if(!mark){
+                mark=document.createElement('div');
+                mark.id='quiz-result-mark';
+                const rating=document.getElementById('quiz-rating');
+                rating.parentNode.insertBefore(mark,rating);
+            }
+            mark.className=`quiz-result-mark ${success?'success':'failed'}`;
+            mark.textContent=success?'✓':'✕';
         }
 
         function finishLevelQuiz(){
             const level=selectedLevelNum, total=getLevelQuestionCount(level), correct=quizCorrectAnswers;
             const rating=Math.max(0, Math.min(total, correct));
+            const hadWrong = quizWrongAnswers > 0;
             document.getElementById('quiz-progress-fill').style.width='100%';
             document.getElementById('quiz-gameplay-section').style.display='none';
             document.getElementById('quiz-feedback-box').style.display='flex';
             const title=document.getElementById('quiz-feedback-title'), desc=document.getElementById('quiz-feedback-desc'), next=document.getElementById('quiz-feedback-next-btn'), retry=document.getElementById('quiz-feedback-retry-btn'), reward=document.getElementById('quiz-reward-status');
             renderQuizStars(rating, total);
+            showQuizResultMark(!hadWrong);
             reward.textContent='';
 
             if(level===0){
@@ -1290,21 +1388,27 @@
             }
 
             if(!Array.isArray(userData.completedLevels)) userData.completedLevels=[];
+            if(!userData.levelBestScores || typeof userData.levelBestScores !== 'object') userData.levelBestScores={};
+            const previousBest = Number(userData.levelBestScores[level] || 0);
+            const improved = Math.max(0, correct - previousBest);
+            const pointsEarned = improved * 2;
+            if (correct > previousBest) userData.levelBestScores[level] = correct;
             const firstPass=!userData.completedLevels.includes(level);
-            if(firstPass){
-                userData.completedLevels.push(level);
-                userData.score += 10;
-            }
+            if(firstPass) userData.completedLevels.push(level);
+            if (pointsEarned > 0) userData.score += pointsEarned;
             userData.correctCount=(userData.correctCount||0)+correct;
             userData.incorrectCount=(userData.incorrectCount||0)+quizWrongAnswers;
             if(level===userData.level) userData.level++;
-            userData.failedLevels=(userData.failedLevels||[]).filter(x=>x!==level);
+            if(hadWrong && !(userData.failedLevels||[]).includes(level)) userData.failedLevels.push(level);
+            // Червоний хрестик є постійним: повторний ідеальний прохід його не прибирає.
             saveData(); setupProfileUI(); generateLevels(); renderTasks();
 
-            triggerConfetti();
+            if(!hadWrong) triggerConfetti();
             title.textContent='Рівень пройдено!';
             desc.textContent=`Результат: ${correct} з ${total} правильних відповідей.`;
-            reward.textContent=firstPass ? 'Винагорода: +10 балів' : 'Винагороду за цей рівень вже отримано';
+            if(pointsEarned > 0) reward.textContent=`Винагорода: +${pointsEarned} балів`;
+            else if(previousBest > 0) reward.textContent='Винагороду за правильні відповіді вже отримано';
+            else reward.textContent='Винагорода: +0 балів';
             next.textContent='Наступний рівень';
             retry.style.display='block';
             retry.textContent='Почати знову';
@@ -1324,16 +1428,16 @@
                 b.style.pointerEvents='none';
             });
 
-            // Без старої затримки в 1 секунду: лише короткий момент, щоб було видно зелений/червоний стан.
+            // Показуємо результат відповіді 1.5 секунди, потім переходимо далі.
             quizQuestionTimer=setTimeout(()=>{
                 quizQuestionTimer=null;
                 const total=getLevelQuestionCount(selectedLevelNum);
                 quizQuestionIndex++;
                 if(quizQuestionIndex>=total) finishLevelQuiz();
                 else { quizAnswerLocked=false; startCurrentLevelQuiz(); }
-            },180);
+            },1500);
         }
-        function handleQuizFeedbackNext(){
+function handleQuizFeedbackNext(){
             closeQuizModal(); closeAllQuizSheets();
             if(selectedLevelNum===0){ tutStep=2; nextTutorialStep(); return; }
             selectedLevelNum++; quizQuestionIndex=0; quizCorrectAnswers=0; quizWrongAnswers=0; quizAnswerLocked=false;
