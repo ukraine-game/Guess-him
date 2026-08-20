@@ -92,12 +92,12 @@
             pointer-events: none;
             transition: opacity 0.35s ease, transform 0.35s ease;
             transform: scale(0.98);
-            z-index: 1;
+            /* z-index: 1; - Видалено, щоб не створювати конфлікт накладання */
         }
         .screen.active {
             opacity: 1;
             pointer-events: all;
-            transform: scale(1);
+            transform: none; /* Замінено scale(1) на none, щоб елемент міг вийти поверх маски */
         }
 
         /* Splash Screen */
@@ -258,6 +258,11 @@
             align-items: center; border-bottom: 1px solid var(--border);
             box-shadow: 0 4px 20px var(--shadow); z-index: 10; position: relative;
         }
+        /* Підняття шапки при навчанні */
+        .top-header:has(.tutorial-highlight) {
+            z-index: 56001 !important;
+        }
+
         .profile-trigger { display: flex; align-items: center; gap: 12px; cursor: pointer; }
         .mini-avatar {
             width: 44px; height: 44px; border-radius: 50%; background-color: var(--primary);
@@ -321,6 +326,11 @@
             display: flex; justify-content: space-around; align-items: center;
             box-shadow: 0 10px 30px var(--shadow); border: 1px solid var(--border); z-index: 10;
         }
+        /* Підняття меню при навчанні */
+        .bottom-nav:has(.tutorial-highlight) {
+            z-index: 56001 !important;
+        }
+        
         .nav-item {
             color: var(--text-sec); display: flex; flex-direction: column; align-items: center;
             justify-content: center; gap: 3px; flex: 1; height: 100%; border-radius: 16px;
@@ -417,6 +427,10 @@
             max-height: 85vh; overflow-y: auto; pointer-events: none; opacity: 0;
         }
         .bottom-sheet.active, .settings-modal.active .settings-content { transform: translateY(0); pointer-events: all; opacity: 1; }
+        /* Підняття шторки при навчанні */
+        .bottom-sheet:has(.tutorial-highlight) {
+            z-index: 56001 !important;
+        }
         
         /* Dropdown Fix */
         .custom-dropdown {
@@ -477,9 +491,9 @@
             animation: pulseGlow 1.5s infinite;
         }
         @keyframes pulseGlow {
-            0% { transform: scale(1); box-shadow: 0 0 0 4px var(--primary), 0 0 10px var(--primary); }
-            50% { transform: scale(1.04); box-shadow: 0 0 0 6px var(--primary), 0 0 25px var(--primary); }
-            100% { transform: scale(1); box-shadow: 0 0 0 4px var(--primary), 0 0 10px var(--primary); }
+            0% { box-shadow: 0 0 0 4px var(--primary), 0 0 10px var(--primary); }
+            50% { box-shadow: 0 0 0 6px var(--primary), 0 0 25px var(--primary); }
+            100% { box-shadow: 0 0 0 4px var(--primary), 0 0 10px var(--primary); }
         }
     </style>
 </head>
