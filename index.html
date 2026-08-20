@@ -490,6 +490,52 @@
             50% { box-shadow: 0 0 0 6px var(--primary), 0 0 25px var(--primary); }
             100% { box-shadow: 0 0 0 4px var(--primary), 0 0 10px var(--primary); }
         }
+
+
+        .settings-modal.tutorial-focus { z-index: 56001 !important; }
+        .sheet-overlay.tutorial-focus { z-index: 56000 !important; }
+        .bottom-sheet.tutorial-focus { z-index: 56002 !important; }
+        /* === Quiz 5 Questions / Progress === */
+        .quiz-progress-wrap {
+            width: 100%;
+            flex-shrink: 0;
+            padding: 0 1px 2px;
+        }
+        .quiz-progress-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-sec);
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .quiz-progress-track {
+            width: 100%;
+            height: 8px;
+            border-radius: 99px;
+            overflow: hidden;
+            background: var(--bg);
+            border: 1px solid var(--border);
+        }
+        .quiz-progress-fill {
+            width: 0%;
+            height: 100%;
+            border-radius: inherit;
+            background: var(--primary);
+            box-shadow: 0 0 12px rgba(0,210,106,.35);
+            transition: width .45s cubic-bezier(.2,.8,.2,1);
+        }
+        .quiz-question-counter {
+            color: var(--primary);
+            font-weight: 800;
+        }
+        /* Never allow an old sheet/overlay to survive underneath a quiz. */
+        .quiz-modal.active ~ .bottom-sheet,
+        .quiz-modal.active ~ .sheet-overlay,
+        .quiz-modal.active ~ .settings-modal {
+            pointer-events: none !important;
+        }
     </style>
 </head>
 <body>
@@ -582,6 +628,16 @@
                     <span id="quiz-level-title">Рівень 1</span>
                     <button class="close-btn" onclick="closeQuizModal()">✕</button>
                 </div>
+                    <div class="quiz-progress-wrap" id="quiz-progress-wrap">
+                        <div class="quiz-progress-meta">
+                            <span id="quiz-progress-label">Питання 1 з 5</span>
+                            <span id="quiz-progress-percent">0%</span>
+                        </div>
+                        <div class="quiz-progress-track">
+                            <div class="quiz-progress-fill" id="quiz-progress-fill"></div>
+                        </div>
+                    </div>
+
                 
                 <div id="quiz-gameplay-section" style="display: flex; flex-direction: column; flex: 1; justify-content: space-between; gap: 12px;">
                     <div class="quiz-img-box">
@@ -1120,9 +1176,9 @@
                     const cloud = document.createElement('div');
                     cloud.className = 'cloud-barrier';
                     if (userData.level > i) {
-                        cloud.innerHTML = `<div class="cloud-icon">☁️ 🔓</div><div class="cloud-text">Ера ${eraNum} розблокована</div>`;
+                        cloud.innerHTML = `<div class="cloud-icon">☁️</div><div class="cloud-text">Ера ${eraNum} розблокована</div>`;
                     } else {
-                        cloud.innerHTML = `<div class="cloud-icon">☁️ 🔒</div><div class="cloud-text">Пройдіть ${i} рівнів, щоб відкрити Еру ${eraNum}</div>`;
+                        cloud.innerHTML = `<div class="cloud-icon">☁️</div><div class="cloud-text">Пройдіть ${i} рівнів, щоб відкрити Еру ${eraNum}</div>`;
                     }
                     chainContainer.appendChild(cloud);
                 }
@@ -1454,7 +1510,10 @@
             document.getElementById('settings-modal').classList.add('active'); 
             if(!userData.tutorialCompleted && tutStep === 4) { tutStep = 5; nextTutorialStep(); }
         }
-        function closeSettings() { document.getElementById('settings-modal').classList.remove('active'); }
+        function closeSettings() {
+    document.getElementById('settings-modal').classList.remove('active');
+    document.getElementById('settings-modal').classList.remove('tutorial-focus');
+}
         function setTheme(theme) { userData.theme = theme; saveData(); applyThemeStyling(theme); }
         function applyThemeStyling(theme) {
             document.body.setAttribute('data-theme', theme);
@@ -1476,6 +1535,13 @@
             if(!userData.tutorialCompleted && tutStep === 5) { tutStep = 6; nextTutorialStep(); }
         }
         function closeStats() { document.getElementById('stats-overlay').classList.remove('active'); document.getElementById('stats-sheet').classList.remove('active'); }
+
+        const _closeStatsBase = closeStats;
+        closeStats = function() {
+            _closeStatsBase();
+            document.getElementById('stats-overlay')?.classList.remove('tutorial-focus');
+            document.getElementById('stats-sheet')?.classList.remove('tutorial-focus');
+        };
 
         /* Tasks Logic */
         const TASKS_DATA = [
@@ -1562,5 +1628,704 @@
             }, 1000);
         }
     </script>
+
+<script>
+/* ============================================================
+   FOOTBALL CAREER PRO — PATCH V2
+   - 5 questions per level
+   - progress bar
+   - automatic tutorial modal demo/close
+   - robust sheet cleanup
+   - eager preloading of all known footballer assets
+   ============================================================ */
+
+const QUIZ_QUESTIONS_PER_LEVEL = 5;
+let quizQuestions = [];
+let quizQuestionIndex = 0;
+let quizCorrectAnswers = 0;
+let quizWrongAnswers = 0;
+let quizPointsEarned = 0;
+let quizAnswerLocked = false;
+let quizLevelFinished = false;
+
+/* ---------- Modal cleanup ---------- */
+function closeAllSheetsForQuiz() {
+    const ids = [
+        ['sheet-overlay','bottom-sheet'],
+        ['stats-overlay','stats-sheet'],
+        ['era-overlay','era-sheet'],
+        ['club-overlay','club-dropdown']
+    ];
+    ids.forEach(([overlay, sheet]) => {
+        document.getElementById(overlay)?.classList.remove('active');
+        document.getElementById(sheet)?.classList.remove('active');
+    });
+    document.getElementById('settings-modal')?.classList.remove('active');
+}
+
+/* ---------- Progress ---------- */
+function updateQuizProgress() {
+    const total = QUIZ_QUESTIONS_PER_LEVEL;
+    const answered = Math.min(quizQuestionIndex, total);
+    const percent = Math.round((answered / total) * 100);
+
+    const fill = document.getElementById('quiz-progress-fill');
+    const label = document.getElementById('quiz-progress-label');
+    const percentEl = document.getElementById('quiz-progress-percent');
+
+    if (fill) fill.style.width = `${percent}%`;
+    if (label) label.textContent = `Питання ${Math.min(quizQuestionIndex + 1, total)} з ${total}`;
+    if (percentEl) percentEl.textContent = `${percent}%`;
+}
+
+function resetQuizProgress() {
+    quizQuestionIndex = 0;
+    quizCorrectAnswers = 0;
+    quizWrongAnswers = 0;
+    quizPointsEarned = 0;
+    quizAnswerLocked = false;
+    quizLevelFinished = false;
+    updateQuizProgress();
+}
+
+/* ---------- Flexible TXT parser ----------
+   Supports:
+   A) one question per line:
+      "question", "A", "B", "C", 1, 1, 10
+   B) blocks separated by empty lines.
+   C) a file containing multiple quoted question blocks.
+*/
+function parseQuestionFileTextMulti(text) {
+    const clean = String(text || '').replace(/^\uFEFF/, '').trim();
+    if (!clean) return [];
+
+    const parseBlock = (block) => {
+        const quotes = [...String(block).matchAll(/"([^"]*)"/g)]
+            .map(m => m[1].trim())
+            .filter(Boolean);
+
+        if (quotes.length < 3) return null;
+
+        const lastQuote = String(block).lastIndexOf('"');
+        const numericPart = String(block).slice(lastQuote + 1);
+        const numbers = [...numericPart.matchAll(/-?\d+(?:\.\d+)?/g)]
+            .map(m => Number(m[0]));
+
+        const question = quotes[0];
+        const options = quotes.slice(1);
+
+        // Existing format: correctIndex, difficulty, points.
+        const correctIndex = numbers.length ? Math.trunc(numbers[0]) : 1;
+        const points = numbers.length >= 3 ? Number(numbers[2]) : 10;
+
+        if (!question || options.length < 2) return null;
+        return {
+            question,
+            options,
+            correctIndex: Math.max(1, Math.min(options.length, correctIndex)),
+            difficulty: numbers.length >= 2 ? Math.trunc(numbers[1]) : 1,
+            points: Number.isFinite(points) ? points : 10
+        };
+    };
+
+    // First preference: blank-line separated blocks.
+    const blocks = clean.split(/\n\s*\n+/).map(x => x.trim()).filter(Boolean);
+    let parsed = blocks.map(parseBlock).filter(Boolean);
+
+    // If a normal file has each question on its own line, use lines.
+    if (parsed.length < 2) {
+        const lines = clean.split(/\r?\n/)
+            .map(x => x.trim())
+            .filter(x => x && /"/.test(x));
+        const lineParsed = lines.map(parseBlock).filter(Boolean);
+        if (lineParsed.length > parsed.length) parsed = lineParsed;
+    }
+
+    // Packed format fallback:
+    // If all 5 questions are stored in one physical line/block, split the
+    // quoted fields into equal question groups. The original project format
+    // normally has 1 question + 3 options = 4 quoted fields per question.
+    if (parsed.length < 2) {
+        const allQuotes = [...clean.matchAll(/"([^"]*)"/g)]
+            .map(m => m[1].trim())
+            .filter(Boolean);
+        const lastQuote = clean.lastIndexOf('"');
+        const packedNumbers = [...clean.slice(lastQuote + 1).matchAll(/-?\d+(?:\.\d+)?/g)]
+            .map(m => Number(m[0]));
+
+        for (const quoteGroupSize of [4, 5, 3]) {
+            if (allQuotes.length < quoteGroupSize * 2) continue;
+            if (allQuotes.length % quoteGroupSize !== 0) continue;
+
+            const count = allQuotes.length / quoteGroupSize;
+            if (count < 2) continue;
+
+            const candidate = [];
+            for (let i = 0; i < count; i++) {
+                const group = allQuotes.slice(i * quoteGroupSize, (i + 1) * quoteGroupSize);
+                const question = group[0];
+                const options = group.slice(1);
+                const nums = packedNumbers.slice(i * 3, i * 3 + 3);
+                const correctIndex = Math.max(
+                    1,
+                    Math.min(options.length, Math.trunc(nums[0] || 1))
+                );
+                candidate.push({
+                    question,
+                    options,
+                    correctIndex,
+                    difficulty: Math.trunc(nums[1] || 1),
+                    points: Number.isFinite(nums[2]) ? nums[2] : 10
+                });
+            }
+
+            if (candidate.length >= 2) {
+                parsed = candidate;
+                break;
+            }
+        }
+    }
+
+    // Compatibility with the old single-question parser.
+    if (!parsed.length) {
+        try {
+            const old = parseQuestionFileText(clean);
+            if (old?.question && old.options?.length >= 2) parsed = [old];
+        } catch (_) {}
+    }
+
+    return parsed.slice(0, QUIZ_QUESTIONS_PER_LEVEL);
+}
+
+/* ---------- Asset URL helpers ---------- */
+function levelAssetCandidates(level, ext) {
+    return [
+        `img/footboler/${level}.${ext}`,
+        `img/footballer/${level}.${ext}`
+    ];
+}
+
+async function fetchFirstAvailable(urls, options = {}) {
+    for (const url of urls) {
+        try {
+            const response = await fetch(url, {
+                cache: options.cache || 'force-cache'
+            });
+            if (response.ok) return { url, response };
+        } catch (_) {}
+    }
+    return null;
+}
+
+/* ---------- Start level ---------- */
+async function startCurrentLevelQuiz() {
+    closeAllSheetsForQuiz();
+
+    const level = selectedLevelNum;
+    const txtResult = await fetchFirstAvailable(
+        levelAssetCandidates(level, 'txt')
+    );
+
+    if (!txtResult) {
+        showToast(`Рівень не створено (img/footboler/${level}.txt)`);
+        return;
+    }
+
+    let rawText = '';
+    try {
+        rawText = await txtResult.response.text();
+    } catch (_) {
+        showToast('Не вдалося прочитати файл рівня.');
+        return;
+    }
+
+    quizQuestions = parseQuestionFileTextMulti(rawText);
+
+    if (!quizQuestions.length) {
+        showToast(`Невірний формат img/footboler/${level}.txt`);
+        return;
+    }
+
+    /*
+      If the source file contains fewer than 5 questions, we do NOT invent
+      football questions. We repeat the available source questions so the
+      level still has exactly 5 answer steps. When 5 real questions are in
+      the TXT, every step is unique.
+    */
+    while (quizQuestions.length < QUIZ_QUESTIONS_PER_LEVEL) {
+        quizQuestions.push(quizQuestions[quizQuestions.length % quizQuestions.length]);
+    }
+
+    resetQuizProgress();
+    document.getElementById('quiz-level-title').textContent = `Рівень ${level}`;
+
+    const gameplay = document.getElementById('quiz-gameplay-section');
+    const feedback = document.getElementById('quiz-feedback-box');
+    gameplay.style.display = 'flex';
+    feedback.style.display = 'none';
+
+    document.getElementById('quiz-modal').classList.add('active');
+    renderCurrentQuizQuestion();
+}
+
+/* ---------- Render one of five questions ---------- */
+async function renderCurrentQuizQuestion() {
+    const q = quizQuestions[quizQuestionIndex];
+    if (!q) return;
+
+    quizAnswerLocked = false;
+
+    const img = document.getElementById('quiz-img');
+    const candidates = [
+        ...levelAssetCandidates(selectedLevelNum, 'png'),
+        ...levelAssetCandidates(selectedLevelNum, 'jpg'),
+        ...levelAssetCandidates(selectedLevelNum, 'jpeg'),
+        ...levelAssetCandidates(selectedLevelNum, 'webp')
+    ];
+
+    img.style.opacity = '0';
+    let found = false;
+
+    for (const url of candidates) {
+        try {
+            const probe = new Image();
+            const loaded = await new Promise(resolve => {
+                probe.onload = () => resolve(true);
+                probe.onerror = () => resolve(false);
+                probe.src = url;
+            });
+            if (loaded) {
+                img.src = url;
+                found = true;
+                break;
+            }
+        } catch (_) {}
+    }
+
+    if (!found) {
+        img.removeAttribute('src');
+    }
+
+    img.onload = () => { img.style.opacity = '1'; };
+    if (img.complete && img.src) img.style.opacity = '1';
+
+    document.getElementById('quiz-question-text').textContent = q.question;
+
+    const container = document.getElementById('quiz-options-container');
+    container.innerHTML = '';
+
+    q.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'quiz-option-btn';
+        btn.textContent = opt;
+        btn.id = `quiz-opt-btn-${idx + 1}`;
+        btn.onclick = () => checkQuizAnswer(idx + 1, q.correctIndex, q.points);
+        container.appendChild(btn);
+    });
+
+    updateQuizProgress();
+
+    if (!userData.tutorialCompleted && tutStep === 1) {
+        document.getElementById('tutorial-title').textContent = 'Оберіть відповідь';
+        document.getElementById('tutorial-desc').textContent =
+            'Натисніть на правильний варіант. Після кожного питання смужка зверху покаже ваш прогрес.';
+        document.getElementById('tutorial-mask').classList.remove('active');
+    }
+}
+
+/* ---------- Answer ---------- */
+function checkQuizAnswer(selectedOpt, correctOpt, pointsEarnedForQuestion) {
+    if (quizAnswerLocked || quizLevelFinished) return;
+    quizAnswerLocked = true;
+
+    const buttons = document.querySelectorAll('.quiz-option-btn');
+    const isCorrect = Number(selectedOpt) === Number(correctOpt);
+
+    buttons.forEach((btn, idx) => {
+        const n = idx + 1;
+        if (n === Number(correctOpt)) btn.classList.add('correct');
+        else if (n === Number(selectedOpt) && !isCorrect) btn.classList.add('wrong');
+        btn.style.pointerEvents = 'none';
+    });
+
+    if (isCorrect) {
+        quizCorrectAnswers++;
+        quizPointsEarned += Number(pointsEarnedForQuestion) || 0;
+    } else {
+        quizWrongAnswers++;
+    }
+
+    // The bar fills after the question is actually answered.
+    quizQuestionIndex++;
+    const answeredPercent = Math.round(
+        (quizQuestionIndex / QUIZ_QUESTIONS_PER_LEVEL) * 100
+    );
+    document.getElementById('quiz-progress-fill').style.width = `${answeredPercent}%`;
+    document.getElementById('quiz-progress-percent').textContent = `${answeredPercent}%`;
+    document.getElementById('quiz-progress-label').textContent =
+        quizQuestionIndex >= QUIZ_QUESTIONS_PER_LEVEL
+            ? '5 з 5 — завершено'
+            : `Питання ${quizQuestionIndex + 1} з 5`;
+
+    setTimeout(() => {
+        if (quizQuestionIndex < QUIZ_QUESTIONS_PER_LEVEL) {
+            renderCurrentQuizQuestion();
+            return;
+        }
+
+        finishFiveQuestionLevel();
+    }, 650);
+}
+
+/* ---------- Finish level ---------- */
+function finishFiveQuestionLevel() {
+    quizLevelFinished = true;
+
+    const level = selectedLevelNum;
+    const passed = quizWrongAnswers === 0;
+
+    document.getElementById('quiz-gameplay-section').style.display = 'none';
+    const feedback = document.getElementById('quiz-feedback-box');
+    feedback.style.display = 'flex';
+
+    const title = document.getElementById('quiz-feedback-title');
+    const desc = document.getElementById('quiz-feedback-desc');
+    const nextBtn = document.getElementById('quiz-feedback-next-btn');
+    const retryBtn = document.getElementById('quiz-feedback-retry-btn');
+
+    retryBtn.style.display = 'none';
+
+    if (level === 0) {
+        title.textContent = passed ? 'Чудово! ⚽' : 'Навчання завершено!';
+        desc.textContent = passed
+            ? 'Ви правильно відповіли на всі 5 питань.'
+            : `Правильних: ${quizCorrectAnswers}/5. Тепер продовжимо навчання.`;
+        nextBtn.textContent = 'Продовжити навчання';
+        return;
+    }
+
+    if (passed) {
+        userData.correctCount = (userData.correctCount || 0) + 5;
+
+        const failedBefore = userData.failedLevels.includes(level);
+        if (!failedBefore) {
+            userData.score += quizPointsEarned;
+        }
+
+        if (level === userData.level) {
+            userData.level++;
+        }
+
+        title.textContent = 'Рівень пройдено! ⚽';
+        desc.textContent = failedBefore
+            ? 'Усі 5 відповідей правильні. Бали повторно не нараховано, бо цей рівень уже був провалений.'
+            : `5/5 правильних! Ви отримали +${quizPointsEarned} балів.`;
+
+        nextBtn.textContent = 'Наступний рівень';
+    } else {
+        userData.incorrectCount = (userData.incorrectCount || 0) + quizWrongAnswers;
+
+        if (!userData.failedLevels.includes(level)) {
+            userData.failedLevels.push(level);
+        }
+
+        title.textContent = 'Рівень не пройдено ❌';
+        desc.textContent =
+            `Правильних відповідей: ${quizCorrectAnswers}/5. ` +
+            'Потрібно правильно відповісти на всі 5 питань.';
+        nextBtn.textContent = 'Наступний рівень';
+        retryBtn.style.display = 'block';
+    }
+
+    saveData();
+    setupProfileUI();
+    generateLevels();
+    renderTasks();
+}
+
+/* ---------- Next level ---------- */
+function handleQuizFeedbackNext() {
+    // Close everything before changing level so no old bottom-sheet can pop back up.
+    closeAllSheetsForQuiz();
+    closeQuizModal();
+
+    if (selectedLevelNum === 0) {
+        tutStep = 2;
+        setTimeout(() => nextTutorialStep(), 150);
+        return;
+    }
+
+    // Successful current level already advances userData.level in finishFiveQuestionLevel.
+    // On failure, "Наступний рівень" is intentionally still allowed to move to the next
+    // available level, matching the original game's behavior.
+    selectedLevelNum = Math.max(selectedLevelNum + 1, userData.level);
+
+    generateLevels();
+    setupProfileUI();
+
+    setTimeout(() => {
+        closeAllSheetsForQuiz();
+        startCurrentLevelQuiz();
+    }, 250);
+}
+
+function retryCurrentLevelQuiz() {
+    closeAllSheetsForQuiz();
+    closeQuizModal();
+
+    setTimeout(() => {
+        selectedLevelNum = selectedLevelNum || userData.level;
+        startCurrentLevelQuiz();
+    }, 180);
+}
+
+/* ---------- Tutorial: profile/stat windows stay open 2 seconds ---------- */
+let tutorialAutoCloseTimer = null;
+
+function openSettings() {
+    if (!userData.tutorialCompleted && tutStep !== 4) {
+        showToast('Виконуйте вказівки навчання!');
+        return;
+    }
+
+    closeAllSheetsForQuiz();
+    document.getElementById('settings-modal').classList.add('active');
+
+    if (!userData.tutorialCompleted && tutStep === 4) {
+        document.getElementById('settings-modal').classList.add('tutorial-focus');
+        clearTimeout(tutorialAutoCloseTimer);
+        tutorialAutoCloseTimer = setTimeout(() => {
+            closeSettings();
+            document.getElementById('settings-modal')?.classList.remove('tutorial-focus');
+            document.querySelectorAll('.tutorial-highlight')
+                .forEach(el => el.classList.remove('tutorial-highlight'));
+
+            tutStep = 5;
+            updateTutorialUI();
+        }, 2000);
+    }
+}
+
+function openStats() {
+    if (!userData.tutorialCompleted && tutStep !== 5) {
+        showToast('Виконуйте вказівки навчання!');
+        return;
+    }
+
+    document.getElementById('stat-points').textContent = userData.score;
+    document.getElementById('stat-levels').textContent =
+        `${Math.min(50, Math.max(0, userData.level - 1))} / 50`;
+    document.getElementById('stat-era').textContent =
+        userData.level <= 20 ? 'Ера 1' :
+        (userData.level <= 40 ? 'Ера 2' : 'Ера 3');
+    document.getElementById('stat-tasks').textContent =
+        (userData.tasksClaimed || []).filter(Boolean).length;
+    document.getElementById('stat-correct').textContent =
+        userData.correctCount || 0;
+    document.getElementById('stat-incorrect').textContent =
+        userData.incorrectCount || 0;
+
+    document.getElementById('stats-overlay').classList.add('active');
+    document.getElementById('stats-sheet').classList.add('active');
+
+    if (!userData.tutorialCompleted && tutStep === 5) {
+        document.getElementById('stats-overlay').classList.add('tutorial-focus');
+        document.getElementById('stats-sheet').classList.add('tutorial-focus');
+        clearTimeout(tutorialAutoCloseTimer);
+        tutorialAutoCloseTimer = setTimeout(() => {
+            closeStats();
+            document.getElementById('stats-overlay')?.classList.remove('tutorial-focus');
+            document.getElementById('stats-sheet')?.classList.remove('tutorial-focus');
+            document.querySelectorAll('.tutorial-highlight')
+                .forEach(el => el.classList.remove('tutorial-highlight'));
+
+            tutStep = 6;
+            updateTutorialUI();
+        }, 2000);
+    }
+}
+
+/* ---------- Tutorial completion button ---------- */
+function nextTutorialStep() {
+    document.querySelectorAll('.tutorial-highlight')
+        .forEach(el => el.classList.remove('tutorial-highlight'));
+
+    if (!userData.tutorialCompleted && tutStep === 6) {
+        document.getElementById('tutorial-mask').classList.remove('active');
+        userData.tutorialCompleted = true;
+        userData.score += 100;
+        saveData();
+        setupProfileUI();
+        generateLevels();
+        triggerConfetti();
+        showToast("🎉 Вітаємо! Нараховано +100 бонусних балів!");
+        return;
+    }
+
+    updateTutorialUI();
+}
+
+/* ---------- Tutorial UI adjustment ---------- */
+function updateTutorialUI() {
+    const title = document.getElementById('tutorial-title');
+    const desc = document.getElementById('tutorial-desc');
+    const btn = document.getElementById('tutorial-btn');
+    const mask = document.getElementById('tutorial-mask');
+
+    mask.classList.add('active');
+
+    if (tutStep === 0) {
+        title.textContent = `Вітаємо, ${userData.name}!`;
+        desc.textContent = 'Пройдемо швидке покрокове навчання. Натисніть на підсвічений Рівень 0, щоб розпочати!';
+        btn.style.display = 'none';
+        document.getElementById('level-node-0')?.classList.add('tutorial-highlight');
+    } else if (tutStep === 2) {
+        title.textContent = 'Чудова робота!';
+        desc.textContent = "Тепер відкрийте вкладку 'Завдання' знизу екрану.";
+        btn.style.display = 'none';
+        document.getElementById('tut-nav-tasks')?.classList.add('tutorial-highlight');
+    } else if (tutStep === 3) {
+        title.textContent = "Вкладка 'Завдання'";
+        desc.textContent = "Тут будуть щотижневі завдання. Тепер відкрийте вкладку 'Магазин'.";
+        btn.style.display = 'none';
+        document.getElementById('tut-nav-shop')?.classList.add('tutorial-highlight');
+    } else if (tutStep === 4) {
+        title.textContent = "Вкладка 'Магазин'";
+        desc.textContent = "Тут купуються нові бонуси. А зараз натисніть на ваш Профіль у верхньому лівому кутку!";
+        btn.style.display = 'none';
+        document.getElementById('tut-profile')?.classList.add('tutorial-highlight');
+    } else if (tutStep === 5) {
+        title.textContent = 'Профіль і налаштування';
+        desc.textContent = 'Вікно профілю відкриється на 2 секунди, після чого автоматично закриється. Потім відкрийте лічильник Балів справа.';
+        btn.style.display = 'none';
+        document.getElementById('tut-score')?.classList.add('tutorial-highlight');
+    } else if (tutStep === 6) {
+        closeStats();
+        title.textContent = 'Вітаємо! 🎉';
+        desc.textContent = 'Ви пройшли навчання та отримуєте +100 бонусних балів. Грайте та піднімайтеся в топі!';
+        btn.style.display = 'block';
+        btn.textContent = 'Завершити навчання';
+    }
+}
+
+/* ---------- Preload ALL known level resources ----------
+   Browsers cannot enumerate a normal static folder, so the game preloads
+   the known level range used by the chain. Every request is concurrent and
+   cached, so opening a level later does not cause a cold download.
+*/
+async function preloadAssets() {
+    const infoEl = document.getElementById('splash-loading-info');
+    if (infoEl) infoEl.textContent = 'Попереднє завантаження футболістів...';
+
+    const urls = [];
+    const maxLevel = 60;
+
+    for (let i = 0; i <= maxLevel; i++) {
+        urls.push(`img/footboler/${i}.txt`);
+        urls.push(`img/footboler/${i}.png`);
+        urls.push(`img/footboler/${i}.jpg`);
+        urls.push(`img/footboler/${i}.jpeg`);
+        urls.push(`img/footboler/${i}.webp`);
+    }
+
+    // Also support the common spelling variant already supported by the game.
+    for (let i = 0; i <= maxLevel; i++) {
+        urls.push(`img/footballer/${i}.txt`);
+        urls.push(`img/footballer/${i}.png`);
+        urls.push(`img/footballer/${i}.jpg`);
+        urls.push(`img/footballer/${i}.jpeg`);
+        urls.push(`img/footballer/${i}.webp`);
+    }
+
+    try {
+        if ('caches' in window) {
+            const cache = await caches.open('fc-assets-v2');
+            let done = 0;
+
+            await Promise.all(urls.map(async (url) => {
+                try {
+                    const cached = await cache.match(url);
+                    if (!cached) {
+                        const response = await fetch(url, { cache: 'reload' });
+                        if (response.ok) {
+                            await cache.put(url, response.clone());
+                        }
+                    }
+                } catch (_) {
+                    // Missing extension/file is normal; continue with the rest.
+                } finally {
+                    done++;
+                    if (infoEl && (done % 20 === 0 || done === urls.length)) {
+                        infoEl.textContent = `Ресурси: ${done}/${urls.length}`;
+                    }
+                }
+            }));
+        } else {
+            // Fallback for browsers without Cache API.
+            await Promise.all(urls.map(url =>
+                fetch(url, { cache: 'force-cache' }).catch(() => null)
+            ));
+        }
+    } catch (_) {}
+
+    if (infoEl) infoEl.textContent = 'Готово!';
+}
+
+/* ---------- Make level start immune to stale sheets ---------- */
+const _originalHandleLevelClick = handleLevelClick;
+handleLevelClick = function(levelNum) {
+    closeAllSheetsForQuiz();
+
+    if (!userData.tutorialCompleted && levelNum !== 0) {
+        showToast('Пройдіть спочатку навчальний рівень 0!');
+        return;
+    }
+
+    if (levelNum > userData.level && levelNum !== 0) {
+        showToast('Пройдіть попередні рівні!');
+        return;
+    }
+
+    selectedLevelNum = levelNum;
+
+    if (levelNum === 0 && !userData.tutorialCompleted) {
+        if (tutStep === 0) {
+            tutStep = 1;
+            document.querySelectorAll('.tutorial-highlight')
+                .forEach(el => el.classList.remove('tutorial-highlight'));
+        }
+        startCurrentLevelQuiz();
+        return;
+    }
+
+    openLevelSheet(levelNum);
+};
+
+/* ---------- Extra safety: never leave a bottom sheet above quiz ---------- */
+const _originalCloseQuizModal = closeQuizModal;
+closeQuizModal = function() {
+    document.getElementById('quiz-modal').classList.remove('active');
+    // Do not reopen or preserve stale level/stats sheets after a quiz.
+    document.getElementById('sheet-overlay')?.classList.remove('active');
+    document.getElementById('bottom-sheet')?.classList.remove('active');
+};
+
+/* ---------- Keep UI fresh after profile changes ---------- */
+const _originalSetupProfileUI = setupProfileUI;
+setupProfileUI = function() {
+    _originalSetupProfileUI();
+    const score = document.getElementById('display-score');
+    if (score) score.textContent = userData.score;
+};
+
+/* ---------- Replace the old delayed preload behavior on initial load ----------
+   We cannot cancel the old onload handler, so this observer simply ensures the
+   full preload starts immediately after the main screen appears.
+*/
+setTimeout(() => {
+    if (typeof userData !== 'undefined' && userData.name) preloadAssets();
+}, 50);
+</script>
+
 </body>
 </html>
