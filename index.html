@@ -1112,95 +1112,176 @@
             document.getElementById('stats-sheet').classList.remove('active');
         }
 
+        /**
+         * Завантаження рівня з:
+         *   img/footballer/1.png
+         *   img/footballer/1.txt
+         *
+         * Формат TXT:
+         * "Питання?", "Відповідь 1" "Відповідь 2" "Відповідь 3", 1, 1, 10
+         *
+         * Останні 3 числа:
+         * 1) номер правильної відповіді (рахунок з 1)
+         * 2) складність (1-4)
+         * 3) кількість балів
+         */
         async function startCurrentLevelQuiz() {
             closeSheet();
+
             const level = selectedLevelNum;
             const txtPath = `img/footballer/${level}.txt`;
             const imgPath = `img/footballer/${level}.png`;
 
-            let parsed;
-            let finalImgSrc = imgPath;
-
             try {
-                const resTxt = await fetch(txtPath);
-                if (!resTxt.ok) throw new Error("File not found or local fetch blocked by CORS");
-                
-                const rawText = await resTxt.text();
-                parsed = parseQuestionFileText(rawText);
+                // Обидва файли ОБОВ'ЯЗКОВІ.
+                // Резервних/вигаданих питань немає.
+                const [resTxt, resImg] = await Promise.all([
+                    fetch(txtPath, { cache: 'no-store' }),
+                    fetch(imgPath, { cache: 'no-store' })
+                ]);
 
-                const resImg = await fetch(imgPath);
-                if (!resImg.ok) throw new Error("Image not found");
+                if (!resTxt.ok || !resImg.ok) {
+                    throw new Error(
+                        !resImg.ok && !resTxt.ok
+                            ? 'Не знайдено PNG та TXT'
+                            : !resImg.ok
+                                ? 'Не знайдено PNG'
+                                : 'Не знайдено TXT'
+                    );
+                }
+
+                const rawText = await resTxt.text();
+                const parsed = parseQuestionFileText(rawText);
+
+                if (!parsed || !parsed.question || parsed.options.length < 2) {
+                    throw new Error('TXT має неправильний формат або недостатньо варіантів відповіді');
+                }
+
+                if (parsed.correctIndex < 1 || parsed.correctIndex > parsed.options.length) {
+                    throw new Error('У TXT вказано неправильний номер правильної відповіді');
+                }
+
+                if (parsed.difficulty < 1 || parsed.difficulty > 4) {
+                    throw new Error('Складність у TXT повинна бути від 1 до 4');
+                }
+
+                if (!Number.isFinite(parsed.points) || parsed.points < 0) {
+                    throw new Error('Кількість балів у TXT вказана неправильно');
+                }
+
+                document.getElementById('quiz-level-title').textContent = `Рівень ${level}`;
+                document.getElementById('quiz-img').src = imgPath;
+                document.getElementById('quiz-question-text').textContent = parsed.question;
+
+                const optionsContainer = document.getElementById('quiz-options-container');
+                optionsContainer.innerHTML = '';
+
+                document.getElementById('quiz-gameplay-section').style.display = 'flex';
+                document.getElementById('quiz-feedback-box').style.display = 'none';
+
+                parsed.options.forEach((opt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'quiz-option-btn';
+                    btn.textContent = opt;
+
+                    // Номер кнопки починається з 1.
+                    // Тому correctIndex=1 означає ПЕРШУ кнопку.
+                    btn.onclick = () => checkQuizAnswer(
+                        idx + 1,
+                        parsed.correctIndex,
+                        parsed.points
+                    );
+
+                    optionsContainer.appendChild(btn);
+                });
+
+                document.getElementById('quiz-modal').classList.add('active');
 
             } catch (err) {
-                console.warn("Локальне виконання або файл не знайдено. Запускаємо резервне запитання для тестів.", err);
-                
-                // РЕЗЕРВНІ ДАНІ для автономного тестування (коли працює як file:///)
-                parsed = {
-                    question: "Хто є головним тренером ФК «Епіцентр»?",
-                    options: ["Сергій Нагорняк", "Мирон Маркевич", "Олександр Шовковський", "Юрій Вернидуб"],
-                    correctIndex: 1,
-                    difficulty: 1,
-                    points: 10
-                };
-                
-                // Генерація резервного SVG зображення
-                finalImgSrc = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400'><rect width='400' height='400' fill='%2300D26A'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-weight='800' font-size='32' fill='white'>ФОТО ГРАВЦЯ</text></svg>";
+                console.error(`Помилка рівня ${level}:`, err);
+                document.getElementById('quiz-modal').classList.remove('active');
+
+                showLevelError(
+                    `Рівень ${level}: цей рівень не було створено, або виникла помилка!`
+                );
             }
-
-            document.getElementById('quiz-level-title').textContent = `Рівень ${level}`;
-            document.getElementById('quiz-img').src = finalImgSrc;
-            document.getElementById('quiz-question-text').textContent = parsed.question;
-
-            const optionsContainer = document.getElementById('quiz-options-container');
-            optionsContainer.innerHTML = '';
-
-            document.getElementById('quiz-gameplay-section').style.display = 'flex';
-            document.getElementById('quiz-feedback-box').style.display = 'none';
-
-            parsed.options.forEach((opt, idx) => {
-                const btn = document.createElement('button');
-                btn.className = 'quiz-option-btn';
-                btn.textContent = opt;
-                btn.onclick = () => checkQuizAnswer(idx + 1, parsed.correctIndex, parsed.points);
-                optionsContainer.appendChild(btn);
-            });
-
-            document.getElementById('quiz-modal').classList.add('active');
         }
 
+        /**
+         * Розбір TXT.
+         *
+         * Приклад:
+         * "Що це за футболіст?", "Кріштіану Роналду" "Ліонель Мессі" "Неймар Джуніор", 1, 1, 10
+         *
+         * 1-ше значення в лапках = питання
+         * решта значень в лапках = кнопки
+         * останні 3 числа = правильна кнопка, складність, бали
+         */
         function parseQuestionFileText(text) {
-            const quotes = [...text.matchAll(/"([^"]*)"/g)].map(m => m[1]);
-            const question = quotes[0] || "Хто це?";
+            const cleanText = String(text || '').replace(/^\uFEFF/, '').trim();
+
+            const quotes = [...cleanText.matchAll(/"([^"]*)"/g)]
+                .map(match => match[1].trim());
+
+            if (quotes.length < 3) {
+                throw new Error('У TXT повинно бути питання та щонайменше 2 варіанти відповіді');
+            }
+
+            const question = quotes[0];
             const options = quotes.slice(1);
-            
-            const unquoted = text.replace(/"([^"]*)"/g, '');
-            const numbers = unquoted.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
-            
-            const correctIndex = numbers[0] || 1;
-            const difficulty = numbers[1] || 1;
-            const points = numbers[2] || 10;
-            
-            return { question, options, correctIndex, difficulty, points };
+
+            // Беремо числа тільки ПІСЛЯ останнього тексту в лапках.
+            const lastQuoteIndex = cleanText.lastIndexOf('"');
+            const numericPart = cleanText.slice(lastQuoteIndex + 1);
+
+            const numbers = [...numericPart.matchAll(/-?\d+(?:\.\d+)?/g)]
+                .map(match => Number(match[0]));
+
+            if (numbers.length < 3) {
+                throw new Error('У TXT відсутні правильна відповідь, складність або бали');
+            }
+
+            return {
+                question,
+                options,
+                correctIndex: Math.trunc(numbers[0]),
+                difficulty: Math.trunc(numbers[1]),
+                points: numbers[2]
+            };
+        }
+
+        function showLevelError(message) {
+            showToast(message);
+
+            setTimeout(() => {
+                alert(message);
+            }, 50);
         }
 
         let lastQuizResult = false;
 
         function checkQuizAnswer(selectedOpt, correctOpt, pointsEarned) {
             const buttons = document.querySelectorAll('.quiz-option-btn');
-            const isCorrect = (selectedOpt === correctOpt);
+
+            // selectedOpt і correctOpt — номери кнопок, починаючи з 1.
+            const isCorrect = Number(selectedOpt) === Number(correctOpt);
             lastQuizResult = isCorrect;
 
             buttons.forEach((btn, idx) => {
-                if ((idx + 1) === correctOpt) {
+                const buttonNumber = idx + 1;
+
+                if (buttonNumber === Number(correctOpt)) {
                     btn.classList.add('correct');
-                } else if ((idx + 1) === selectedOpt && !isCorrect) {
+                } else if (buttonNumber === Number(selectedOpt) && !isCorrect) {
                     btn.classList.add('wrong');
                 }
+
                 btn.style.pointerEvents = 'none';
             });
 
             setTimeout(() => {
                 document.getElementById('quiz-gameplay-section').style.display = 'none';
+
                 const feedbackBox = document.getElementById('quiz-feedback-box');
                 feedbackBox.style.display = 'block';
 
@@ -1211,28 +1292,36 @@
                 if (isCorrect) {
                     userData.correctCount = (userData.correctCount || 0) + 1;
                     titleEl.textContent = "Супер! ⚽";
-                    
+
                     const wasFailed = userData.failedLevels.includes(selectedLevelNum);
+
                     if (!wasFailed) {
                         userData.score += pointsEarned;
                         descEl.textContent = `Правильно! Ви заробили +${pointsEarned} балів.`;
                     } else {
                         descEl.textContent = `Правильно! (Бали не нараховані через попередню помилку).`;
-                        userData.failedLevels = userData.failedLevels.filter(l => l !== selectedLevelNum);
+                        userData.failedLevels = userData.failedLevels.filter(
+                            l => l !== selectedLevelNum
+                        );
                     }
 
                     if (selectedLevelNum === userData.level) {
                         userData.level++;
+
                         if (selectedLevelNum === 20 || selectedLevelNum === 40) {
                             triggerConfetti();
                         }
                     }
+
                     saveData();
                     setupProfileUI();
                     generateLevels();
+
                     btnEl.textContent = "Наступний рівень";
+
                 } else {
                     userData.incorrectCount = (userData.incorrectCount || 0) + 1;
+
                     titleEl.textContent = "Помилка! ❌";
                     descEl.textContent = "На жаль, відповідь неправильна. Бали не нараховані.";
                     btnEl.textContent = "Спробувати знову";
@@ -1240,6 +1329,7 @@
                     if (!userData.failedLevels.includes(selectedLevelNum)) {
                         userData.failedLevels.push(selectedLevelNum);
                     }
+
                     saveData();
                     generateLevels();
                 }
@@ -1248,6 +1338,7 @@
 
         function handleQuizFeedbackNext() {
             document.getElementById('quiz-modal').classList.remove('active');
+
             if (!lastQuizResult) {
                 setTimeout(() => startCurrentLevelQuiz(), 300);
             }
@@ -1256,6 +1347,7 @@
         function closeQuizModal() {
             document.getElementById('quiz-modal').classList.remove('active');
         }
+
 
         const TOTAL_SESSION_SECONDS = 20 * 60;
 
