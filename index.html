@@ -303,13 +303,14 @@
             transform: scale(1.15) translateX(calc(var(--offset) * 0.8));
         }
 
+        /* Cloud Barrier */
         .cloud-barrier {
             background: var(--surface); border: 1px dashed var(--border); border-radius: 20px;
-            padding: 20px; text-align: center; margin: 10px 0; width: 100%;
+            padding: 16px 20px; text-align: center; margin: 10px 0; width: 100%;
             box-shadow: 0 4px 15px var(--shadow); z-index: 2; position: relative;
         }
-        .cloud-icon { font-size: 32px; margin-bottom: 6px; }
-        .cloud-text { font-size: 13px; font-weight: 600; color: var(--text-sec); line-height: 1.4; }
+        .cloud-icon { font-size: 32px; margin-bottom: 4px; }
+        .cloud-text { font-size: 13px; font-weight: 700; color: var(--text-sec); line-height: 1.4; }
 
         /* Bottom Navigation */
         .bottom-nav {
@@ -373,11 +374,17 @@
             overflow-y: auto;
         }
         .quiz-header-bar { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px; flex-shrink: 0;}
+        
+        /* Fixed height for image alignment */
         .quiz-img-box {
-            width: 100%; flex: 1; min-height: 200px; max-height: 350px; border-radius: 20px; background: #000;
+            width: 100%; height: 240px; border-radius: 20px; background: #000;
             border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
         }
-        .quiz-img-box img { width: 100%; height: 100%; object-fit: contain; }
+        .quiz-img-box img {
+            height: 100%; width: auto; max-width: 100%; object-fit: contain; display: block;
+        }
+
         .quiz-question { font-size: 18px; font-weight: 800; text-align: center; line-height: 1.35; margin: 8px 0; flex-shrink: 0;}
         .quiz-options { display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;}
         .quiz-option-btn {
@@ -393,7 +400,7 @@
         .quiz-feedback-title { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
         .quiz-feedback-desc { font-size: 15px; color: var(--text-sec); margin-bottom: 24px; line-height: 1.5;}
 
-        /* Modals & Bottom Sheets */
+        /* Modals & Bottom Sheets Fix */
         .sheet-overlay, .settings-modal {
             position: absolute; inset: 0; background: var(--modal-bg);
             backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
@@ -407,9 +414,9 @@
             padding: 20px 24px calc(24px + env(safe-area-inset-bottom));
             z-index: 101; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
             box-shadow: 0 -10px 40px var(--shadow); border-top: 1px solid var(--border);
-            max-height: 85vh; overflow-y: auto;
+            max-height: 85vh; overflow-y: auto; pointer-events: none; opacity: 0;
         }
-        .bottom-sheet.active, .settings-modal.active .settings-content { transform: translateY(0); }
+        .bottom-sheet.active, .settings-modal.active .settings-content { transform: translateY(0); pointer-events: all; opacity: 1; }
         
         /* Dropdown Fix */
         .custom-dropdown {
@@ -449,26 +456,30 @@
         }
         .theme-btn.active { border-color: var(--primary); color: var(--text-main); background: rgba(0, 210, 106, 0.08); }
 
-        /* Tutorial Classes */
+        /* Tutorial Classes & Glowing Highlights */
         .tutorial-mask {
-            position: absolute; inset: 0; background: rgba(0,0,0,0.6); z-index: 55000;
-            opacity: 0; pointer-events: none; transition: 0.3s; display: flex; justify-content: center; align-items: center;
+            position: absolute; inset: 0; background: rgba(0,0,0,0.65); z-index: 55000;
+            opacity: 0; pointer-events: none; transition: 0.3s; display: flex; justify-content: center; align-items: flex-end;
+            padding-bottom: 100px;
         }
         .tutorial-mask.active { opacity: 1; pointer-events: all; }
         .tutorial-dialog {
-            background: var(--surface); padding: 24px; border-radius: 24px; width: 85%;
-            text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); border: 2px solid var(--primary);
+            background: var(--surface); padding: 22px; border-radius: 24px; width: 90%;
+            text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.4); border: 2px solid var(--primary);
+            animation: floatUp 0.3s ease;
         }
+        @keyframes floatUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
         .tutorial-highlight {
             position: relative; z-index: 56000 !important; pointer-events: all !important;
-            box-shadow: 0 0 0 4px var(--primary), 0 10px 20px rgba(0,0,0,0.3) !important;
+            box-shadow: 0 0 0 4px var(--primary), 0 0 20px var(--primary) !important;
             border-radius: inherit; background: var(--surface);
-            animation: pulseHigh 1.5s infinite;
+            animation: pulseGlow 1.5s infinite;
         }
-        @keyframes pulseHigh {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+        @keyframes pulseGlow {
+            0% { transform: scale(1); box-shadow: 0 0 0 4px var(--primary), 0 0 10px var(--primary); }
+            50% { transform: scale(1.04); box-shadow: 0 0 0 6px var(--primary), 0 0 25px var(--primary); }
+            100% { transform: scale(1); box-shadow: 0 0 0 4px var(--primary), 0 0 10px var(--primary); }
         }
     </style>
 </head>
@@ -476,7 +487,7 @@
 
     <div class="app-container">
         
-        <!-- Toast Spowischennya -->
+        <!-- Toast Notification -->
         <div class="toast-notification" id="toast-notification">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             <span id="toast-text">Сповіщення</span>
@@ -546,12 +557,12 @@
             </div>
         </div>
 
-        <!-- Tutorial Mask -->
+        <!-- Tutorial Mask & Dialog -->
         <div class="tutorial-mask" id="tutorial-mask">
             <div class="tutorial-dialog" id="tutorial-dialog">
-                <h3 style="margin-bottom: 12px; font-size: 20px; font-weight: 800;" id="tutorial-title">Навчання</h3>
-                <p style="color: var(--text-sec); margin-bottom: 20px; font-size: 15px; line-height: 1.4;" id="tutorial-desc"></p>
-                <button class="btn-main" onclick="nextTutorialStep()">Зрозуміло</button>
+                <h3 style="margin-bottom: 10px; font-size: 20px; font-weight: 800;" id="tutorial-title">Навчання</h3>
+                <p style="color: var(--text-sec); margin-bottom: 18px; font-size: 14px; line-height: 1.4;" id="tutorial-desc"></p>
+                <button class="btn-main" id="tutorial-btn" onclick="nextTutorialStep()">Зрозуміло</button>
             </div>
         </div>
 
@@ -626,7 +637,7 @@
 
             <!-- Bottom Nav -->
             <nav class="bottom-nav">
-                <div class="nav-item active" onclick="switchTab('home', this)">
+                <div class="nav-item active" id="tut-nav-home" onclick="switchTab('home', this)">
                     <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
                     <span class="nav-text">Головна</span>
                 </div>
@@ -694,6 +705,16 @@
             <button class="btn-main" onclick="closeStats()">Закрити</button>
         </div>
 
+        <!-- Era Unlock Sheet -->
+        <div class="sheet-overlay" id="era-overlay" onclick="closeEraModal()"></div>
+        <div class="bottom-sheet" id="era-sheet" style="text-align: center; z-index: 60000;">
+            <div class="sheet-handle"></div>
+            <div style="font-size: 50px; margin-bottom: 8px;">🏆🎉</div>
+            <h2 class="sheet-title" id="era-title">Вітаємо!</h2>
+            <p class="sheet-desc" id="era-desc">Ви розблокували 2 Еру!</p>
+            <button class="btn-main" onclick="closeEraModal()">Чудово!</button>
+        </div>
+
         <!-- Settings Modal -->
         <div class="settings-modal" id="settings-modal">
             <div class="settings-content">
@@ -752,7 +773,7 @@
             "Металіст 1925", "Оболонь", "Полісся", "Чорноморець", "Шахтар"
         ];
 
-        const STORAGE_KEY = 'football_career_save_v7';
+        const STORAGE_KEY = 'football_career_save_v8';
         
         function getDeviceId() {
             let id;
@@ -814,7 +835,7 @@
         }
 
         function triggerConfetti() {
-            for (let i = 0; i < 50; i++) {
+            for (let i = 0; i < 60; i++) {
                 const particle = document.createElement('div');
                 const colors = ['#00D26A', '#FF3B30', '#FFCC00', '#007AFF', '#AF52DE'];
                 particle.style.background = colors[Math.floor(Math.random() * colors.length)];
@@ -880,22 +901,17 @@
         /* Preloader */
         async function preloadAssets() {
             const infoEl = document.getElementById('splash-loading-info');
-            infoEl.textContent = userData.level <= 1 ? "Синхронізація ресурсів для першого запуску..." : "Завантаження рівнів...";
-            
+            infoEl.textContent = userData.level <= 1 ? "Синхронізація ресурсів..." : "Завантаження рівнів...";
             try {
                 if ('caches' in window) {
                     const cache = await caches.open('fc-assets-v1');
                     const baseLevel = userData.level || 1;
                     let urls = [];
-                    // Preload current level + next 4 levels
                     for(let i = baseLevel; i <= baseLevel + 4; i++) {
                         urls.push(`img/footboler/${i}.png`, `img/footboler/${i}.txt`);
                     }
-                    if(!userData.tutorialCompleted) {
-                        urls.push(`img/footboler/0.png`, `img/footboler/0.txt`);
-                    }
+                    if(!userData.tutorialCompleted) urls.push(`img/footboler/0.png`, `img/footboler/0.txt`);
                     
-                    // Fire and forget (don't block UI entirely if slow)
                     urls.forEach(url => {
                         cache.match(url).then(res => {
                             if(!res) {
@@ -906,7 +922,7 @@
                         });
                     });
                 }
-            } catch(e) { console.warn("Cache API не підтримується"); }
+            } catch(e) { }
         }
 
         /* Application Init */
@@ -924,7 +940,7 @@
                 document.getElementById('splash-name-display').textContent = userData.name;
                 splash.classList.add('active');
                 
-                preloadAssets(); // Кешуємо ресурси
+                preloadAssets();
                 
                 setTimeout(() => {
                     splash.classList.add('fade-out');
@@ -973,7 +989,7 @@
             setupProfileUI();
         }
 
-        /* Avatar Cropper Logic (Same as before) */
+        /* Avatar Cropper Logic */
         let cropRawUrl = ''; let currentX = 0, currentY = 0, cropScale = 1;
         const cropImage = document.getElementById('crop-image');
         const cropArea = document.getElementById('crop-area');
@@ -1032,7 +1048,7 @@
             if(!club) { alert("Оберіть улюблений клуб!"); return; }
             
             userData.name = name; userData.lastName = document.getElementById('last-name').value.trim();
-            userData.club = club; userData.tutorialCompleted = false; // Почнемо туторіал
+            userData.club = club; userData.tutorialCompleted = false;
             saveData(); setupProfileUI();
 
             document.getElementById('auth-screen').classList.remove('active');
@@ -1042,7 +1058,7 @@
             setTimeout(initTutorial, 500);
         }
 
-        /* Levels */
+        /* Levels & Cloud Barriers */
         function getDifficultyText(lvl) {
             if (lvl <= 10) return "Легко";
             if (lvl <= 25) return "Середньо";
@@ -1054,7 +1070,7 @@
             const chainContainer = document.getElementById('level-chain');
             chainContainer.innerHTML = '<div class="chain-line"></div>';
             
-            // Якщо туторіал ще не пройдено, додаємо 0 рівень
+            // Тестовий рівень 0 для навчання
             if (!userData.tutorialCompleted) {
                 const node0 = document.createElement('div');
                 node0.className = 'level-node current';
@@ -1067,14 +1083,13 @@
 
             let maxRenderLevel = 20;
             if (userData.level > 20 && userData.level <= 40) maxRenderLevel = 40;
-            else if (userData.level > 40) maxRenderLevel = 50;
+            else if (userData.level > 40) maxRenderLevel = 60;
 
             for (let i = 1; i <= maxRenderLevel; i++) {
                 const levelNode = document.createElement('div');
                 levelNode.className = 'level-node';
                 levelNode.id = `level-node-${i}`;
                 
-                // Перевірка на провалений рівень (постійний хрестик)
                 if (userData.failedLevels && userData.failedLevels.includes(i)) {
                     levelNode.classList.add('failed');
                     levelNode.innerHTML = `✕`;
@@ -1090,8 +1105,22 @@
 
                 levelNode.onclick = () => handleLevelClick(i);
                 chainContainer.appendChild(levelNode);
-                setTimeout(() => levelNode.classList.add('show'), i * 15); 
+                setTimeout(() => levelNode.classList.add('show'), i * 15);
+
+                // Додаємо хмаринку після 20, 40, 60 рівнів
+                if (i % 20 === 0) {
+                    const eraNum = Math.floor(i / 20) + 1;
+                    const cloud = document.createElement('div');
+                    cloud.className = 'cloud-barrier';
+                    if (userData.level > i) {
+                        cloud.innerHTML = `<div class="cloud-icon">☁️ 🔓</div><div class="cloud-text">Ера ${eraNum} розблокована</div>`;
+                    } else {
+                        cloud.innerHTML = `<div class="cloud-icon">☁️ 🔒</div><div class="cloud-text">Пройдіть ${i} рівнів, щоб відкрити Еру ${eraNum}</div>`;
+                    }
+                    chainContainer.appendChild(cloud);
+                }
             }
+
             setTimeout(() => {
                 const currentNode = document.querySelector('.level-node.current') || document.querySelector('.level-node');
                 if (currentNode) currentNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1100,8 +1129,11 @@
 
         let selectedLevelNum = 1;
         function handleLevelClick(levelNum) {
-            // Блокування під час навчання, якщо клік не на 0 рівень
-            if (!userData.tutorialCompleted && levelNum !== 0) return;
+            // Блокування під час туторіалу
+            if (!userData.tutorialCompleted && levelNum !== 0) {
+                showToast("Пройдіть спочатку навчальний рівень 0!");
+                return;
+            }
 
             if (levelNum > userData.level && levelNum !== 0) {
                 showToast(`Пройдіть попередні рівні!`);
@@ -1117,8 +1149,16 @@
             document.getElementById('sheet-reward').textContent = levelNum === 0 ? '+0 балів' : `+${levelNum * 10} балів`;
             document.getElementById('sheet-overlay').classList.add('active');
             document.getElementById('bottom-sheet').classList.add('active');
+
+            if (!userData.tutorialCompleted && tutStep === 0) {
+                nextTutorialStep();
+            }
         }
-        function closeSheet() { document.getElementById('sheet-overlay').classList.remove('active'); document.getElementById('bottom-sheet').classList.remove('active'); }
+
+        function closeSheet() { 
+            document.getElementById('sheet-overlay').classList.remove('active'); 
+            document.getElementById('bottom-sheet').classList.remove('active'); 
+        }
 
         async function startCurrentLevelQuiz() {
             closeSheet();
@@ -1134,7 +1174,7 @@
             }
 
             if (!rawText) {
-                showToast(`Рівень не створено, або у вас стався збій! (Файл: img/footboler/${level}.txt)`);
+                showToast(`Рівень не створено (Файл: img/footboler/${level}.txt)`);
                 return;
             }
 
@@ -1157,16 +1197,22 @@
                     const btn = document.createElement('button');
                     btn.className = 'quiz-option-btn';
                     btn.textContent = opt;
+                    btn.id = `quiz-opt-btn-${idx+1}`;
                     btn.onclick = () => checkQuizAnswer(idx + 1, parsed.correctIndex, parsed.points);
                     optionsContainer.appendChild(btn);
                 });
+
                 document.getElementById('quiz-modal').classList.add('active');
-                
-                // Якщо це навчання
-                if(level === 0 && tutStep === 1) nextTutorialStep(); // перехід до наступного кроку туторіалу неявно
+
+                if (!userData.tutorialCompleted && tutStep === 1) {
+                    // Перехід до показу вибору відповіді
+                    document.getElementById('tutorial-title').textContent = "Оберіть відповідь";
+                    document.getElementById('tutorial-desc').textContent = "Натисніть на правильний варіант. Якщо помилитесь — гра покаже правильну відповідь!";
+                    document.getElementById('tutorial-mask').classList.remove('active');
+                }
 
             } catch (err) {
-                showToast(`Рівень не створено, або у вас стався збій!`);
+                showToast(`Збій завантаження рівня!`);
             }
         }
 
@@ -1185,21 +1231,37 @@
 
         function closeQuizModal() {
             document.getElementById('quiz-modal').classList.remove('active');
-            if(selectedLevelNum === 0 && tutStep === 1) {
-                 tutStep++; nextTutorialStep();
-            }
         }
 
         function checkQuizAnswer(selectedOpt, correctOpt, pointsEarned) {
             const buttons = document.querySelectorAll('.quiz-option-btn');
             const isCorrect = Number(selectedOpt) === Number(correctOpt);
 
+            // Підсвічування відповіді
             buttons.forEach((btn, idx) => {
                 const buttonNumber = idx + 1;
-                if (buttonNumber === Number(correctOpt)) btn.classList.add('correct');
-                else if (buttonNumber === Number(selectedOpt) && !isCorrect) btn.classList.add('wrong');
+                if (buttonNumber === Number(correctOpt)) {
+                    btn.classList.add('correct');
+                } else if (buttonNumber === Number(selectedOpt) && !isCorrect) {
+                    btn.classList.add('wrong');
+                }
                 btn.style.pointerEvents = 'none';
             });
+
+            // Якщо виконано 20, 40, 60 і т.д. рівень правильно - автоматичне закриття і привітання
+            if (isCorrect && selectedLevelNum > 0 && selectedLevelNum % 20 === 0) {
+                userData.correctCount = (userData.correctCount || 0) + 1;
+                userData.score += pointsEarned;
+                if (selectedLevelNum === userData.level) userData.level++;
+                saveData(); setupProfileUI(); generateLevels();
+
+                setTimeout(() => {
+                    closeQuizModal();
+                    triggerConfetti();
+                    showEraModal(Math.floor(selectedLevelNum / 20) + 1);
+                }, 1200);
+                return;
+            }
 
             setTimeout(() => {
                 document.getElementById('quiz-gameplay-section').style.display = 'none';
@@ -1212,9 +1274,9 @@
                 const retryBtn = document.getElementById('quiz-feedback-retry-btn');
 
                 if (selectedLevelNum === 0) {
-                     titleEl.textContent = isCorrect ? "Вірно! ⚽" : "Нічого страшного!";
-                     descEl.textContent = "Це був тестовий рівень. Ви готові!";
-                     nextBtn.textContent = "Продовжити";
+                     titleEl.textContent = isCorrect ? "Чудово! ⚽" : "Нічого страшного!";
+                     descEl.textContent = isCorrect ? "Ви відповіли правильно!" : `Правильна відповідь була виділена зеленим коліром.`;
+                     nextBtn.textContent = "Продовжити навчання";
                      retryBtn.style.display = 'none';
                      return;
                 }
@@ -1224,9 +1286,7 @@
                     titleEl.textContent = "Вірно! ⚽";
                     retryBtn.style.display = 'none';
 
-                    // Перевірка чи був рівень провалений раніше
                     const isPermanentlyFailed = userData.failedLevels.includes(selectedLevelNum);
-                    
                     if (!isPermanentlyFailed) {
                         userData.score += pointsEarned;
                         descEl.textContent = `Чудово! Ви отримали +${pointsEarned} балів.`;
@@ -1236,17 +1296,15 @@
 
                     if (selectedLevelNum === userData.level) {
                         userData.level++;
-                        if (selectedLevelNum === 20 || selectedLevelNum === 40) triggerConfetti();
                     }
                     nextBtn.textContent = "Наступний рівень";
                 } else {
                     userData.incorrectCount = (userData.incorrectCount || 0) + 1;
                     titleEl.textContent = "Помилка! ❌";
-                    descEl.textContent = "Невірна відповідь. Бали за цей рівень втрачено назавжди.";
+                    descEl.textContent = "Невірна відповідь. Правильну підсвічено зеленим!";
                     retryBtn.style.display = 'block';
                     nextBtn.textContent = "Наступний рівень";
 
-                    // Додаємо в провалені назавжди, якщо ще не там
                     if (!userData.failedLevels.includes(selectedLevelNum)) {
                         userData.failedLevels.push(selectedLevelNum);
                     }
@@ -1257,16 +1315,19 @@
 
         function handleQuizFeedbackNext() {
             closeQuizModal();
-            if (selectedLevelNum === 0) return; // Туторіал хендлить це
+            if (selectedLevelNum === 0) {
+                // Перехід до наступного кроку туторіалу
+                tutStep = 2;
+                nextTutorialStep();
+                return;
+            }
 
-            // Просуваємо рівень гравця, навіть якщо він помилився на своєму макс рівні, щоб він міг йти далі
             if (selectedLevelNum === userData.level) {
                 userData.level++;
                 saveData();
                 generateLevels();
             }
             
-            // Відкриваємо одразу наступний рівень
             selectedLevelNum++;
             setTimeout(() => { startCurrentLevelQuiz(); }, 300);
         }
@@ -1276,7 +1337,19 @@
             setTimeout(() => { startCurrentLevelQuiz(); }, 300);
         }
 
-        /* Tutorial System */
+        function showEraModal(eraNum) {
+            document.getElementById('era-title').textContent = `Еру ${eraNum} Розблоковано!`;
+            document.getElementById('era-desc').textContent = `Вітаємо! Ви пройшли ${selectedLevelNum} рівнів та розблокували нову Еру ${eraNum}!`;
+            document.getElementById('era-overlay').classList.add('active');
+            document.getElementById('era-sheet').classList.add('active');
+        }
+
+        function closeEraModal() {
+            document.getElementById('era-overlay').classList.remove('active');
+            document.getElementById('era-sheet').classList.remove('active');
+        }
+
+        /* Tutorial System (Step by Step with lock) */
         let tutStep = 0;
         function initTutorial() {
             if(userData.tutorialCompleted) return;
@@ -1286,7 +1359,6 @@
         }
 
         function nextTutorialStep() {
-            tutStep++;
             document.querySelectorAll('.tutorial-highlight').forEach(el => el.classList.remove('tutorial-highlight'));
             updateTutorialUI();
         }
@@ -1294,87 +1366,91 @@
         function updateTutorialUI() {
             const title = document.getElementById('tutorial-title');
             const desc = document.getElementById('tutorial-desc');
+            const btn = document.getElementById('tutorial-btn');
             const mask = document.getElementById('tutorial-mask');
+
+            mask.classList.add('active');
 
             if (tutStep === 0) {
                 title.textContent = `Вітаємо, ${userData.name}!`;
-                desc.textContent = "Давайте пройдемо швидке навчання. Для початку запустіть тестовий 0 рівень.";
+                desc.textContent = "Пройдемо швидке покрокове навчання. Натисніть на підсвічений Рівень 0, щоб розпочати!";
+                btn.style.display = 'none';
                 document.getElementById('level-node-0')?.classList.add('tutorial-highlight');
             } 
             else if (tutStep === 1) {
-                mask.classList.remove('active'); // Ховаємо маску щоб гравець пройшов рівень
+                title.textContent = "Початок рівня";
+                desc.textContent = "Тепер натисніть на зелену кнопку 'Почати рівень'.";
+                btn.style.display = 'none';
+                document.getElementById('start-lvl-btn')?.classList.add('tutorial-highlight');
             }
             else if (tutStep === 2) {
-                mask.classList.add('active');
-                title.textContent = "Супер!";
-                desc.textContent = "Після виконання завдання воно зникає з карти. Тепер перейдіть у вкладку 'Завдання' (кнопка внизу).";
-                document.getElementById('tut-nav-tasks').classList.add('tutorial-highlight');
+                title.textContent = "Чудова робота!";
+                desc.textContent = "Тепер відкрийте вкладку 'Завдання' знизу екрану.";
+                btn.style.display = 'none';
+                document.getElementById('tut-nav-tasks')?.classList.add('tutorial-highlight');
             }
             else if (tutStep === 3) {
-                switchTab('tasks', document.getElementById('tut-nav-tasks'));
-                title.textContent = "Завдання";
-                desc.textContent = "Тут ви будете отримувати щотижневі винагороди. А тепер зазирніть у 'Магазин'.";
-                document.getElementById('tut-nav-shop').classList.add('tutorial-highlight');
+                title.textContent = "Вкладка 'Завдання'";
+                desc.textContent = "Тут будуть з'являтися щотижневі завдання. Тепер відкрийте вкладку 'Магазин'.";
+                btn.style.display = 'none';
+                document.getElementById('tut-nav-shop')?.classList.add('tutorial-highlight');
             }
             else if (tutStep === 4) {
-                switchTab('shop', document.getElementById('tut-nav-shop'));
-                title.textContent = "Магазин";
-                desc.textContent = "Тут будуть нові нагороди та скіни. Тепер натисніть на свій профіль (аватар зверху).";
-                document.getElementById('tut-profile').classList.add('tutorial-highlight');
+                title.textContent = "Вкладка 'Магазин'";
+                desc.textContent = "Тут купуються нові бонуси. А зараз натисніть на ваш Профіль у верхньому лівому кутку!";
+                btn.style.display = 'none';
+                document.getElementById('tut-profile')?.classList.add('tutorial-highlight');
             }
             else if (tutStep === 5) {
-                switchTab('home', document.querySelector('.nav-item.active')); // Повертаємо на головну
-                openSettings();
-                document.getElementById('settings-modal').style.zIndex = '54000'; // Трохи нижче маски
-                title.textContent = "Налаштування";
-                desc.textContent = "Тут ви можете змінити фото, ім'я, клуб та тему. Закрийте налаштування і натисніть на Бали!";
-                document.getElementById('tut-score').classList.add('tutorial-highlight');
+                closeSettings();
+                title.textContent = "Налаштування гри";
+                desc.textContent = "В Налаштуваннях можна змінювати клуб та тему. Тепер натисніть на лічильник Балів справа!";
+                btn.style.display = 'none';
+                document.getElementById('tut-score')?.classList.add('tutorial-highlight');
             }
             else if (tutStep === 6) {
-                closeSettings();
-                document.getElementById('settings-modal').style.zIndex = '100';
-                openStats();
-                document.getElementById('stats-overlay').style.zIndex = '54000';
-                document.getElementById('stats-sheet').style.zIndex = '54001';
-                title.textContent = "Статистика";
-                desc.textContent = "Тут вся ваша історія успіху. Навчання завершено!";
+                closeStats();
+                title.textContent = "Вітаємо! 🎉";
+                desc.textContent = "Ви пройшли навчання та отримуєте +100 бонусних балів. Грайте та піднімайтеся в топі!";
+                btn.style.display = 'block';
+                btn.textContent = "Завершити навчання";
+                tutStep = 7;
             }
             else if (tutStep === 7) {
-                closeStats();
-                document.getElementById('stats-overlay').style.zIndex = '100';
-                document.getElementById('stats-sheet').style.zIndex = '101';
                 mask.classList.remove('active');
-                
-                // Нарахування бонусу
                 userData.tutorialCompleted = true;
                 userData.score += 100;
                 saveData();
                 setupProfileUI();
-                generateLevels(); // Видалить 0 рівень
+                generateLevels();
+                triggerConfetti();
                 showToast("🎉 Вітаємо! Нараховано +100 бонусних балів!");
             }
         }
 
-
-        /* Tabs & Other Systems */
+        /* Tabs Navigation */
         function switchTab(tabId, el) {
-            if(!userData.tutorialCompleted && el && !el.classList.contains('tutorial-highlight')) return; // Блок
+            // Жорсткий блок під час туторіалу
+            if (!userData.tutorialCompleted && el && !el.classList.contains('tutorial-highlight')) {
+                showToast("Виконуйте вказівки навчання!");
+                return;
+            }
 
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(`tab-${tabId}`).classList.add('active');
             if (el) el.classList.add('active');
             
-            // Якщо туторіал активний і ми клікнули правильну табку
-            if(!userData.tutorialCompleted && tutStep > 1 && tutStep < 5) {
-                nextTutorialStep();
+            if(!userData.tutorialCompleted) {
+                if(tabId === 'tasks' && tutStep === 2) { tutStep = 3; nextTutorialStep(); }
+                else if(tabId === 'shop' && tutStep === 3) { tutStep = 4; nextTutorialStep(); }
             }
         }
 
         function openSettings() { 
-            if(!userData.tutorialCompleted && tutStep !== 4) return;
+            if(!userData.tutorialCompleted && tutStep !== 4) { showToast("Виконуйте вказівки навчання!"); return; }
             document.getElementById('settings-modal').classList.add('active'); 
-            if(!userData.tutorialCompleted && tutStep === 4) nextTutorialStep();
+            if(!userData.tutorialCompleted && tutStep === 4) { tutStep = 5; nextTutorialStep(); }
         }
         function closeSettings() { document.getElementById('settings-modal').classList.remove('active'); }
         function setTheme(theme) { userData.theme = theme; saveData(); applyThemeStyling(theme); }
@@ -1386,7 +1462,7 @@
         }
 
         function openStats() {
-            if(!userData.tutorialCompleted && tutStep !== 5) return;
+            if(!userData.tutorialCompleted && tutStep !== 5) { showToast("Виконуйте вказівки навчання!"); return; }
             document.getElementById('stat-points').textContent = userData.score;
             document.getElementById('stat-levels').textContent = `${Math.min(50, userData.level - 1)} / 50`;
             document.getElementById('stat-era').textContent = userData.level <= 20 ? "Ера 1" : (userData.level <= 40 ? "Ера 2" : "Ера 3");
@@ -1395,7 +1471,7 @@
             document.getElementById('stat-incorrect').textContent = userData.incorrectCount || 0;
             document.getElementById('stats-overlay').classList.add('active');
             document.getElementById('stats-sheet').classList.add('active');
-            if(!userData.tutorialCompleted && tutStep === 5) nextTutorialStep();
+            if(!userData.tutorialCompleted && tutStep === 5) { tutStep = 6; nextTutorialStep(); }
         }
         function closeStats() { document.getElementById('stats-overlay').classList.remove('active'); document.getElementById('stats-sheet').classList.remove('active'); }
 
