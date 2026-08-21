@@ -916,29 +916,33 @@
             closeClubDropdown();
         }
 
+        // ВИПРАВЛЕННЯ 1: Завантаження чанками, щоб не блокувати мережу
         async function preloadAssets() {
             const infoEl = document.getElementById('splash-loading-info');
-            if (infoEl) infoEl.textContent = 'Завантаження футболістів...';
+            if (infoEl) infoEl.textContent = 'Завантаження ресурсів...';
+            
             const urls = [];
-            for (let i = 0; i <= 300; i++) {
-                urls.push(`img/footboler/${i}.txt`, `img/footboler/${i}.png`, `img/footboler/${i}.jpg`, `img/footboler/${i}.jpeg`, `img/footboler/${i}.webp`);
-            }
+            for (let i = 0; i <= 300; i++) urls.push(`img/footboler/${i}.txt`);
+
             try {
                 if ('caches' in window) {
                     const cache = await caches.open('fc-assets-v4');
                     let done = 0;
-                    await Promise.all(urls.map(async url => {
-                        try {
-                            if (!await cache.match(url)) {
-                                const r = await fetch(url, {cache:'force-cache'});
-                                if (r.ok) await cache.put(url, r.clone());
-                            }
-                        } catch(e) {}
-                        done++;
+                    const batchSize = 15; // завантажуємо по 15 файлів за раз
+                    
+                    for (let i = 0; i < urls.length; i += batchSize) {
+                        const batch = urls.slice(i, i + batchSize);
+                        await Promise.all(batch.map(async url => {
+                            try {
+                                if (!await cache.match(url)) {
+                                    const r = await fetch(url, {cache:'force-cache'});
+                                    if (r.ok) await cache.put(url, r.clone());
+                                }
+                            } catch(e) {}
+                            done++;
+                        }));
                         if (infoEl && done % 50 === 0) infoEl.textContent = `Ресурси: ${done}/${urls.length}`;
-                    }));
-                } else {
-                    await Promise.all(urls.map(u => fetch(u, {cache:'force-cache'}).catch(()=>null)));
+                    }
                 }
             } catch(e) {}
             if (infoEl) infoEl.textContent = 'Готово!';
@@ -1172,7 +1176,7 @@
         let quizWrongAnswers = 0;
         let quizAnswerLocked = false;
         let quizQuestionTimer = null;
-        let currentLevelHadError = false; // Трекінг чи була хоча б 1 помилка у поточному рівні
+        let currentLevelHadError = false; 
 
         function getLevelQuestionCount(level) { return level === 0 ? 1 : 5; }
         function getQuestionNumberForLevel(level, index) { return level === 0 ? 0 : ((level - 1) * 5 + 1 + index); }
@@ -1211,16 +1215,26 @@
         }
         function closeSheet() { document.getElementById('sheet-overlay').classList.remove('active'); document.getElementById('bottom-sheet').classList.remove('active'); }
 
+        // ВИПРАВЛЕННЯ 2: Захист від втрати пакетів (Retry mechanism) для txt файлів
         async function loadQuizQuestion(questionNumber) {
             const base = `img/footboler/${questionNumber}`;
             let rawText = null;
-            try { const r = await fetch(`${base}.txt`, {cache:'force-cache'}); if (r.ok) rawText = await r.text(); } catch(e) {}
+            
+            for(let retry = 0; retry < 3; retry++){
+                try { 
+                    const r = await fetch(`${base}.txt`, {cache:'force-cache'}); 
+                    if (r.ok) { rawText = await r.text(); break; }
+                } catch(e) {}
+                if (!rawText) await new Promise(res => setTimeout(res, 250)); // пауза перед повтором
+            }
+            
             if (!rawText) throw new Error('missing');
             const parsed = parseQuestionFileText(rawText);
             if (!parsed || !parsed.question || parsed.options.length < 2) throw new Error('format');
             return {parsed, images:[`${base}.png`,`${base}.jpg`,`${base}.jpeg`,`${base}.webp`]};
         }
 
+        // ВИПРАВЛЕННЯ 3: Перевірка файлів із повторними спробами (Retry)
         async function startCurrentLevelQuiz() {
             closeAllQuizSheets();
             if (quizQuestionTimer) { clearTimeout(quizQuestionTimer); quizQuestionTimer=null; }
@@ -1230,11 +1244,18 @@
             try {
                 for (let i = 0; i < total; i++) {
                     const qn = getQuestionNumberForLevel(level, i);
-                    const res = await fetch(`img/footboler/${qn}.txt`, { cache: 'force-cache' });
-                    if (!res.ok) throw new Error('File not found');
+                    let ok = false;
+                    for (let retry = 0; retry < 3; retry++) {
+                        try {
+                            const res = await fetch(`img/footboler/${qn}.txt`, { cache: 'force-cache' });
+                            if (res.ok) { ok = true; break; }
+                        } catch(e) {}
+                        if(!ok) await new Promise(r => setTimeout(r, 200));
+                    }
+                    if (!ok) throw new Error('File not found: ' + qn);
                 }
             } catch (e) {
-                showToast("Питання не було знайдено, або у вас стався збій!");
+                showToast("Питання не було знайдено або мережа нестабільна. Спробуйте ще раз!");
                 return;
             }
 
@@ -1280,7 +1301,7 @@
                     document.getElementById('tutorial-mask').classList.remove('active'); 
                 }
             } catch(e) { 
-                showToast("Питання не було знайдено, або у вас стався збій!");
+                showToast("Питання не було знайдено, або у вас стався збій мережі!");
             }
         }
 
@@ -1334,7 +1355,6 @@
             const earnedPoints = correct * 2;
             userData.score += earnedPoints;
 
-            // Якщо була хоча б 1 помилка у цьому рівні (навіть якщо після рестарту зроблено все правильно)
             const hasError = (quizWrongAnswers > 0) || currentLevelHadError;
 
             if (!Array.isArray(userData.completedLevels)) userData.completedLevels = [];
@@ -1368,7 +1388,6 @@
             desc.textContent = `Результат: ${correct} з ${total} правильних відповідей.`;
             reward.textContent = earnedPoints > 0 ? `Винагорода: +${earnedPoints} балів` : 'Винагорода: 0 балів';
             
-            // Завжди показуємо обидві кнопки: і «Наступний рівень», і «Почати знову»
             next.style.display = 'inline-block';
             next.textContent = 'Наступний рівень';
             retry.style.display = 'inline-block';
@@ -1384,7 +1403,7 @@
                 quizCorrectAnswers++;
             } else {
                 quizWrongAnswers++;
-                currentLevelHadError = true; // Фіксуємо помилку для поточного рівня
+                currentLevelHadError = true; 
             }
 
             const buttons = document.querySelectorAll('.quiz-option-btn');
@@ -1421,7 +1440,6 @@
             document.getElementById('quiz-feedback-next-btn').style.display = 'inline-block';
             
             quizQuestionIndex = 0; quizCorrectAnswers = 0; quizWrongAnswers = 0; quizAnswerLocked = false;
-            // Примітка: currentLevelHadError залишається true, щоб на мапі рівнів відображався червоний хрестик через попередню помилку
             loadAndPlayQuestion();
         }
 
