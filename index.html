@@ -945,7 +945,8 @@
                             try {
                                 if (!await cache.match(url)) {
                                     const r = await fetch(url, {cache:'force-cache'});
-                                    if (r.ok) await cache.put(url, r.clone());
+                                    // ФІКС ДЛЯ ANDROID: r.status === 0 для локальних файлів (file://)
+                                    if (r.ok || r.status === 0) await cache.put(url, r.clone());
                                 }
                             } catch(e) {}
                             done++;
@@ -1235,8 +1236,9 @@
             
             for(let retry = 0; retry < 3; retry++){
                 try { 
-                    const r = await fetch(`${base}.txt${cacheBuster}`, { cache: 'no-cache' }); 
-                    if (r.ok) { rawText = await r.text(); break; }
+                    const r = await fetch(`${base}.txt${cacheBuster}`, { cache: 'no-cache' });
+                    // ФІКС ДЛЯ ANDROID: r.status === 0 для локальних файлів (file://)
+                    if (r.ok || r.status === 0) { rawText = await r.text(); break; }
                 } catch(e) {}
                 if (!rawText) await new Promise(res => setTimeout(res, 250));
             }
@@ -1290,7 +1292,8 @@
                     for (let retry = 0; retry < 3; retry++) {
                         try {
                             const res = await fetch(`img/footboler/${actualQn}.txt?v=${Date.now()}`, { cache: 'no-cache' });
-                            if (res.ok) { ok = true; break; }
+                            // ФІКС ДЛЯ ANDROID: res.status === 0 для локальних файлів (file://)
+                            if (res.ok || res.status === 0) { ok = true; break; }
                         } catch(e) {}
                         if(!ok) await new Promise(r => setTimeout(r, 200));
                     }
