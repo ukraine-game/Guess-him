@@ -790,7 +790,8 @@
         ];
 
         const STORAGE_KEY = 'football_career_save_v10';
-        
+        const TOTAL_QUESTION_FILES = 300; // Кількість наявних унікальних файлів питань
+
         function getDeviceId() {
             let id;
             try {
@@ -816,7 +817,8 @@
             failedLevels: [],
             correctCount: 0,
             incorrectCount: 0,
-            tutorialCompleted: false
+            tutorialCompleted: false,
+            currentProgress: null // Стан недойденого рівню для запобігання чітерству
         };
 
         function saveData() {
@@ -916,19 +918,26 @@
             closeClubDropdown();
         }
 
-        // ВИПРАВЛЕННЯ 1: Завантаження чанками, щоб не блокувати мережу
+        // Зациклення файлів: якщо ID питань перевищує TOTAL_QUESTION_FILES, ідемо по колу
+        function getActualQuestionNumber(qn) {
+            if (qn === 0) return 0;
+            return ((qn - 1) % TOTAL_QUESTION_FILES) + 1;
+        }
+
         async function preloadAssets() {
             const infoEl = document.getElementById('splash-loading-info');
             if (infoEl) infoEl.textContent = 'Завантаження ресурсів...';
             
             const urls = [];
-            for (let i = 0; i <= 300; i++) urls.push(`img/footboler/${i}.txt`);
+            for (let i = 0; i <= Math.min(300, TOTAL_QUESTION_FILES); i++) {
+                urls.push(`img/footboler/${i}.txt`);
+            }
 
             try {
                 if ('caches' in window) {
-                    const cache = await caches.open('fc-assets-v4');
+                    const cache = await caches.open('fc-assets-v5');
                     let done = 0;
-                    const batchSize = 15; // завантажуємо по 15 файлів за раз
+                    const batchSize = 15;
                     
                     for (let i = 0; i < urls.length; i += batchSize) {
                         const batch = urls.slice(i, i + batchSize);
@@ -1203,10 +1212,12 @@
             
             const isCompleted = Array.isArray(userData.completedLevels) && userData.completedLevels.includes(levelNum);
             const isFailed = Array.isArray(userData.failedLevels) && userData.failedLevels.includes(levelNum);
+            const hasSavedProgress = userData.currentProgress && userData.currentProgress.level === levelNum && userData.currentProgress.questionIndex > 0;
             
             let btnText = 'Почати рівень';
-            if(isCompleted) btnText = 'Пройти ще раз';
-            else if(isFailed) btnText = 'Почати знову';
+            if (hasSavedProgress) btnText = 'Продовжити';
+            else if (isCompleted) btnText = 'Пройти ще раз';
+            else if (isFailed) btnText = 'Почати знову';
 
             document.getElementById('sheet-reward').textContent = levelNum === 0 ? '+0 балів' : '+2 бали за правильну';
             document.getElementById('start-lvl-btn').textContent = btnText;
@@ -1215,44 +1226,75 @@
         }
         function closeSheet() { document.getElementById('sheet-overlay').classList.remove('active'); document.getElementById('bottom-sheet').classList.remove('active'); }
 
-        // ВИПРАВЛЕННЯ 2: Захист від втрати пакетів (Retry mechanism) для txt файлів
+        // Додано cache-buster (?v=) та обробку зациклення файлів
         async function loadQuizQuestion(questionNumber) {
-            const base = `img/footboler/${questionNumber}`;
+            const actualQn = getActualQuestionNumber(questionNumber);
+            const cacheBuster = `?v=${Date.now()}`;
+            const base = `img/footboler/${actualQn}`;
             let rawText = null;
             
             for(let retry = 0; retry < 3; retry++){
                 try { 
-                    const r = await fetch(`${base}.txt`, {cache:'force-cache'}); 
+                    const r = await fetch(`${base}.txt${cacheBuster}`, { cache: 'no-cache' }); 
                     if (r.ok) { rawText = await r.text(); break; }
                 } catch(e) {}
-                if (!rawText) await new Promise(res => setTimeout(res, 250)); // пауза перед повтором
+                if (!rawText) await new Promise(res => setTimeout(res, 250));
             }
             
             if (!rawText) throw new Error('missing');
             const parsed = parseQuestionFileText(rawText);
             if (!parsed || !parsed.question || parsed.options.length < 2) throw new Error('format');
-            return {parsed, images:[`${base}.png`,`${base}.jpg`,`${base}.jpeg`,`${base}.webp`]};
+            return {
+                parsed,
+                images: [
+                    `${base}.png${cacheBuster}`,
+                    `${base}.jpg${cacheBuster}`,
+                    `${base}.jpeg${cacheBuster}`,
+                    `${base}.webp${cacheBuster}`
+                ]
+            };
         }
 
-        // ВИПРАВЛЕННЯ 3: Перевірка файлів із повторними спробами (Retry)
         async function startCurrentLevelQuiz() {
             closeAllQuizSheets();
             if (quizQuestionTimer) { clearTimeout(quizQuestionTimer); quizQuestionTimer=null; }
             quizAnswerLocked = false;
             const level = selectedLevelNum, total = getLevelQuestionCount(level);
+
+            // Перевірка та відновлення збереженого прогресу
+            if (userData.currentProgress && userData.currentProgress.level === level) {
+                quizQuestionIndex = userData.currentProgress.questionIndex || 0;
+                quizCorrectAnswers = userData.currentProgress.correctAnswers || 0;
+                quizWrongAnswers = userData.currentProgress.wrongAnswers || 0;
+                currentLevelHadError = userData.currentProgress.hadError || false;
+            } else {
+                quizQuestionIndex = 0;
+                quizCorrectAnswers = 0;
+                quizWrongAnswers = 0;
+                currentLevelHadError = false;
+                userData.currentProgress = {
+                    level: level,
+                    questionIndex: 0,
+                    correctAnswers: 0,
+                    wrongAnswers: 0,
+                    hadError: false
+                };
+                saveData();
+            }
             
             try {
-                for (let i = 0; i < total; i++) {
+                for (let i = quizQuestionIndex; i < total; i++) {
                     const qn = getQuestionNumberForLevel(level, i);
+                    const actualQn = getActualQuestionNumber(qn);
                     let ok = false;
                     for (let retry = 0; retry < 3; retry++) {
                         try {
-                            const res = await fetch(`img/footboler/${qn}.txt`, { cache: 'force-cache' });
+                            const res = await fetch(`img/footboler/${actualQn}.txt?v=${Date.now()}`, { cache: 'no-cache' });
                             if (res.ok) { ok = true; break; }
                         } catch(e) {}
                         if(!ok) await new Promise(r => setTimeout(r, 200));
                     }
-                    if (!ok) throw new Error('File not found: ' + qn);
+                    if (!ok) throw new Error('File not found: ' + actualQn);
                 }
             } catch (e) {
                 showToast("Питання не було знайдено або мережа нестабільна. Спробуйте ще раз!");
@@ -1267,7 +1309,7 @@
             const qn = getQuestionNumberForLevel(level, quizQuestionIndex);
             
             try {
-                const {parsed,images} = await loadQuizQuestion(qn);
+                const {parsed, images} = await loadQuizQuestion(qn);
                 document.getElementById('quiz-level-title').textContent = `Рівень ${level}`;
                 document.getElementById('quiz-progress-label').textContent = total === 1 ? 'Питання 1 з 1' : `Питання ${quizQuestionIndex+1} з 5`;
                 document.getElementById('quiz-progress-fill').style.width = `${(quizQuestionIndex/total)*100}%`;
@@ -1344,11 +1386,15 @@
             renderQuizStars(rating, total);
             reward.textContent = '';
 
+            // Скидаємо збережений стан рівня (він вже пройдений)
+            userData.currentProgress = null;
+
             if(level === 0){
                 title.textContent = 'Готово!';
                 desc.textContent = correct ? 'Тестове питання пройдено правильно.' : 'Тестове питання завершено.';
                 next.textContent = 'Продовжити навчання';
                 retry.style.display = 'none';
+                saveData();
                 return;
             }
 
@@ -1418,6 +1464,16 @@
                 quizQuestionTimer = null;
                 const total = getLevelQuestionCount(selectedLevelNum);
                 quizQuestionIndex++;
+
+                // Оновлення та миттєве збереження прогресу у localStorage для захисту від перезавантаження
+                if (userData.currentProgress) {
+                    userData.currentProgress.questionIndex = quizQuestionIndex;
+                    userData.currentProgress.correctAnswers = quizCorrectAnswers;
+                    userData.currentProgress.wrongAnswers = quizWrongAnswers;
+                    userData.currentProgress.hadError = currentLevelHadError;
+                    saveData();
+                }
+
                 if(quizQuestionIndex >= total) finishLevelQuiz();
                 else { quizAnswerLocked = false; loadAndPlayQuestion(); }
             }, 1500); 
@@ -1431,6 +1487,8 @@
             
             selectedLevelNum++; 
             quizQuestionIndex = 0; quizCorrectAnswers = 0; quizWrongAnswers = 0; currentLevelHadError = false; quizAnswerLocked = false;
+            userData.currentProgress = null;
+            saveData();
             startCurrentLevelQuiz();
         }
 
@@ -1439,8 +1497,10 @@
             document.getElementById('quiz-feedback-title').style.color = 'inherit';
             document.getElementById('quiz-feedback-next-btn').style.display = 'inline-block';
             
-            quizQuestionIndex = 0; quizCorrectAnswers = 0; quizWrongAnswers = 0; quizAnswerLocked = false;
-            loadAndPlayQuestion();
+            quizQuestionIndex = 0; quizCorrectAnswers = 0; quizWrongAnswers = 0; currentLevelHadError = false; quizAnswerLocked = false;
+            userData.currentProgress = null;
+            saveData();
+            startCurrentLevelQuiz();
         }
 
         function showEraModal(eraNum) {
