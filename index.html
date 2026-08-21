@@ -353,6 +353,7 @@
             margin-bottom: 0; padding-top: 0; padding-bottom: 0; border: none;
         }
         .task-title { font-size: 15px; font-weight: 700; }
+        .task-remaining { font-size: 13px; color: var(--text-sec); font-weight: 600; margin-top: -4px; margin-bottom: 2px;}
         .task-footer { display: flex; justify-content: space-between; align-items: center; }
         .task-reward { font-size: 14px; font-weight: 700; color: var(--primary); }
         .task-btn {
@@ -362,14 +363,29 @@
         .task-btn.claim { background: var(--primary); color: #fff; border-color: var(--primary); }
         
         .session-progress-container {
-            display:none !important;
             width: 100%; height: 8px; background: var(--bg); border-radius: 4px;
             overflow: hidden; border: 1px solid var(--border); margin-top: 2px;
+            display: block; /* Removed !important display: none */
         }
         .session-progress-bar {
             height: 100%; background: var(--primary); width: 0%; transition: width 0.5s ease;
             border-radius: 4px; box-shadow: 0 0 10px var(--primary);
         }
+
+        /* Shop Elements */
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+        .shop-card {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+            padding: 16px; text-align: center; box-shadow: 0 4px 10px var(--shadow);
+            display: flex; flex-direction: column; justify-content: space-between; gap: 8px;
+        }
+        .shop-card-title { font-size: 14px; font-weight: 700; }
+        .shop-card-price { font-size: 15px; font-weight: 800; color: var(--primary); margin-bottom: 6px; }
+        .shop-btn {
+            background: var(--primary); color: #fff; border: none; padding: 10px; border-radius: 10px;
+            font-weight: 700; font-size: 13px; cursor: pointer; width: 100%; margin-top: auto; transition: 0.2s;
+        }
+        .shop-btn:active { transform: scale(0.95); }
 
         /* Quiz Modal */
         .quiz-modal {
@@ -384,7 +400,32 @@
             display: flex; flex-direction: column; justify-content: space-between; gap: 14px;
             overflow-y: auto;
         }
-        .quiz-header-bar { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px; flex-shrink: 0;}
+        .quiz-header-bar { 
+            display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px; flex-shrink: 0; gap: 8px; 
+        }
+        .quiz-actions { display: flex; gap: 8px; align-items: center; margin-left: auto; }
+        
+        /* Hint Buttons */
+        .hint-btn {
+            background: var(--surface); border: 1px solid var(--primary);
+            width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 15px; cursor: pointer; position: relative; color: var(--text-main); font-weight: 700;
+            transition: 0.2s; box-shadow: 0 2px 8px var(--shadow);
+        }
+        .hint-btn:active { transform: scale(0.9); }
+        .hint-btn[disabled] { opacity: 0.5; cursor: not-allowed; border-color: var(--border); box-shadow: none; }
+        .hint-badge {
+            position: absolute; top: -4px; right: -4px; background: #ff3b30; color: #fff;
+            font-size: 9px; font-weight: bold; width: 16px; height: 16px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; border: 2px solid var(--surface);
+        }
+        .hint-correct-glow {
+            box-shadow: 0 0 15px var(--primary) !important;
+            border-color: var(--primary) !important;
+            background: rgba(0, 210, 106, 0.15) !important;
+            color: var(--text-main) !important;
+        }
+
         .quiz-progress-wrap { width: 100%; flex-shrink: 0; }
         .quiz-progress-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; font-size: 11px; color: var(--text-sec); font-weight: 700; }
         .quiz-progress-track { width: 100%; height: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
@@ -470,7 +511,7 @@
         .close-btn {
             background: var(--bg); border: none; width: 32px; height: 32px;
             border-radius: 50%; color: var(--text-main); font-size: 16px; cursor: pointer;
-            border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+            border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
         .theme-options { display: flex; gap: 10px; margin-top: 10px; }
         .theme-btn {
@@ -586,8 +627,18 @@
         <div class="quiz-modal" id="quiz-modal">
             <div class="quiz-card">
                 <div class="quiz-header-bar">
-                    <span id="quiz-level-title">Рівень 1</span>
-                    <button class="close-btn" onclick="closeQuizModal()">✕</button>
+                    <span id="quiz-level-title" style="flex:1;">Рівень 1</span>
+                    <div class="quiz-actions">
+                        <button class="hint-btn" id="btn-hint-5050" onclick="use5050Hint()">
+                            ½
+                            <div class="hint-badge" id="badge-hint-5050">0</div>
+                        </button>
+                        <button class="hint-btn" id="btn-hint-full" onclick="useStandardHint()">
+                            💡
+                            <div class="hint-badge" id="badge-hint-full">0</div>
+                        </button>
+                        <button class="close-btn" onclick="closeQuizModal()">✕</button>
+                    </div>
                 </div>
                 <div class="quiz-progress-wrap" id="quiz-progress-wrap">
                     <div class="quiz-progress-meta">
@@ -650,9 +701,44 @@
             </div>
 
             <div id="tab-shop" class="tab-content">
-                <h2 style="margin: 16px 0; text-align: center; font-weight: 800;">Магазин</h2>
-                <div style="background: var(--surface); padding: 40px 20px; border-radius: 24px; text-align: center; border: 1px solid var(--border);">
-                    <p style="color: var(--text-sec);">Скоро тут будуть нові нагороди та скіни.</p>
+                <h2 style="margin: 16px 0; text-align: center; font-weight: 800;">Магазин балів</h2>
+                
+                <h3 style="font-size: 16px; margin-top: 10px; font-weight: 700;">Підказка 50/50 <span style="font-size: 13px; font-weight: 500; color: var(--text-sec); display: block;">(Залишає правильний і 1 випадковий варіант)</span></h3>
+                <div class="shop-grid">
+                    <div class="shop-card">
+                        <div class="shop-card-title">3x Підказки</div>
+                        <div class="shop-card-price">20 балів</div>
+                        <button class="shop-btn" onclick="buyHint('5050', 3, 20)">Купити</button>
+                    </div>
+                    <div class="shop-card">
+                        <div class="shop-card-title">5x Підказок</div>
+                        <div class="shop-card-price">30 балів</div>
+                        <button class="shop-btn" onclick="buyHint('5050', 5, 30)">Купити</button>
+                    </div>
+                    <div class="shop-card">
+                        <div class="shop-card-title">10x Підказок</div>
+                        <div class="shop-card-price">50 балів</div>
+                        <button class="shop-btn" onclick="buyHint('5050', 10, 50)">Купити</button>
+                    </div>
+                </div>
+
+                <h3 style="font-size: 16px; margin-top: 24px; font-weight: 700;">Повна підказка <span style="font-size: 13px; font-weight: 500; color: var(--text-sec); display: block;">(Підсвічує правильну відповідь)</span></h3>
+                <div class="shop-grid">
+                    <div class="shop-card">
+                        <div class="shop-card-title">3x Підказки</div>
+                        <div class="shop-card-price">40 балів</div>
+                        <button class="shop-btn" onclick="buyHint('full', 3, 40)">Купити</button>
+                    </div>
+                    <div class="shop-card">
+                        <div class="shop-card-title">5x Підказок</div>
+                        <div class="shop-card-price">60 балів</div>
+                        <button class="shop-btn" onclick="buyHint('full', 5, 60)">Купити</button>
+                    </div>
+                    <div class="shop-card">
+                        <div class="shop-card-title">10x Підказок</div>
+                        <div class="shop-card-price">100 балів</div>
+                        <button class="shop-btn" onclick="buyHint('full', 10, 100)">Купити</button>
+                    </div>
                 </div>
             </div>
 
@@ -790,7 +876,7 @@
         ];
 
         const STORAGE_KEY = 'football_career_save_v10';
-        const TOTAL_QUESTION_FILES = 300; // Кількість наявних унікальних файлів питань
+        const TOTAL_QUESTION_FILES = 300; 
 
         function getDeviceId() {
             let id;
@@ -818,7 +904,10 @@
             correctCount: 0,
             incorrectCount: 0,
             tutorialCompleted: false,
-            currentProgress: null // Стан недойденого рівню для запобігання чітерству
+            currentProgress: null,
+            hints: 0,
+            hints5050: 0,
+            tutorialHintsGiven: false
         };
 
         function saveData() {
@@ -834,6 +923,8 @@
                         userData = Object.assign(userData, parsed);
                         if(!Array.isArray(userData.completedLevels)) userData.completedLevels=[];
                         if(!Array.isArray(userData.failedLevels)) userData.failedLevels=[];
+                        if(userData.hints === undefined) userData.hints = 0;
+                        if(userData.hints5050 === undefined) userData.hints5050 = 0;
                         return true;
                     }
                 }
@@ -918,7 +1009,6 @@
             closeClubDropdown();
         }
 
-        // Зациклення файлів: якщо ID питань перевищує TOTAL_QUESTION_FILES, ідемо по колу
         function getActualQuestionNumber(qn) {
             if (qn === 0) return 0;
             return ((qn - 1) % TOTAL_QUESTION_FILES) + 1;
@@ -945,7 +1035,6 @@
                             try {
                                 if (!await cache.match(url)) {
                                     const r = await fetch(url, {cache:'force-cache'});
-                                    // ФІКС ДЛЯ ANDROID: r.status === 0 для локальних файлів (file://)
                                     if (r.ok || r.status === 0) await cache.put(url, r.clone());
                                 }
                             } catch(e) {}
@@ -1187,6 +1276,10 @@
         let quizAnswerLocked = false;
         let quizQuestionTimer = null;
         let currentLevelHadError = false; 
+        
+        let currentCorrectIndex = -1;
+        let hintUsedThisQuestion = false;
+        let hint5050UsedThisQuestion = false;
 
         function getLevelQuestionCount(level) { return level === 0 ? 1 : 5; }
         function getQuestionNumberForLevel(level, index) { return level === 0 ? 0 : ((level - 1) * 5 + 1 + index); }
@@ -1227,7 +1320,6 @@
         }
         function closeSheet() { document.getElementById('sheet-overlay').classList.remove('active'); document.getElementById('bottom-sheet').classList.remove('active'); }
 
-        // Додано cache-buster (?v=) та обробку зациклення файлів
         async function loadQuizQuestion(questionNumber) {
             const actualQn = getActualQuestionNumber(questionNumber);
             const cacheBuster = `?v=${Date.now()}`;
@@ -1237,7 +1329,6 @@
             for(let retry = 0; retry < 3; retry++){
                 try { 
                     const r = await fetch(`${base}.txt${cacheBuster}`, { cache: 'no-cache' });
-                    // ФІКС ДЛЯ ANDROID: r.status === 0 для локальних файлів (file://)
                     if (r.ok || r.status === 0) { rawText = await r.text(); break; }
                 } catch(e) {}
                 if (!rawText) await new Promise(res => setTimeout(res, 250));
@@ -1263,7 +1354,6 @@
             quizAnswerLocked = false;
             const level = selectedLevelNum, total = getLevelQuestionCount(level);
 
-            // Перевірка та відновлення збереженого прогресу
             if (userData.currentProgress && userData.currentProgress.level === level) {
                 quizQuestionIndex = userData.currentProgress.questionIndex || 0;
                 quizCorrectAnswers = userData.currentProgress.correctAnswers || 0;
@@ -1292,7 +1382,6 @@
                     for (let retry = 0; retry < 3; retry++) {
                         try {
                             const res = await fetch(`img/footboler/${actualQn}.txt?v=${Date.now()}`, { cache: 'no-cache' });
-                            // ФІКС ДЛЯ ANDROID: res.status === 0 для локальних файлів (file://)
                             if (res.ok || res.status === 0) { ok = true; break; }
                         } catch(e) {}
                         if(!ok) await new Promise(r => setTimeout(r, 200));
@@ -1305,6 +1394,69 @@
             }
 
             loadAndPlayQuestion();
+        }
+
+        function updateHintUI() {
+            document.getElementById('badge-hint-full').textContent = userData.hints || 0;
+            document.getElementById('badge-hint-5050').textContent = userData.hints5050 || 0;
+            
+            const btnFull = document.getElementById('btn-hint-full');
+            const btn5050 = document.getElementById('btn-hint-5050');
+            
+            if ((userData.hints || 0) <= 0 || hintUsedThisQuestion) btnFull.disabled = true;
+            else btnFull.disabled = false;
+
+            if ((userData.hints5050 || 0) <= 0 || hint5050UsedThisQuestion || hintUsedThisQuestion) btn5050.disabled = true;
+            else btn5050.disabled = false;
+        }
+
+        function useStandardHint() {
+            if (quizAnswerLocked || hintUsedThisQuestion || (userData.hints || 0) <= 0) return;
+            userData.hints--;
+            saveData();
+            hintUsedThisQuestion = true;
+            updateHintUI();
+            
+            const correctBtn = document.getElementById(`quiz-opt-btn-${currentCorrectIndex}`);
+            if (correctBtn) correctBtn.classList.add('hint-correct-glow');
+        }
+
+        function use5050Hint() {
+            if (quizAnswerLocked || hint5050UsedThisQuestion || hintUsedThisQuestion || (userData.hints5050 || 0) <= 0) return;
+            userData.hints5050--;
+            saveData();
+            hint5050UsedThisQuestion = true;
+            updateHintUI();
+            
+            const totalOptions = document.querySelectorAll('.quiz-option-btn').length;
+            let wrongIndices = [];
+            for(let i=1; i<=totalOptions; i++) {
+                if (i !== currentCorrectIndex) wrongIndices.push(i);
+            }
+            
+            wrongIndices.sort(() => Math.random() - 0.5);
+            wrongIndices.pop(); 
+            
+            wrongIndices.forEach(idx => {
+                const btn = document.getElementById(`quiz-opt-btn-${idx}`);
+                if (btn) {
+                    btn.style.opacity = '0.3';
+                    btn.style.pointerEvents = 'none';
+                }
+            });
+        }
+
+        function buyHint(type, amount, price) {
+            if (userData.score >= price) {
+                userData.score -= price;
+                if (type === 'full') userData.hints = (userData.hints || 0) + amount;
+                else if (type === '5050') userData.hints5050 = (userData.hints5050 || 0) + amount;
+                saveData();
+                setupProfileUI();
+                showToast(`Успішно придбано ${amount} шт.`);
+            } else {
+                showToast("Недостатньо балів!");
+            }
         }
 
         async function loadAndPlayQuestion() {
@@ -1329,6 +1481,11 @@
                 document.getElementById('quiz-gameplay-section').style.display = 'flex'; 
                 document.getElementById('quiz-feedback-box').style.display = 'none';
                 
+                currentCorrectIndex = parsed.correctIndex;
+                hintUsedThisQuestion = false;
+                hint5050UsedThisQuestion = false;
+                updateHintUI();
+
                 parsed.options.forEach((opt,idx) => { 
                     const b = document.createElement('button'); 
                     b.className = 'quiz-option-btn'; 
@@ -1389,10 +1546,15 @@
             renderQuizStars(rating, total);
             reward.textContent = '';
 
-            // Скидаємо збережений стан рівня (він вже пройдений)
             userData.currentProgress = null;
 
             if(level === 0){
+                if(!userData.tutorialHintsGiven) {
+                    userData.hints = (userData.hints || 0) + 1;
+                    userData.hints5050 = (userData.hints5050 || 0) + 1;
+                    userData.tutorialHintsGiven = true;
+                    showToast("🎁 Отримано пробні підказки!");
+                }
                 title.textContent = 'Готово!';
                 desc.textContent = correct ? 'Тестове питання пройдено правильно.' : 'Тестове питання завершено.';
                 next.textContent = 'Продовжити навчання';
@@ -1458,6 +1620,7 @@
             const buttons = document.querySelectorAll('.quiz-option-btn');
             buttons.forEach((b,idx) => {
                 const n = idx + 1;
+                b.classList.remove('hint-correct-glow');
                 if(n === Number(correctOpt)) b.classList.add('correct');
                 if(n === Number(selectedOpt) && !isCorrect) b.classList.add('wrong');
                 b.style.pointerEvents = 'none';
@@ -1468,7 +1631,6 @@
                 const total = getLevelQuestionCount(selectedLevelNum);
                 quizQuestionIndex++;
 
-                // Оновлення та миттєве збереження прогресу у localStorage для захисту від перезавантаження
                 if (userData.currentProgress) {
                     userData.currentProgress.questionIndex = quizQuestionIndex;
                     userData.currentProgress.correctAnswers = quizCorrectAnswers;
@@ -1559,7 +1721,7 @@
             }
             else if (tutStep === 4) {
                 title.textContent = "Вкладка 'Магазин'";
-                desc.textContent = "Тут купуються нові бонуси. А зараз натисніть на ваш Профіль у верхньому лівому кутку!";
+                desc.textContent = "Тут можна придбати підказки за бали. А зараз натисніть на ваш Профіль у верхньому лівому кутку!";
                 btn.style.display = 'none';
                 document.getElementById('tut-profile')?.classList.add('tutorial-highlight');
             }
@@ -1665,6 +1827,16 @@
                 if (pBar && !userData.tasksCompleted[3]) {
                     pBar.style.width = Math.min(100, (userData.sessionSeconds / TASKS_DATA[3].targetSeconds) * 100) + '%';
                 }
+                
+                const remEl = document.getElementById('task-rem-3');
+                if (remEl && !userData.tasksCompleted[3]) {
+                    let remSec = Math.max(0, TASKS_DATA[3].targetSeconds - userData.sessionSeconds);
+                    let remMin = Math.ceil(remSec / 60);
+                    remEl.textContent = `Залишилося: ~ ${remMin} хв`;
+                } else if (remEl && userData.tasksCompleted[3]) {
+                    remEl.textContent = 'Виконано!';
+                    remEl.style.color = 'var(--primary)';
+                }
             }, 1000);
         }
 
@@ -1682,14 +1854,29 @@
                 if (isReady && !userData.tasksCompleted[index]) { userData.tasksCompleted[index] = true; saveData(); }
                 
                 let progressPercent = 0;
-                if (task.isSession) progressPercent = Math.min(100, (userData.sessionSeconds / task.targetSeconds) * 100);
-                else progressPercent = Math.min(100, (passedLevels / task.targetLevel) * 100);
+                let remainingText = '';
+
+                if (task.isSession) {
+                    progressPercent = Math.min(100, (userData.sessionSeconds / task.targetSeconds) * 100);
+                    let remSec = Math.max(0, task.targetSeconds - userData.sessionSeconds);
+                    let remMin = Math.ceil(remSec / 60);
+                    remainingText = `Залишилося: ~ ${remMin} хв`;
+                } else {
+                    progressPercent = Math.min(100, (passedLevels / task.targetLevel) * 100);
+                    let remLvls = Math.max(0, task.targetLevel - passedLevels);
+                    remainingText = `Залишилося: ~ ${remLvls}`;
+                }
+
+                if (isReady) {
+                    remainingText = 'Виконано!';
+                }
 
                 const card = document.createElement('div');
                 card.className = 'task-card';
                 card.id = `task-card-${index}`;
                 card.innerHTML = `
                     <div class="task-title">${task.title}</div>
+                    <div class="task-remaining" id="task-rem-${index}" ${isReady ? 'style="color: var(--primary);"' : ''}>${remainingText}</div>
                     <div class="session-progress-container">
                         <div class="session-progress-bar" id="task-prog-${index}" style="width: ${progressPercent}%;"></div>
                     </div>
